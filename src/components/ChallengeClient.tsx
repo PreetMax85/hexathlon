@@ -6,12 +6,23 @@ import { GameRun } from "./GameRun";
 import { Button, ButtonLink } from "./ui";
 import { useFetched } from "./useFetched";
 
+/** A dashed danger ring with "ED", the chart mark for a feature whose existence is doubtful. */
+function UnchartedMark() {
+  return (
+    <svg width={88} height={88} viewBox="-44 -44 88 88" aria-hidden className="text-magenta">
+      <circle r={34} fill="none" stroke="currentColor" strokeWidth={2} strokeDasharray="5 4" />
+      <circle r={4} fill="currentColor" />
+      <text y={24} textAnchor="middle" fontSize={15} fontStyle="italic" fontWeight={700} fill="currentColor">ED</text>
+    </svg>
+  );
+}
+
 function Skeleton() {
   return (
-    <div className="flex flex-col gap-4" aria-busy="true" aria-label="Loading challenge">
-      <div className="h-36 animate-pulse rounded-3xl bg-surface-2" />
-      <div className="h-32 animate-pulse rounded-2xl bg-surface-2" />
-      <div className="h-12 animate-pulse rounded-xl bg-surface-2" />
+    <div className="flex flex-col gap-4 pt-2" aria-busy="true" aria-label="Loading challenge">
+      <p className="sea text-ink-2">Plotting the challenge…</p>
+      <div className="hatch h-28 border-y border-hair" />
+      <div className="hatch h-32 border-y border-hair" />
     </div>
   );
 }
@@ -25,21 +36,36 @@ export function ChallengeClient({ id }: { id: string }) {
   if (!result.ok) {
     const missing = result.status === 404;
     return (
-      <div className="flex flex-col items-center gap-4 rounded-3xl border border-line bg-surface p-6 text-center">
-        <span aria-hidden className="text-5xl">{missing ? "🧭" : "📡"}</span>
-        <h1 className="text-2xl font-black">{missing ? "Challenge not found" : "Couldn't load the challenge"}</h1>
-        <p className="text-muted">
-          {missing ? "The link may be mistyped, or it never existed." : result.error}
-        </p>
-        <div className="flex w-full gap-2">
+      <div className="flex flex-col gap-5 py-6">
+        <UnchartedMark />
+        <div className="flex flex-col gap-2">
+          <h1 className="text-l font-extrabold uppercase wide">
+            {missing ? "No such challenge" : "Couldn't load the challenge"}
+          </h1>
+          <p className="sea text-ink-2">
+            {missing ? (
+              <>
+                <b className="not-italic text-magenta">ED</b>, existence doubtful: the link may be mistyped, or the challenge was never charted.
+              </>
+            ) : (
+              result.error
+            )}
+          </p>
+        </div>
+        <div className="flex gap-2">
           {!missing && (
             <Button className="flex-1" onClick={retry}>
               Try again
             </Button>
           )}
-          <ButtonLink href="/" variant="secondary" className="flex-1">
-            Home
+          <ButtonLink href="/" variant={missing ? "primary" : "secondary"} className="flex-1">
+            Back to today&apos;s chart
           </ButtonLink>
+          {missing && (
+            <ButtonLink href="/play/pip-flash/rush" variant="secondary" className="flex-1">
+              Start a Rush
+            </ButtonLink>
+          )}
         </div>
       </div>
     );

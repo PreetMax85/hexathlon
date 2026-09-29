@@ -19,43 +19,41 @@ interface ViewProps {
 
 function LeaderboardView({ title, result, onRetry, total, limit, empty }: ViewProps) {
   return (
-    <section aria-label={title} className="rounded-2xl border border-line bg-surface p-4">
-      <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted">{title}</h3>
+    <section aria-label={title} className="flex flex-col">
+      <div className="border-b border-ink pb-1.5">
+        <h2 className="sea">{title}</h2>
+      </div>
       {result === undefined ? (
-        <ul className="flex flex-col gap-2" aria-busy="true" aria-label="Loading leaderboard">
+        <ul className="flex flex-col" aria-busy="true" aria-label="Loading leaderboard">
           {[0, 1, 2].map((i) => (
-            <li key={i} className="h-11 animate-pulse rounded-lg bg-surface-2" />
+            <li key={i} className="hatch h-11 border-b border-hair" />
           ))}
         </ul>
       ) : !result.ok ? (
-        <div className="flex flex-col items-start gap-2">
-          <p className="text-sm text-bad">Couldn&apos;t load the leaderboard. {result.error}</p>
-          <Button variant="secondary" className="min-h-11 px-4" onClick={onRetry}>
+        <div className="flex flex-col items-start gap-1 py-3">
+          <p className="text-s text-red">Couldn&apos;t load the leaderboard. {result.error}</p>
+          <Button variant="ghost" className="min-h-11 px-0" onClick={onRetry}>
             Try again
           </Button>
         </div>
       ) : result.data.entries.length === 0 ? (
-        <p className="text-sm text-muted">{empty}</p>
+        <p className="sea py-3 text-s text-ink-2">{empty}</p>
       ) : (
-        <ol className="flex flex-col gap-1.5">
+        <ol className="flex flex-col">
           {result.data.entries.slice(0, limit).map((e, i) => (
             <li
               key={`${e.rank}-${e.nickname}-${i}`}
-              className={`flex min-h-11 items-center gap-3 rounded-lg px-3 py-1.5 ${
-                e.mine ? "bg-brand/15 font-bold ring-1 ring-brand" : "bg-surface-2"
-              }`}
+              className={`flex min-h-11 items-center gap-3 border-b border-hair px-1 ${e.mine ? "bg-shoal-2 font-bold" : ""}`}
             >
-              <span className="tabular w-6 text-center font-black text-muted">{e.rank}</span>
+              <span className="w-6 text-center font-bold text-ink-2">{e.rank}</span>
               <span className="min-w-0 flex-1 truncate">
                 {e.nickname}
-                {e.mine && <span className="ml-2 rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold uppercase text-brand-ink">You</span>}
+                {e.mine && <span className="sea ml-2 text-s font-semibold text-magenta">you</span>}
               </span>
-              <span className="tabular font-bold">
+              <span className="font-bold">
                 {e.correct}/{total}
               </span>
-              <span className="tabular w-14 text-right text-sm text-muted">
-                {formatClock(e.totalMs)}
-              </span>
+              <span className="w-12 text-right text-s text-ink-2">{formatClock(e.totalMs)}</span>
             </li>
           ))}
         </ol>
@@ -74,7 +72,7 @@ export function DailyBoard({ format, playerId, refreshKey }: { format: Format; p
       onRetry={retry}
       total={DAILY_TIERS.length}
       limit={20}
-      empty="No scores yet. Yours could be the first."
+      empty="No scores yet today. Yours could be the first."
     />
   );
 }

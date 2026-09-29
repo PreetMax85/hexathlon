@@ -1,8 +1,21 @@
 import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
+import { THEME_BOOT_SCRIPT } from "@/game/theme";
 import "./globals.css";
 
+/** Archivo (OFL): a workhorse grotesque with a width axis, tabular figures and a true italic. */
+const archivo = localFont({
+  src: [
+    { path: "./fonts/archivo.woff2", style: "normal", weight: "100 900" },
+    { path: "./fonts/archivo-italic.woff2", style: "italic", weight: "100 900" },
+  ],
+  variable: "--font-archivo",
+  display: "swap",
+  declarations: [{ prop: "font-stretch", value: "62% 125%" }],
+});
+
 const DESCRIPTION =
-  "Fast puzzle drills for hex-board trading games. Read the board with Pip Flash, trade smart with Port Math, and count cards with Hand Tracker. A Daily puzzle, Rush runs and friend challenges.";
+  "Fast puzzle drills for hex-board trading games. Read the board with Pip Flash, trade smart with Port Math, and count cards with Hand Tracker. A Daily run, Rush runs and friend challenges.";
 
 const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
@@ -25,15 +38,25 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f5f1" },
-    { media: "(prefers-color-scheme: dark)", color: "#12110f" },
+    { media: "(prefers-color-scheme: light)", color: "#f3f7f7" },
+    { media: "(prefers-color-scheme: dark)", color: "#11191f" },
   ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${archivo.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        {/* Applies a chosen day/dusk/night palette before first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
+      <body className="flex min-h-full flex-col p-2 sm:p-3">
+        {/* The neatline frames every screen, like the border of a chart. */}
+        <div className="neatline flex min-h-[calc(100dvh-1rem)] flex-1 flex-col sm:min-h-[calc(100dvh-1.5rem)]">
+          <div className="scale-bar" aria-hidden />
+          {children}
+        </div>
+      </body>
     </html>
   );
 }

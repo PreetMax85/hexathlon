@@ -1,13 +1,17 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import type { BestComparison } from "@/game/best";
 import { runItems, type Format, type Mode } from "@/engine";
+import type { BestComparison } from "@/game/best";
+import { useNowMinute, useTodayKey } from "@/game/browser";
+import { chartDate } from "@/game/chart";
 import { FORMAT_META, TIER_LABEL } from "@/game/meta";
 import { marksStrip, shareText } from "@/game/share";
 import type { LocalResult } from "@/game/storage";
 import { syncLabel, type Sync } from "@/game/sync";
-import { formatClock, formatSeconds } from "@/game/time";
+import { formatClock, formatCountdown, formatSeconds, untilNextDaily } from "@/game/time";
+import { Buoy } from "./glyphs";
+import { PuzzleReveal } from "./PuzzleReveal";
 import { Button, ButtonLink } from "./ui";
 
 interface Props {
@@ -29,29 +33,50 @@ interface Props {
 }
 
 function BestLine({ comparison: c }: { comparison: BestComparison }) {
-  if (c.kind === "first") return <p className="mt-3 font-bold">First Rush on this device. That&apos;s your best to beat.</p>;
-  if (c.kind === "equal") return <p className="mt-3 font-bold">Level with your best.</p>;
+  if (c.kind === "first") return <p className="sea">First Rush on this device: the mark to beat.</p>;
+  if (c.kind === "equal") return <p className="sea">Level with your best.</p>;
   const time = `${c.ms < 0 ? "−" : "+"}${formatSeconds(Math.abs(c.ms))}`;
   const detail = c.correct !== 0 ? `${c.correct > 0 ? "+" : "−"}${Math.abs(c.correct)} right` : time;
-  return (
-    <p className={`mt-3 font-bold ${c.kind === "better" ? "text-good" : "text-muted"}`}>
-      {c.kind === "better" ? `New personal best (${detail})` : `Best still stands (${detail} vs best)`}
-    </p>
+  return c.kind === "better" ? (
+    <p className="font-bold text-green">New best, {detail}.</p>
+  ) : (
+    <p className="sea text-ink-2">Best still stands ({detail}).</p>
   );
 }
 
-/** Score, time, per-puzzle ✓/✗ strip and the share text. */
+/** The chart stamp: score, time and the edition date, pressed onto the result. */
+function PassageStamp({ result, mode, date }: { result: LocalResult; mode: Mode; date: string | null }) {
+  return (
+    <div
+      className="anim-stamp mx-auto flex w-fit flex-col items-center px-6 py-3 text-magenta"
+      style={{ border: "3px double currentColor", transform: "rotate(-4deg)" }}
+    >
+      <span className="label">{mode === "rush" ? "Passage complete" : "Daily charted"}</span>
+      <span className="font-extrabold leading-none condensed" style={{ fontSize: "4.5rem" }}>
+        {result.correct}
+        <span className="text-l font-semibold">/{result.total}</span>
+      </span>
+      <span className="label">
+        {formatClock(result.totalMs)}
+        {date && ` · ${chartDate(date)}`}
+      </span>
+    </div>
+  );
+}
+
+/** A finished run: stamp, comparison, buoy strip (tap to replay a puzzle), boards and sharing. */
 export function Result({ format, mode, result, comparison, nickname, alreadyPlayed, onPlayAgain, sync, onRetrySync, children }: Props) {
   const [copied, setCopied] = useState<"idle" | "copied" | "failed">("idle");
-  const items = runItems(mode, result.seed);
-  const text = shareText({
-    format,
-    mode,
-    correct: result.correct,
-    total: result.total,
-    totalMs: result.totalMs,
+  const [open, setOpen] = useState<number | null>(() => {
+    // Open the first miss straight away: the review is the point of a miss.
+    const i = result.marks.findIndex((m) => !m);
+    return i >= 0 && !alreadyPlayed ? i : null;
   });
-  const perfect = result.correct === result.total;
+  const today = useTodayKey();
+  const now = useNowMinute();
+  const items = runItems(mode, result.seed);
+  const text = shareText({ format, mode, correct: result.correct, total: result.total, totalMs: result.totalMs, date: today });
+  const canReplay = !!result.answers && !!result.times;
 
   const share = async () => {
     const payload = `${text}\n${marksStrip(result.marks)}`;
@@ -69,92 +94,91 @@ export function Result({ format, mode, result, comparison, nickname, alreadyPlay
   };
 
   return (
-    <div className="anim-pop flex flex-col gap-5">
-      <div className="rounded-3xl border border-line bg-surface p-5 text-center">
-        <div className="text-sm font-bold uppercase tracking-wide text-muted">
-          {FORMAT_META[format].name} · {mode === "rush" ? "Rush" : "Daily"}
+    <div className="anim-pop flex flex-col gap-6">
+      <header className="flex flex-col gap-4 text-center">
+        <p className="sea text-ink-2">
+          {FORMAT_META[format].name} {mode === "rush" ? "Rush" : "Daily"}
           {result.relaxed && " · Relaxed, unranked"}
+        </p>
+        <PassageStamp result={result} mode={mode} date={today} />
+        <div className="flex flex-col gap-1">
+          {comparison && <BestLine comparison={comparison} />}
+          {alreadyPlayed && (
+            <p className="text-s text-ink-2">
+              You&apos;ve sailed today&apos;s Daily.
+              {now !== null && <> Next one in <b className="text-ink">{formatCountdown(untilNextDaily(new Date(now)))}</b>.</>}
+            </p>
+          )}
+          <p className="text-s text-ink-2">Average {formatSeconds(result.totalMs / result.total)} a puzzle.</p>
         </div>
-        {alreadyPlayed && (
-          <p className="mt-1 text-sm font-semibold text-warn">
-            You already played today&apos;s Daily. New puzzles at 00:00 UTC.
-          </p>
-        )}
-        <div className="tabular mt-2 text-6xl font-black tracking-tight">
-          {result.correct}
-          <span className="text-3xl font-bold text-muted">/{result.total}</span>
-        </div>
-        <div className="mt-1 text-lg font-semibold">
-          {perfect ? "Perfect run!" : result.correct >= result.total * 0.7 ? "Sharp." : "Keep training."}
-        </div>
-        <dl className="mt-4 grid grid-cols-2 gap-3 text-left">
-          <div className="rounded-xl bg-surface-2 p-3">
-            <dt className="text-xs font-bold uppercase tracking-wide text-muted">Time</dt>
-            <dd className="tabular text-2xl font-extrabold">{formatClock(result.totalMs)}</dd>
-          </div>
-          <div className="rounded-xl bg-surface-2 p-3">
-            <dt className="text-xs font-bold uppercase tracking-wide text-muted">Avg per puzzle</dt>
-            <dd className="tabular text-2xl font-extrabold">{formatSeconds(result.totalMs / result.total)}</dd>
-          </div>
-        </dl>
-        {comparison && <BestLine comparison={comparison} />}
-      </div>
+      </header>
 
-      <section aria-label="Per-puzzle results" className="rounded-2xl border border-line bg-surface p-4">
-        <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted">Puzzles</h3>
-        <ol className="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] gap-2">
+      <section aria-label="Per-puzzle results" className="flex flex-col gap-2">
+        <div className="flex items-baseline justify-between border-b border-ink pb-1.5">
+          <h2 className="sea">The passage</h2>
+          {canReplay && <span className="text-s text-ink-2">Tap a buoy to replay it</span>}
+        </div>
+        <ol className="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-y-1">
           {result.marks.map((ok, i) => (
-            <li
-              key={i}
-              title={`#${i + 1} · ${TIER_LABEL[items[i].tier]}`}
-              aria-label={`Puzzle ${i + 1}, ${TIER_LABEL[items[i].tier]}: ${ok ? "correct" : "wrong"}`}
-              className={`flex aspect-square flex-col items-center justify-center rounded-lg text-lg font-black ${
-                ok ? "bg-good-bg text-good" : "bg-bad-bg text-bad"
-              }`}
-            >
-              {ok ? "✓" : "✗"}
-              <span className="text-[10px] font-semibold opacity-70">{i + 1}</span>
+            <li key={i}>
+              <button
+                type="button"
+                disabled={!canReplay}
+                onClick={() => setOpen(open === i ? null : i)}
+                aria-expanded={open === i}
+                aria-label={`Puzzle ${i + 1}, ${TIER_LABEL[items[i].tier]}: ${ok ? "right" : "wrong"}. Replay`}
+                className={`flex min-h-12 w-full flex-col items-center justify-end pb-0.5 ${open === i ? "bg-shoal-2 ring-1 ring-inset ring-ink" : ""}`}
+              >
+                <Buoy kind={ok ? "cone" : "can"} size={24} />
+                <span className="text-s leading-none text-ink-2">{i + 1}</span>
+              </button>
             </li>
           ))}
         </ol>
-        {mode === "rush" && (
-          <p className="mt-3 text-xs text-muted">Easy 1–4 · Medium 5–9 · Hard 10–13</p>
+        {mode === "rush" && <p className="text-s text-ink-2">Easy 1–4 · Medium 5–9 · Hard 10–13</p>}
+        {open !== null && canReplay && (
+          <PuzzleReveal
+            key={open}
+            format={format}
+            item={items[open]}
+            index={open}
+            answer={result.answers![open]}
+            ms={result.times![open]}
+            relaxed={result.relaxed}
+          />
         )}
       </section>
 
       {nickname}
 
       {sync && syncLabel(sync) && (
-        <div
-          role="status"
-          className={`flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-semibold ${
-            sync.kind === "error" ? "bg-bad-bg text-bad" : sync.kind === "saved" ? "bg-good-bg text-good" : "bg-surface-2 text-muted"
-          }`}
-        >
+        <p role="status" className={`flex min-h-11 items-center justify-between gap-3 text-s ${sync.kind === "error" ? "text-red" : "text-ink-2"}`}>
           <span>{syncLabel(sync)}</span>
           {sync.kind === "error" && onRetrySync && (
-            <Button variant="secondary" className="min-h-11 shrink-0 px-4" onClick={onRetrySync}>
+            <Button variant="ghost" className="min-h-11 shrink-0 px-2" onClick={onRetrySync}>
               Retry
             </Button>
           )}
-        </div>
+        </p>
       )}
 
       {children}
 
       <section aria-label="Share" className="flex flex-col gap-2">
-        <output className="block rounded-xl border border-dashed border-line bg-surface p-3 text-center text-sm font-semibold">
+        <output className="block whitespace-pre-line border border-dashed border-ink-2 bg-deep p-3 text-center text-s font-semibold">
           {text}
+          {"\n"}
+          <span className="tracking-[0.15em]">{marksStrip(result.marks)}</span>
         </output>
-        <Button onClick={share}>
-          {copied === "copied" ? "Copied!" : copied === "failed" ? "Copy failed — select the text above" : "Share result"}
+        <Button variant="secondary" onClick={share}>
+          {copied === "copied" ? "Copied" : copied === "failed" ? "Copy failed. Select the text above" : "Share result"}
         </Button>
       </section>
 
       <div className="flex gap-2">
         {onPlayAgain && (
-          <Button variant="secondary" className="flex-1" onClick={onPlayAgain}>
-            Play again
+          <Button className="flex-1" onClick={onPlayAgain}>
+            Sail again
           </Button>
         )}
         <ButtonLink href="/" variant="secondary" className="flex-1">

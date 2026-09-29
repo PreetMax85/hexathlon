@@ -2,9 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CANDIDATE_LABELS, pipFlashRanking, type PipFlashAnswer, type PipFlashPuzzle } from "@/engine";
-import { formatSeconds } from "@/game/time";
+import { useReducedMotion } from "@/game/browser";
 import { Board } from "./Board";
-import { TimeBar } from "./ui";
 import { usePuzzleClock } from "./useClock";
 
 interface Props {
@@ -58,27 +57,39 @@ export function PipFlashPlay({ puzzle, onAnswer, untimed = false }: Props) {
     ? { totals: ranking.totals, best: ranking.best, picked: picked.index }
     : undefined;
   const labels = CANDIDATE_LABELS.slice(0, puzzle.candidates.length);
+  const reduced = useReducedMotion();
+  const leftMs = done ? 0 : Math.max(0, limit - elapsed);
+  // Reduced motion: the arc steps down once a second instead of sweeping.
+  const ring = untimed ? undefined : ready ? 1 : reduced ? Math.ceil(leftMs / 1000) / Math.ceil(limit / 1000) : leftMs / limit;
 
   return (
-    <div className="flex flex-col gap-3">
-      <div>
-        <h2 className="text-xl font-bold leading-tight">Which corner touches the most pips?</h2>
-        <p className="text-sm text-muted">
-          Tap {labels[0]}–{labels[labels.length - 1]}. Desert counts 0.
-        </p>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <h2 className="font-bold">Which corner touches the most pips?</h2>
+          <p className="text-s text-ink-2">
+            Tap {labels[0]}–{labels[labels.length - 1]}. Desert counts 0.
+          </p>
+        </div>
+        {!untimed && (
+          <div
+            className={`shrink-0 text-right ${leftMs < limit * 0.3 && !ready ? "text-red" : "text-ink"}`}
+            role="timer"
+            aria-label={ready ? "Ready" : `${Math.ceil(leftMs / 1000)} seconds left`}
+          >
+            <span className="label block text-ink-2">{ready ? "Steady" : "Time left"}</span>
+            <span className="text-l font-bold condensed">{(leftMs / 1000).toFixed(1)}</span>
+            <span className="text-s"> s</span>
+          </div>
+        )}
       </div>
-      {!untimed && (
-        <TimeBar
-          fraction={1 - elapsed / limit}
-          label={ready ? "Ready" : formatSeconds(Math.max(0, limit - elapsed))}
-        />
-      )}
       <Board
         board={puzzle.board}
         candidates={puzzle.candidates}
         onPick={pick}
         reveal={reveal}
-        className="mx-auto w-full max-w-[34rem]"
+        ring={ring}
+        className="mx-auto w-full max-w-[36rem]"
         label="Board with lettered corners"
       />
     </div>

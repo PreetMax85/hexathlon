@@ -29,14 +29,14 @@ export function NicknameForm({ initial = "", title, onCancel, onSaved }: FormPro
   };
 
   return (
-    <form onSubmit={submit} className="anim-pop flex w-full flex-col gap-4 rounded-2xl border border-line bg-surface p-5">
+    <form onSubmit={submit} className="anim-pop flex w-full flex-col gap-4 border-y-2 border-ink bg-deep px-4 py-4">
       <div>
-        <h2 id="nick-title" className="text-xl font-extrabold leading-tight">
+        <h2 id="nick-title" className="font-bold">
           {title ?? (initial ? "Change nickname" : "Pick a nickname")}
         </h2>
-        <p className="text-sm text-muted">Shown on leaderboards. No account needed.</p>
+        <p className="text-s text-ink-2">Shown on leaderboards. No account needed.</p>
       </div>
-      <label className="flex flex-col gap-1 text-sm font-semibold">
+      <label className="label flex flex-col gap-1 text-ink-2">
         Nickname
         <input
           autoFocus
@@ -46,7 +46,7 @@ export function NicknameForm({ initial = "", title, onCancel, onSaved }: FormPro
           autoComplete="nickname"
           enterKeyHint="done"
           placeholder="e.g. LongestRoad"
-          className="min-h-12 rounded-xl border border-line bg-bg px-4 text-base font-normal"
+          className="min-h-12 bg-paper px-3 text-m font-normal normal-case tracking-normal text-ink ring-1 ring-inset ring-ink placeholder:text-ink-2 focus-visible:outline-offset-0"
         />
       </label>
       <div className="flex gap-2">
@@ -67,7 +67,7 @@ export function NicknameForm({ initial = "", title, onCancel, onSaved }: FormPro
 export function NicknameDialog(props: FormProps) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-[color-mix(in_srgb,var(--ink)_45%,transparent)] p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="nick-title"

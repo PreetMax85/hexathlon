@@ -13,6 +13,7 @@ import {
 } from "./storage";
 import { readSettings, SETTINGS_KEY, type Settings } from "./settings";
 import { readStreak, DAYS_KEY } from "./today";
+import { readTheme, THEME_KEY, type Theme } from "./theme";
 
 const CHANGE_EVENT = "hexathlon:storage";
 
@@ -118,4 +119,49 @@ export function haptic(): void {
   } catch {
     // Not supported: the visual pulse is enough.
   }
+}
+
+const subscribeMotion = (onChange: () => void) => {
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+};
+
+/** True when the player asked for reduced motion; false on the server. */
+export function useReducedMotion(): boolean {
+  return useSyncExternalStore(
+    subscribeMotion,
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => false,
+  );
+}
+
+const subscribeClock = (onChange: () => void) => {
+  const id = window.setInterval(onChange, 15_000);
+  return () => window.clearInterval(id);
+};
+let nowCache = 0;
+const readNowMinute = () => {
+  // Snapshot to the minute so useSyncExternalStore sees a stable value.
+  const minute = Math.floor(Date.now() / 60_000) * 60_000;
+  if (minute !== nowCache) nowCache = minute;
+  return nowCache;
+};
+
+/** Current time rounded to the minute (refreshing), or null before hydration. */
+export function useNowMinute(): number | null {
+  return useSyncExternalStore(subscribeClock, readNowMinute, () => null);
+}
+
+/** Chosen chart palette; undefined until hydrated. */
+export function useTheme(): Theme | undefined {
+  const raw = useRaw(THEME_KEY);
+  return useMemo(() => (raw === undefined ? undefined : readTheme({ getItem: () => raw, setItem: () => undefined })), [raw]);
+}
+
+/** Store and apply a palette ("auto" follows the system). */
+export function applyTheme(theme: Theme): void {
+  browserKV.setItem(THEME_KEY, theme);
+  if (theme === "auto") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = theme;
 }

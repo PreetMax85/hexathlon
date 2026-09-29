@@ -36,7 +36,8 @@ import { NicknameForm } from "./NicknameDialog";
 import { PipFlashPlay } from "./PipFlashPlay";
 import { PortMathPlay } from "./PortMathPlay";
 import { Result } from "./Result";
-import { Button, ButtonLink, TierBadge } from "./ui";
+import { Buoy } from "./glyphs";
+import { Button, ButtonLink, Note, TierMark } from "./ui";
 import { useConfirm } from "./useClock";
 
 /** A finished run: the local result and the payload sent to the server. */
@@ -77,6 +78,28 @@ function randomSeed(): number {
   return a[0];
 }
 
+/**
+ * The combo as a lighthouse characteristic: the lamp flashes once per step of
+ * the streak on each right answer, and the label reads like a chart light.
+ */
+function LightChar({ combo }: { combo: number }) {
+  const text = lightCharacter(combo);
+  if (!text) return <span className="h-[18px]" aria-hidden />;
+  return (
+    <span className="flex items-center gap-1.5" aria-label={`Combo ${combo}`}>
+      <svg width={18} height={18} viewBox="-9 -9 18 18" aria-hidden>
+        <g key={combo} className="light-flash" style={{ animationIterationCount: Math.min(combo, 8) }}>
+          {[0, 60, 120, 180, 240, 300].map((a) => (
+            <line key={a} x1={0} y1={-4.6} x2={0} y2={-8} stroke="var(--magenta)" strokeWidth={1.6} strokeLinecap="round" transform={`rotate(${a})`} />
+          ))}
+          <circle r={3.4} fill="var(--magenta)" />
+        </g>
+      </svg>
+      <span className="sea text-s font-bold text-magenta">{text}</span>
+    </span>
+  );
+}
+
 function RunHeader({
   format,
   mode,
@@ -96,48 +119,52 @@ function RunHeader({
 }) {
   const router = useRouter();
   const quit = useConfirm(() => router.push("/"));
-  const light = lightCharacter(comboOf(marks));
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 border-b border-ink pb-2">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
             onClick={quit.press}
             aria-label={quit.armed ? "Quit this run? Tap again to confirm" : "Quit run"}
-            className={`grid min-h-11 min-w-11 place-items-center rounded-full border px-3 text-sm font-bold ${
-              quit.armed ? "border-bad text-bad" : "border-line bg-surface"
+            className={`grid min-h-11 min-w-11 shrink-0 place-items-center px-2 text-s font-bold ${
+              quit.armed ? "bg-red text-paper" : "ring-1 ring-inset ring-ink"
             }`}
           >
-            {quit.armed ? "Quit?" : <span aria-hidden>✕</span>}
+            {quit.armed ? (
+              "Quit?"
+            ) : (
+              <svg width={16} height={16} viewBox="0 0 16 16" aria-hidden>
+                <path d="M3 3l10 10M13 3 3 13" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
+              </svg>
+            )}
           </button>
-          <div className="leading-tight">
-            <div className="font-extrabold">{FORMAT_META[format].name}</div>
-            <div className="tabular text-sm text-muted">
-              {mode === "rush" ? "Rush" : "Daily"} · {Math.min(index + 1, total)} / {total}
-              {relaxed && " · Relaxed"}
+          <div className="min-w-0 leading-tight">
+            <div className="truncate font-bold">{FORMAT_META[format].name}</div>
+            <div className="text-s text-ink-2">
+              {mode === "rush" ? "Rush" : "Daily"} · {Math.min(index + 1, total)} of {total}
+              {relaxed && <span className="sea"> · Relaxed</span>}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {light && (
-            <span key={marks.length} className="anim-pop tabular text-sm font-extrabold" aria-label={`Combo ${comboOf(marks)}`}>
-              {light}
-            </span>
-          )}
-          <TierBadge tier={tier} />
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <LightChar combo={comboOf(marks)} />
+          <TierMark tier={tier} />
         </div>
       </div>
-      <ol className="flex gap-1" aria-label="Progress">
-        {Array.from({ length: total }, (_, i) => (
-          <li
-            key={i}
-            aria-label={i < marks.length ? `Puzzle ${i + 1}: ${marks[i] ? "right" : "wrong"}` : `Puzzle ${i + 1}`}
-            className={`h-2 flex-1 rounded-full ${
-              i < marks.length ? (marks[i] ? "bg-good" : "bg-bad") : i === index ? "bg-brand" : "bg-surface-2"
-            }`}
-          />
-        ))}
+      <ol className="flex items-end justify-between" aria-label="Progress">
+        {Array.from({ length: total }, (_, i) => {
+          const kind = i < marks.length ? (marks[i] ? "cone" : "can") : i === index ? "current" : "pending";
+          return (
+            <li key={i} className="flex justify-center" style={{ width: `${100 / total}%` }}>
+              <Buoy
+                kind={kind}
+                size={total > 6 ? 18 : 22}
+                label={i < marks.length ? `Puzzle ${i + 1}: ${marks[i] ? "right" : "wrong"}` : `Puzzle ${i + 1}${i === index ? ", now" : ""}`}
+              />
+            </li>
+          );
+        })}
       </ol>
     </div>
   );
@@ -288,7 +315,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retryKey]);
 
-  if (player === undefined || settings === undefined) return <p className="py-10 text-center text-muted">Loading…</p>;
+  if (player === undefined || settings === undefined) return <p className="sea py-10 text-center text-ink-2">Loading the chart…</p>;
 
   const boards = (result: LocalResult, seed: number, challengeId: string | undefined) => {
     if (result.relaxed) return null;
@@ -361,34 +388,36 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
     }
     const rel = settings.relaxed;
     return (
-      <div className="anim-pop flex flex-col gap-5">
-        <div className="rounded-3xl border border-line bg-surface p-5">
-          <div className="text-sm font-bold uppercase tracking-wide text-muted">
-            {challenge ? `Challenge from ${challenge.createdBy}` : mode === "rush" ? "Rush" : "Daily"}
-          </div>
-          <h1 className="text-3xl font-black leading-tight">{meta.name}</h1>
-          <p className="mt-1 font-medium">{meta.tagline}</p>
-        </div>
-        <ul className="flex flex-col gap-2 rounded-2xl border border-line bg-surface p-4 text-sm">
-          {mode === "rush" ? (
-            <>
-              <li><b>13 puzzles</b> back to back: easy 1–4, medium 5–9, hard 10–13.</li>
-              <li>Score = number right. Ties go to the faster total time.</li>
-              {challenge && <li>Same 13 puzzles as {challenge.createdBy}. Beat their score.</li>}
-            </>
-          ) : (
-            <>
-              <li><b>5 puzzles</b>: 2 easy, 2 medium, 1 hard. The same for everyone today.</li>
-              <li>One scored attempt a day. It resets at 00:00 UTC.</li>
-            </>
-          )}
-          <li>{introTiming(format, rel)}</li>
-          <li>Each clock starts after a short ready beat. You can pause between puzzles.</li>
-        </ul>
-        <label className="flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 text-sm">
-          <span>
-            <b>Relaxed mode</b>
-            <span className="block text-muted">Double time, Hand Tracker steps on tap. Unranked, kept on this device.</span>
+      <div className="anim-pop flex flex-col gap-6">
+        <header className="flex flex-col gap-1">
+          <p className="sea text-ink-2">
+            {challenge ? `Challenge from ${challenge.createdBy}` : mode === "rush" ? "Rush" : "Today's Daily"}
+          </p>
+          <h1 className="text-l font-extrabold wide uppercase">{meta.name}</h1>
+          <p>{meta.tagline}</p>
+        </header>
+        <Note title="Sailing directions" as="div">
+          <ul className="flex flex-col gap-2 text-s">
+            {mode === "rush" ? (
+              <>
+                <li><b>13 puzzles</b> back to back: easy 1–4, medium 5–9, hard 10–13.</li>
+                <li>Score is the number right. Ties go to the faster total time.</li>
+                {challenge && <li>The same 13 puzzles {challenge.createdBy} sailed. Beat their score.</li>}
+              </>
+            ) : (
+              <>
+                <li><b>5 puzzles</b>: 2 easy, 2 medium, 1 hard. The same for everyone today.</li>
+                <li>One scored attempt a day. It resets at 00:00 UTC.</li>
+              </>
+            )}
+            <li className="font-semibold">{introTiming(format, rel)}</li>
+            <li>Each clock starts after a short steady beat. You can pause between puzzles.</li>
+          </ul>
+        </Note>
+        <label className="flex min-h-12 cursor-pointer items-center justify-between gap-4 border-y border-hair py-3">
+          <span className="text-s">
+            <b className="text-m">Relaxed mode</b>
+            <span className="block text-ink-2">Double time; Hand Tracker steps on tap. Unranked, kept on this device.</span>
           </span>
           <input
             type="checkbox"
@@ -402,7 +431,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
           <ButtonLink href="/" variant="secondary">Back</ButtonLink>
           <Button className="flex-1" onClick={start} disabled={mode === "daily" && !today}>
             {challenge ? "Accept challenge" : mode === "rush" ? "Start Rush" : "Play today's Daily"}
-            {rel && " (Relaxed)"}
+            {rel && <span className="sea font-normal"> relaxed</span>}
           </Button>
         </div>
       </div>
@@ -415,9 +444,9 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
     return (
       <div className="flex flex-col gap-4">
         <RunHeader format={format} mode={mode} marks={marks} index={index} total={items.length} tier={item.tier} relaxed={play.relaxed} />
-        <section className="anim-pop flex flex-col items-center gap-3 rounded-3xl border border-line bg-surface p-6 text-center" aria-label="Paused">
-          <h2 className="text-2xl font-black">Paused</h2>
-          <p className="text-muted">
+        <section className="anim-pop flex flex-col items-center gap-3 py-10 text-center" aria-label="Paused">
+          <h2 className="text-l font-extrabold wide uppercase">Paused</h2>
+          <p className="text-ink-2">
             {answered} of {items.length} done. The next puzzle&apos;s clock starts when you resume.
           </p>
           <Button className="w-full" onClick={() => step("resume")} autoFocus>

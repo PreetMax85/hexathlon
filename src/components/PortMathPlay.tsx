@@ -9,7 +9,7 @@ import {
   type PortMathPuzzle,
   type Resource,
 } from "@/engine";
-import { BUILD_EMOJI, BUILD_LABEL, RESOURCE_META } from "@/game/meta";
+import { BUILD_LABEL, RESOURCE_META } from "@/game/meta";
 import {
   addTrade,
   canBuild,
@@ -21,6 +21,7 @@ import {
   type TradeState,
 } from "@/game/portMathState";
 import { tradeText } from "@/game/verdict";
+import { Glyph } from "./glyphs";
 import { Button } from "./ui";
 import { useConfirm, usePuzzleClock } from "./useClock";
 
@@ -28,10 +29,6 @@ interface Props {
   puzzle: PortMathPuzzle;
   /** Fired once: the trades made, or null when the player skips. */
   onAnswer: (answer: PortMathAnswer | null, ms: number) => void;
-}
-
-function portLabel(kind: string) {
-  return kind === "generic" ? "3:1 any" : `2:1 ${RESOURCE_META[kind as Resource].emoji} ${kind}`;
 }
 
 export function PortMathPlay({ puzzle, onAnswer }: Props) {
@@ -68,42 +65,48 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h2 className="text-xl font-bold leading-tight">Afford the build in the fewest trades.</h2>
-        <p className="text-sm text-muted">
-          Trade with the bank, then Build. Any fewest-trade route counts. No clock: time only breaks ties.
-        </p>
+        <h2 className="font-bold">Afford the build in the fewest trades.</h2>
+        <p className="text-s text-ink-2">Any fewest-trade route counts. No clock: time only breaks ties.</p>
       </div>
 
-      <section aria-label="Target" className="rounded-2xl border border-line bg-surface p-3">
-        <div className="text-xs font-bold uppercase tracking-wide text-muted">Build</div>
-        <div className="mt-1 flex flex-wrap gap-2">
+      <section aria-label="Target and ports" className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 border-y border-ink py-3">
+        <span className="label pt-1 text-ink-2">Build</span>
+        <ul className="flex flex-wrap gap-x-4 gap-y-1">
           {puzzle.target.map((b, i) => (
-            <span key={i} className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-3 py-1.5 font-semibold">
-              <span aria-hidden>{BUILD_EMOJI[b]}</span>
+            <li key={i} className="inline-flex items-center gap-1.5 font-bold">
+              <Glyph name={b} size={20} />
               {BUILD_LABEL[b]}
-            </span>
+            </li>
           ))}
-        </div>
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
-          <span className="font-semibold">Your ports:</span>
+        </ul>
+        <span className="label pt-0.5 text-ink-2">Ports</span>
+        <ul className="flex flex-wrap gap-x-4 gap-y-1 text-s">
           {puzzle.ports.length === 0 ? (
-            <span>none (4:1 with the bank)</span>
+            <li className="sea text-ink-2">None: 4:1 with the bank</li>
           ) : (
             puzzle.ports.map((p) => (
-              <span key={p} className="rounded-md bg-surface-2 px-2 py-0.5 font-semibold text-ink">
-                {portLabel(p)}
-              </span>
+              <li key={p} className="sea inline-flex items-center gap-1 font-bold text-magenta">
+                {p === "generic" ? (
+                  "3:1 any"
+                ) : (
+                  <>
+                    2:1 <Glyph name={p as Resource} size={16} /> {p}
+                  </>
+                )}
+              </li>
             ))
           )}
-        </div>
+        </ul>
       </section>
 
-      <section aria-label="Hand" className="overflow-hidden rounded-2xl border border-line bg-surface">
-        <div className="grid grid-cols-[minmax(0,1fr)_1.75rem_1.75rem_3.75rem] items-center gap-x-1.5 border-b border-line px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-muted">
-          <span>{give ? `Trade away ${tradeRate(puzzle.ports, give)} ${give} for…` : "Resource"}</span>
-          <span className="w-full text-center tracking-normal">Now</span>
-          <span className="w-full text-center tracking-normal">Need</span>
-          <span className="w-[3.75rem] text-center">{give ? "Get 1" : "Trade"}</span>
+      <section aria-label="Hand">
+        <div className="grid grid-cols-[minmax(0,1fr)_2.5rem_2.75rem_4.25rem] items-end gap-x-2 border-b border-ink pb-1 text-ink-2">
+          <span className="label min-w-0 truncate">
+            {give ? `Give ${tradeRate(puzzle.ports, give)} ${give} for` : "Card"}
+          </span>
+          <span className="label text-center">Have</span>
+          <span className="label text-center">Short</span>
+          <span className="label text-center">{give ? "Get 1" : "Trade"}</span>
         </div>
         <ul>
           {RESOURCES.map((r) => {
@@ -113,18 +116,18 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
             return (
               <li
                 key={r}
-                className={`grid grid-cols-[minmax(0,1fr)_1.75rem_1.75rem_3.75rem] items-center gap-x-1.5 border-b border-line px-3 py-1.5 last:border-b-0 ${giving ? "bg-brand/10" : ""}`}
+                className={`grid min-h-12 grid-cols-[minmax(0,1fr)_2.5rem_2.75rem_4.25rem] items-center gap-x-2 border-b border-hair ${giving ? "bg-shoal-2" : ""}`}
               >
-                <span className="flex min-w-0 items-center gap-1.5 font-semibold">
-                  <span aria-hidden className="text-xl">{RESOURCE_META[r].emoji}</span>
+                <span className="flex min-w-0 items-center gap-2 font-semibold">
+                  <Glyph name={r} size={20} className="shrink-0 text-ink-2" />
                   <span className="truncate">{RESOURCE_META[r].label}</span>
                 </span>
-                <span className="tabular w-full text-center text-lg font-bold">{hand[r]}</span>
+                <span className="text-center font-bold">{hand[r]}</span>
                 <span
-                  className={`tabular w-full text-center text-lg font-bold ${need[r] === 0 ? "text-muted" : lacking ? "text-bad" : "text-good"}`}
-                  aria-label={`need ${need[r]}`}
+                  className={`text-center font-bold ${need[r] === 0 ? "text-ink-2" : lacking ? "text-red" : "text-green"}`}
+                  aria-label={need[r] === 0 ? "not needed" : lacking ? `short ${missing[r]}` : "covered"}
                 >
-                  {need[r] === 0 ? "–" : lacking ? `-${missing[r]}` : "✓"}
+                  {need[r] === 0 ? "·" : lacking ? `−${missing[r]}` : "ok"}
                 </span>
                 {give === null ? (
                   <button
@@ -132,15 +135,15 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
                     disabled={locked || hand[r] < rate}
                     onClick={() => pickGive(r)}
                     aria-label={`Trade away ${rate} ${r}`}
-                    className="min-h-11 w-[3.75rem] rounded-lg border border-line bg-surface-2 text-sm font-bold disabled:opacity-35 active:scale-95"
+                    className="min-h-11 w-full bg-deep text-s font-bold ring-1 ring-inset ring-ink disabled:hatch disabled:bg-transparent disabled:text-ink-2 disabled:ring-hair"
                   >
-                    {rate} → 1
+                    give {rate}
                   </button>
                 ) : giving ? (
                   <button
                     type="button"
                     onClick={() => setGive(null)}
-                    className="min-h-11 w-[3.75rem] rounded-lg bg-ink text-sm font-bold text-bg active:scale-95"
+                    className="min-h-11 w-full bg-ink text-s font-bold text-paper"
                   >
                     Cancel
                   </button>
@@ -149,9 +152,9 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
                     type="button"
                     onClick={() => pickGet(r)}
                     aria-label={`Get 1 ${r}`}
-                    className="min-h-11 w-[3.75rem] rounded-lg bg-brand text-sm font-bold text-brand-ink active:scale-95"
+                    className="min-h-11 w-full bg-magenta text-s font-bold text-on-magenta"
                   >
-                    + 1
+                    get 1
                   </button>
                 )}
               </li>
@@ -160,41 +163,30 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
         </ul>
       </section>
 
-      <div className="flex items-center justify-between gap-3">
-        <div aria-live="polite" className="text-sm">
-          <span className="text-muted">Trades: </span>
-          <span className="tabular text-lg font-bold">{trades}</span>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            className="min-h-11 px-4"
-            disabled={locked || trades === 0}
-            onClick={() => {
-              setState(undoTrade(state));
-              setGive(null);
-              skip.disarm();
-            }}
-          >
-            Undo
-          </Button>
-          <Button
-            variant={skip.armed ? "secondary" : "ghost"}
-            className="min-h-11 px-3"
-            disabled={locked}
-            onClick={skip.press}
-            aria-live="polite"
-          >
-            {skip.armed ? "Skip? Tap again" : "Skip"}
-          </Button>
-        </div>
+      <div className="flex min-h-11 items-center justify-between gap-3">
+        <p aria-live="polite">
+          <span className="label text-ink-2">Trades </span>
+          <span className="text-l font-bold condensed">{trades}</span>
+        </p>
+        <Button
+          variant="secondary"
+          className="min-h-11 px-4"
+          disabled={locked || trades === 0}
+          onClick={() => {
+            setState(undoTrade(state));
+            setGive(null);
+            skip.disarm();
+          }}
+        >
+          Undo
+        </Button>
       </div>
 
       {trades > 0 && (
-        <ol className="flex flex-wrap gap-2 text-sm text-muted" aria-label="Trades made">
+        <ol className="sea flex flex-wrap gap-x-3 gap-y-1 text-s text-ink-2" aria-label="Trades made">
           {state.trades.map((t, i) => (
-            <li key={i} className="rounded-md bg-surface-2 px-2 py-1">
-              {tradeText(puzzle, t)}
+            <li key={i}>
+              {i + 1}. {tradeText(puzzle, t)}
             </li>
           ))}
         </ol>
@@ -203,6 +195,12 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
       <Button className="w-full" disabled={locked || !canBuild(puzzle, state)} onClick={() => finish(state.trades)}>
         Build
       </Button>
+      {/* Skip sits apart from Undo and asks once more before it counts as wrong. */}
+      <div className="flex justify-center">
+        <Button variant="ghost" className="min-h-11 px-3" disabled={locked} onClick={skip.press}>
+          {skip.armed ? "Skip this puzzle? Tap again" : "Skip"}
+        </Button>
+      </div>
     </div>
   );
 }

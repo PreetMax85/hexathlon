@@ -1,71 +1,140 @@
 @import "tailwindcss";
 
+/*
+ * Chart Room. Day is a paper chart; dusk and night are dimmed ECDIS
+ * palettes (no glow). The board owns the saturated land colours; the chrome
+ * is paper and ink, with chart magenta for lights, notes and focus.
+ */
 :root {
-  --bg: #f6f5f1;
-  --surface: #ffffff;
-  --surface-2: #eeece4;
-  --line: #ddd9cc;
-  --ink: #1c1b18;
-  --muted: #625e53;
-  --brand: #4338ca;
-  --brand-ink: #ffffff;
-  --good: #166534;
-  --good-bg: #dcfce7;
-  --bad: #b91c1c;
-  --bad-bg: #fee2e2;
-  --warn: #b45309;
-  --sea: #cde4ee;
-  --sea-edge: #a9cbd9;
+  --paper: #f3f7f7;
+  --deep: #ffffff;
+  --shoal: #9ed6df;
+  --shoal-2: #cfebef;
+  --ink: #1d2b36;
+  --ink-2: #475a68;
+  --hair: #c3d1d6;
+  --magenta: #c2187a;
+  --on-magenta: #ffffff;
+  --green: #007a52;
+  --buoy-green: #00875a;
+  --red: #c8102e;
+  --land-filter: none;
+  --token: #fbf8ef;
+  --token-ink: #1d2b36;
+  --token-red: #b3122b;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #12110f;
-    --surface: #1c1b18;
-    --surface-2: #27251f;
-    --line: #37342c;
-    --ink: #f2f0ea;
-    --muted: #a8a394;
-    --brand: #a5b4fc;
-    --brand-ink: #14122e;
-    --good: #86efac;
-    --good-bg: #123320;
-    --bad: #fca5a5;
-    --bad-bg: #3d1717;
-    --warn: #fbbf24;
-    --sea: #1b3340;
-    --sea-edge: #2a4a5b;
+  :root:not([data-theme="day"]):not([data-theme="night"]) {
+    --paper: #11191f;
+    --deep: #18232b;
+    --shoal: #1f4550;
+    --shoal-2: #173640;
+    --ink: #c8d3d8;
+    --ink-2: #8fa1ab;
+    --hair: #2c3b45;
+    --magenta: #d46aa6;
+    --on-magenta: #11191f;
+    --green: #3fae84;
+    --buoy-green: #3fae84;
+    --red: #e0606f;
+    --land-filter: saturate(0.72) brightness(0.78);
+    --token: #d9d4c6;
+    --token-ink: #11191f;
+    --token-red: #8f1024;
+    color-scheme: dark;
   }
 }
 
+:root[data-theme="dusk"] {
+  --paper: #11191f;
+  --deep: #18232b;
+  --shoal: #1f4550;
+  --shoal-2: #173640;
+  --ink: #c8d3d8;
+  --ink-2: #8fa1ab;
+  --hair: #2c3b45;
+  --magenta: #d46aa6;
+  --on-magenta: #11191f;
+  --green: #3fae84;
+  --buoy-green: #3fae84;
+  --red: #e0606f;
+  --land-filter: saturate(0.72) brightness(0.78);
+  --token: #d9d4c6;
+  --token-ink: #11191f;
+  --token-red: #8f1024;
+  color-scheme: dark;
+}
+
+/* Night: the bridge at 3 a.m. Everything dim, nothing bright enough to spoil dark adaptation. */
+:root[data-theme="night"] {
+  --paper: #05080a;
+  --deep: #0b1115;
+  --shoal: #10262c;
+  --shoal-2: #0c1c21;
+  --ink: #8fa0a8;
+  --ink-2: #74848c;
+  --hair: #1a252b;
+  --magenta: #ba6090;
+  --on-magenta: #05080a;
+  --green: #3a9474;
+  --buoy-green: #3a9474;
+  --red: #c85c68;
+  --land-filter: saturate(0.55) brightness(0.52);
+  --token: #9a968c;
+  --token-ink: #05080a;
+  --token-red: #560812;
+  color-scheme: dark;
+}
+
 @theme inline {
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-line: var(--line);
+  --color-paper: var(--paper);
+  --color-deep: var(--deep);
+  --color-shoal: var(--shoal);
+  --color-shoal-2: var(--shoal-2);
   --color-ink: var(--ink);
-  --color-muted: var(--muted);
-  --color-brand: var(--brand);
-  --color-brand-ink: var(--brand-ink);
-  --color-good: var(--good);
-  --color-good-bg: var(--good-bg);
-  --color-bad: var(--bad);
-  --color-bad-bg: var(--bad-bg);
-  --color-warn: var(--warn);
-  --color-sea: var(--sea);
-  --color-sea-edge: var(--sea-edge);
+  --color-ink-2: var(--ink-2);
+  --color-hair: var(--hair);
+  --color-magenta: var(--magenta);
+  --color-on-magenta: var(--on-magenta);
+  --color-green: var(--green);
+  --color-red: var(--red);
+  --font-chart: var(--font-archivo), "Archivo", system-ui, sans-serif;
+  /* The chrome's three sizes. Rank comes from weight, case and italic. */
+  --text-s: 0.8125rem;
+  --text-s--line-height: 1.35;
+  --text-m: 1rem;
+  --text-m--line-height: 1.45;
+  --text-l: 1.625rem;
+  --text-l--line-height: 1.1;
 }
 
 html {
-  color-scheme: light dark;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--bg);
+  background: var(--paper);
   color: var(--ink);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-chart);
+  font-size: var(--text-m);
+  font-variant-numeric: tabular-nums;
   overflow-x: hidden;
+}
+
+::selection {
+  background: var(--magenta);
+  color: var(--on-magenta);
+}
+
+input {
+  caret-color: var(--magenta);
+  accent-color: var(--magenta);
+}
+
+html {
+  scrollbar-color: var(--hair) var(--paper);
 }
 
 button,
@@ -75,13 +144,66 @@ a,
   -webkit-tap-highlight-color: transparent;
 }
 
+a {
+  text-underline-offset: 0.2em;
+}
+
 :focus-visible {
-  outline: 3px solid var(--brand);
+  outline: 3px solid var(--magenta);
   outline-offset: 2px;
 }
 
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* Small caps-style label: condensed, tracked, weighty. */
+.label {
+  font-size: var(--text-s);
+  font-weight: 650;
+  font-stretch: 88%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Water and sea names are set in italic, as on a chart. */
+.sea {
+  font-style: italic;
+  font-weight: 450;
+}
+
+.wide {
+  font-stretch: 118%;
+}
+
+.condensed {
+  font-stretch: 72%;
+}
+
+/*
+ * Neatline: the chart's border. A heavy rule, a thin rule, and between them
+ * the latitude scale of alternating ink and paper bars.
+ */
+.neatline {
+  position: relative;
+  border: 1.5px solid var(--ink);
+  outline: 1px solid var(--ink);
+  outline-offset: 5px;
+}
+
+.scale-bar {
+  height: 5px;
+  background: repeating-linear-gradient(90deg, var(--ink) 0 12px, transparent 12px 24px);
+  border-block: 1px solid var(--ink);
+}
+
+/* Restricted-area hatching for used and disabled states, never opacity. */
+@utility hatch {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--ink-2) 38%, transparent) 0 1.5px,
+    transparent 1.5px 7px
+  );
 }
 
 @keyframes pop {
@@ -106,21 +228,112 @@ a,
   }
 }
 
+/* Buoy verdict: drops onto the chosen spot and bobs once. */
+@keyframes buoy-drop {
+  0% {
+    transform: translateY(-1.4px);
+    opacity: 0;
+  }
+  45% {
+    transform: translateY(0.12px);
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(-0.18px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Light characteristic: one flash per step of the combo. */
+@keyframes flash {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+/* Chart stamp impression on the passage-complete result. */
+@keyframes stamp {
+  0% {
+    transform: rotate(-4deg) scale(1.35);
+    opacity: 0;
+    filter: blur(2px);
+  }
+  60% {
+    transform: rotate(-4deg) scale(0.97);
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: rotate(-4deg) scale(1);
+  }
+}
+
+/* A right answer's pulse. */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
 .anim-pop {
-  animation: pop 160ms ease-out both;
+  animation: pop 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .anim-slide {
-  animation: slide-in 180ms ease-out both;
+  animation: slide-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-buoy {
+  animation: buoy-drop 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-stamp {
+  animation: stamp 520ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+}
+
+.anim-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse-ring 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.light-flash {
+  animation: flash 360ms ease-in-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .anim-pop,
-  .anim-slide {
+  .anim-slide,
+  .anim-buoy,
+  .anim-stamp,
+  .anim-pulse,
+  .light-flash {
     animation: none;
+  }
+  .anim-stamp {
+    transform: rotate(-4deg);
   }
   * {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Board waypoints draw their own focus ring; SVG groups ignore outline. */
+.waypoint .waypoint-focus {
+  opacity: 0;
+}
+.waypoint:focus-visible .waypoint-focus {
+  opacity: 1;
 }
