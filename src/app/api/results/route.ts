@@ -1,8 +1,7 @@
 import { getDb } from "@/db/client";
-import { utcDateKey } from "@/engine";
 import { handle, HttpError, json, readJson } from "@/server/http";
 import { getChallenge, getPlayer, saveResult } from "@/server/store";
-import { parseResultBody, verifyResult } from "@/server/verify";
+import { dailyDatesAt, parseResultBody, verifyResult } from "@/server/verify";
 
 /**
  * Submit a run. The server regenerates every puzzle from the seed and
@@ -19,7 +18,7 @@ export const POST = handle(async (req: Request) => {
   if (!player) throw new HttpError(404, "unknown player");
   const challenge = body.challengeId ? await getChallenge(db, body.challengeId) : null;
 
-  const verified = verifyResult(body, { today: utcDateKey(new Date()), challenge });
+  const verified = verifyResult(body, { dailyDates: dailyDatesAt(new Date()), challenge });
   if (!verified.ok) throw new HttpError(verified.status, verified.error);
   const { correct, totalMs, marks } = verified.value;
 
