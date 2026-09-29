@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   describeEvent,
+  handTrackerPlaybackMs,
   RESOURCES,
   replayHand,
   type HandTrackerAnswer,
@@ -10,7 +11,7 @@ import {
   type Resource,
   type ResourceCounts,
 } from "@/engine";
-import { handPhaseAt, handPhaseAtStep, handPlaybackMs, logSummary } from "@/game/handTrackerFlow";
+import { handPhaseAt, handPhaseAtStep, logSummary } from "@/game/handTrackerFlow";
 import { RESOURCE_META } from "@/game/meta";
 import { emptyPad, PAD_VALUES, padKey, padTap, type PadState } from "@/game/numberPad";
 import { Glyph } from "./glyphs";
@@ -50,7 +51,7 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
   const [step, setStep] = useState(0);
   const finished = answers.length >= puzzle.questions.length;
   const { ready, elapsed, clockMs } = usePuzzleClock(finished);
-  const playbackMs = handPlaybackMs(puzzle);
+  const playbackMs = handTrackerPlaybackMs(puzzle);
   const phase = tapPaced ? handPhaseAtStep(puzzle, step) : handPhaseAt(puzzle, elapsed);
   const asking = !ready && phase.kind === "ask";
   const qIndex = Math.min(answers.length, puzzle.questions.length - 1);

@@ -4,13 +4,14 @@ import {
   generatePortMath,
   solve,
   generateHandTracker,
+  handTrackerPlaybackMs,
   replayTrades,
   covers,
   targetCost,
   runItems,
   type PortMathPuzzle,
 } from "@/engine";
-import { handPhaseAt, handPlaybackMs } from "./handTrackerFlow";
+import { handPhaseAt } from "./handTrackerFlow";
 import { PAD_VALUES } from "./numberPad";
 import {
   addTrade,
@@ -174,11 +175,11 @@ describe("hand tracker flow", () => {
       kind: "events",
       index: 1,
     });
-    expect(handPhaseAt(p, handPlaybackMs(p) - 1)).toEqual({
+    expect(handPhaseAt(p, handTrackerPlaybackMs(p) - 1)).toEqual({
       kind: "events",
       index: p.events.length - 1,
     });
-    expect(handPhaseAt(p, handPlaybackMs(p))).toEqual({ kind: "ask" });
+    expect(handPhaseAt(p, handTrackerPlaybackMs(p))).toEqual({ kind: "ask" });
   });
 
   it("number pad covers 0..19", () => {

@@ -1,4 +1,4 @@
-import { handTrackerPlaybackMs, type HandTrackerPuzzle } from "@/engine";
+import type { HandTrackerPuzzle } from "@/engine";
 
 export type HandPhase =
   | { kind: "reveal" }
@@ -17,11 +17,6 @@ export function handPhaseAt(puzzle: HandTrackerPuzzle, elapsedMs: number): HandP
     if (elapsedMs < end) return { kind: "events", index };
   }
   return { kind: "ask" };
-}
-
-/** Total time before the question appears. */
-export function handPlaybackMs(puzzle: HandTrackerPuzzle): number {
-  return handTrackerPlaybackMs(puzzle);
 }
 
 /**
