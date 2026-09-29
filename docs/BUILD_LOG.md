@@ -60,3 +60,28 @@ sessions, and each commit links to its session.
   - BFS packed hands 5 bits per resource, which could overflow for big hands → 6 bits and a total-cards guard (trades never raise the total).
 - Tests: 57 passing (500 seeds × 3 tiers × 3 formats: validity, tier rules, reference answer correct, perturbed answer wrong; BFS ≤ greedy everywhere and greedy > BFS on hard; BFS cross-checked by an independent depth-limited DFS).
 - Notes for next phase: import everything from `@/engine`. Use `describeEvent` for the Hand Tracker feed, `CANDIDATE_LABELS` for Pip Flash, `tradeRate`/`applyTrade`/`targetCost`/`covers` for the Port Math trade UI, and `toCartesian` + `TOPOLOGY` for the SVG board.
+
+## P3 — Game UI — done
+- What shipped:
+  - Engine: `run.ts` (`runItems`, `scoreRun`, `dailyRunSeed`, `MAX_PUZZLE_MS`). One shared scorer for client and (P4) server; Daily = 1 medium puzzle, Rush = 13.
+  - `src/game/` (client logic, no React except `browser.ts`): run progress, local storage (player, Daily result per UTC date, Rush best), share text (`Hexathlon Rush · Port Math 11/13 · 2:41`), Port Math trade state, Hand Tracker phase clock, number pad, per-format answer verdicts.
+  - `src/components/`: SVG `Board` (hexes, tokens + pips, ports, lettered tappable corners, reveal of pip totals), `PipFlashPlay` (timer bar, A–F keys), `PortMathPlay` (have/need table, tap-to-trade, undo, skip, build), `HandTrackerPlay` (reveal → log feed → 0–19 pad), `GameRun` (intro → 13-puzzle Rush or 1-puzzle Daily → result), `Result` (score, time, ✓/✗ strip, share), `FormatCard` + `HowToPlay` with a tappable live demo per format, `NicknameDialog`, `AppHeader`.
+  - Routes: `/` and `/play/[format]/[mode]` (statically generated for all 6 combinations).
+  - Verified in headless Chromium at 360 px and 1280 px: no horizontal scroll, full Pip Flash Rush to the result screen, Port Math and Hand Tracker flows, dark tokens defined.
+- Decisions (and why):
+  - No new dependencies. Screenshots used the globally installed Playwright, outside the repo.
+  - Times: Pip Flash from board shown to tap; Port Math from screen shown to Build; Hand Tracker from when the question appears to the last answer (playback is fixed-length, so it is not the player's time).
+  - Number pad answers on tap (one tap = locked in) for speed; hard tier asks its 2 questions in sequence.
+  - Correct answers auto-advance after 1.2 s; wrong ones wait for a tap so the explanation (e.g. the optimal trade route) can be read.
+  - Port Math has no time limit (SPEC gives none). Build is disabled until the hand covers the target; Skip counts as wrong.
+  - Local-only until P4: nickname + random id in `localStorage`, Daily result keyed by UTC date (blocks a replay in the same browser), Rush best per format. "Challenge a friend" lands in P4; P3 has "Share result".
+  - Emoji stand in for resource icons (no art, no IP risk); hex colours plus emoji so meaning is never colour-only.
+  - Hydration-safe storage via `useSyncExternalStore` (server snapshot `undefined`), so no flash of wrong state and no set-state-in-effect.
+  - Tests are logic-only (Vitest, node env, no DOM libs): trade state, phase clock, storage, scoring, verdicts. No snapshots.
+- What broke and how it was fixed:
+  - React 19 lint rules forbid `performance.now()`/refs during render and side effects in state updaters → clock read only in handlers/effects via `now()`; answer-once guard is a ref instead of an updater.
+  - Port Math table columns misaligned and clipped at 360 px inside the nested How-to demo → fixed-width grid columns with `minmax(0,1fr)`, demo breaks out of card padding.
+  - Corner labels hid neighbouring pips → smaller labels, 0.8-unit transparent hit area keeps 44 px+ tap targets.
+  - `pkill -f` matched my own shell while restarting the preview server → target the process name.
+- Tests: 82 passing
+- Notes for next phase: `scoreRun(format, mode, seed, answers, times)` is the server recompute; for Daily also require `seed === dailySeed(format, today UTC)`. `LocalResult` shape in `src/game/storage.ts` mirrors the future API result. `GameRun` accepts `fixedSeed` for `/c/<id>`.
