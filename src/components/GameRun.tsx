@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   dailyRunSeed,
   generate,
+  isQuickSet,
   QUICK_SET_LENGTHS,
   RUSH_LENGTH,
   runItems,
@@ -170,7 +171,8 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
   const [length, setLength] = useState<number>(RUSH_LENGTH);
   // Pip Flash Rush can also be a short, unranked quick set.
   const quickSets = format === "pip-flash" && mode === "rush" && !challenge && fixedSeed === undefined;
-
+  /** The length chosen on the intro, when it makes this run a quick set. */
+  const quickLength = quickSets && isQuickSet(mode, length) ? length : undefined;
 
   const play = stage.kind === "play" ? stage : null;
   const relaxed = play?.relaxed ?? settings?.relaxed ?? false;
@@ -235,7 +237,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
       seed,
       dateKey,
       relaxed: settings?.relaxed ?? false,
-      length: quickSets && length !== RUSH_LENGTH ? length : undefined,
+      length: quickLength,
       progress: emptyProgress,
       between: initialBetween,
       final: null,
@@ -283,7 +285,8 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
   if (player === undefined || settings === undefined) return <p className="sea py-10 text-center text-ink-2">Loading…</p>;
 
   const boards = (result: LocalResult, seed: number, challengeId: string | undefined) => {
-    if (result.relaxed) return null;
+    // Relaxed runs and quick sets stay local: no boards, no challenge.
+    if (result.relaxed || result.quick) return null;
     const key = sync.kind;
     if (mode === "daily") return <DailyBoard format={format} playerId={player?.id ?? null} refreshKey={key} />;
     return (
@@ -377,7 +380,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
         )}
         <Note title="How it works" as="div">
           <ul className="flex flex-col gap-2 text-s">
-            {mode === "rush" && quickSets && length !== RUSH_LENGTH ? (
+            {quickLength ? (
               <>
                 <li><b>{length} puzzles</b>, easy to hard. A quick set is unranked and stays on this device.</li>
                 <li>Each answer moves on by itself, a touch slower as the set goes on.</li>
@@ -418,8 +421,8 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
               ? "Accept challenge"
               : mode === "daily"
                 ? "Sail today's Daily"
-                : quickSets && length !== RUSH_LENGTH
-                  ? `Sail ${length}`
+                : quickLength
+                  ? `Sail ${quickLength}`
                   : "Start Rush"}
             {rel && <span className="sea font-normal"> relaxed</span>}
           </Button>

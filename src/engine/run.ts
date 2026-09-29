@@ -23,13 +23,18 @@ export function minPuzzleMs(puzzle: Puzzle): number {
   return puzzle.format === "hand-tracker" ? handTrackerPlaybackMs(puzzle) : MIN_ANSWER_MS;
 }
 
+/** A Rush of any length but 13 is an unranked quick set. */
+export function isQuickSet(mode: Mode, length: number | undefined): boolean {
+  return mode === "rush" && length !== undefined && length !== RUSH_LENGTH;
+}
+
 /**
  * The (tier, seed) puzzles of a run: 5 for Daily, 13 for Rush. A Rush of any
  * other `length` is an unranked quick set with its own seeds.
  */
 export function runItems(mode: Mode, seed: number, length?: number): RushItem[] {
   if (mode === "daily") return dailyItems(seed);
-  return length === undefined || length === RUSH_LENGTH ? rushSeeds(seed) : quickSetItems(seed, length);
+  return isQuickSet(mode, length) ? quickSetItems(seed, length!) : rushSeeds(seed);
 }
 
 /** Seed of today's Daily for a format. Daily runs use it directly. */

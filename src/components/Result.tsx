@@ -63,7 +63,7 @@ function PassageStamp({ result, format, mode, date }: { result: LocalResult; for
         {result.correct}
         <span className="text-l font-semibold">/{result.total}</span>
       </span>
-      <span className="label">
+      <span className="text-s font-semibold">
         {formatClock(result.totalMs)}
         {date && ` · ${chartDate(date)}`}
       </span>
@@ -83,7 +83,7 @@ export function Result({ format, mode, result, date, comparison, nickname, alrea
   const edition = date ?? today;
   const now = useNowMinute();
   const items = runItems(mode, result.seed, result.total);
-  const text = shareText({ format, mode, correct: result.correct, total: result.total, totalMs: result.totalMs, date: edition });
+  const text = shareText({ format, mode, quick: result.quick, correct: result.correct, total: result.total, totalMs: result.totalMs, date: edition });
   const canReplay = !!result.answers && !!result.times;
 
   const share = async () => {

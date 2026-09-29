@@ -1,4 +1,4 @@
-import { RUSH_LENGTH, runItems, type Format, type Mode } from "@/engine";
+import { isQuickSet, runItems, type Format, type Mode } from "@/engine";
 import type { SubmitBody } from "./api";
 import { compareToBest, type BestComparison } from "./best";
 import { finalScore, type RunProgress } from "./runState";
@@ -36,7 +36,7 @@ export interface FinishedRun {
  */
 export function finishRun(kv: KV, run: FinishInput): FinishedRun | null {
   const { format, mode, seed, dateKey, relaxed, progress, length } = run;
-  const quick = mode === "rush" && length !== undefined && length !== RUSH_LENGTH;
+  const quick = isQuickSet(mode, length);
   const score = finalScore(format, mode, seed, progress, { relaxed, length });
   if (!score) return null;
   const result: LocalResult = {

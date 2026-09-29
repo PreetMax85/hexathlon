@@ -55,6 +55,12 @@ describe("time and share", () => {
     expect(marksStrip([true, false])).toBe("▲■");
   });
 
+  it("labels an unranked quick set as one, not as a Rush", () => {
+    expect(shareText({ format: "pip-flash", mode: "rush", quick: true, correct: 3, total: 5, totalMs: 9_000 })).toBe(
+      "Hexathlon Quick set · Pip Flash 3/5 · 0:09",
+    );
+  });
+
   it("never mentions the protected words", () => {
     const text = shareText({ format: "pip-flash", mode: "daily", correct: 1, total: 1, totalMs: 1 });
     expect(text).not.toMatch(/catan|settlers/i);
