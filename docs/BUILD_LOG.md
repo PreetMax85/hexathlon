@@ -152,3 +152,27 @@ sessions, and each commit links to its session.
 - DB: migrated the empty dev branch (`v1-1-dev`) with the existing migration; `RUN_DB_TESTS=1` → 2/2 pass. No new migration.
 - Tests: 124 passing (+2 DB tests, pass with `RUN_DB_TESTS=1`)
 - Notes for next phase: `HandTrackerPuzzle.eventDurationsMs` drives playback; Relaxed doubles durations and limits on the client only.
+
+## V2 — Game-feel flows — done
+- What shipped (logic in `src/game/`, each module with Vitest tests; components only wire it):
+  - `beat.ts`: 600 ms ready beat. `usePuzzleClock` shows the puzzle, ignores taps and keys during the beat, and measures answer time from clock start, not mount.
+  - Intro screens: `introTiming(format, relaxed)` states each tier's clock before play ("7 s easy · 8 s medium · 10 s hard"; Port Math "No time limit. Your total time only breaks ties."; Hand Tracker preview + events + pace). Daily intro says "5 puzzles: 2 easy, 2 medium, 1 hard".
+  - `runFlow.ts`: between-puzzle reducer (`puzzle → verdict → paused`). Pause exists only on the verdict and stops the auto-advance; resuming starts the next puzzle behind its ready beat. Leaving the tab doesn't stop a running clock (it's `performance.now()`-based).
+  - `confirm.ts` + `useConfirm`: Skip (Port Math) and Quit ✕ arm on the first tap ("Skip? Tap again" / "Quit?") and fire on a second within 3 s; no modal.
+  - `numberPad.ts`: Hand Tracker pad is select → Confirm. Digit keys select (two quick digits make 10–19, "2 then 5" is 5), Enter confirms, Backspace clears.
+  - Hand Tracker shows only the current log line. Screen readers get one `logSummary` when playback ends ("Log finished: 8 events. How many wood does Rival hold? Choose 0 to 19, then confirm."), not every line live.
+  - `combo.ts`: combo in the run header written as a light characteristic (`Fl`, `Fl(4)`); display only, resets on a wrong answer. Right answers also get `navigator.vibrate` (skipped under reduced motion).
+  - `today.ts`: streak ("Days at sea") = consecutive UTC days with a finished Daily, stored locally (`hexathlon:days`), alive until today ends. `todayStatus` feeds a Today strip at the top of home (three Dailies, done/open with score and time, streak). `untilNextDaily` + `formatCountdown` for the "next Daily in" line.
+  - `best.ts`: Rush result compares to the previous local best (first / better / equal / worse, with deltas).
+  - Nickname: no modal on arrival or on `/c/<id>`. Anyone can play; the first scored result shows an inline "Put your score on the board" form, then sends. An unsent Daily is still resent on revisit.
+  - `relaxed.ts` + `settings.ts`: Relaxed mode toggle on every intro, remembered per player. Doubles Pip Flash limits and Hand Tracker preview and event durations; Hand Tracker playback advances on tap ("Start the log", "Next line", Space/Enter). Results are labelled "Relaxed, unranked", never sent, never set the Rush best; scored locally with `finalScore(..., { relaxed: true })` (times halved onto the ranked clock, so the shared scorer and floor still apply).
+- Decisions (and why):
+  - **Hand Tracker pace copy uses measured numbers.** Over 500 seeds per tier the engine averages 3.0 / 2.7 / 2.5 s per event, a bit under the brief's rough 3.5 / 3.0 / 2.6. The intro states the measured values; V1's formula is the brief's own, so I kept it rather than padding it.
+  - **Relaxed Hand Tracker is tap-paced only** (not "doubled or tap"). The brief says both; tap-only is the one that actually meets WCAG 2.2.1 for players who need it, and doubled durations still define the local floor.
+  - **A Relaxed Daily uses today's Daily slot and counts for the streak.** The player has seen today's puzzles, so a scored attempt afterwards wouldn't be fair; the streak rewards coming back, which Relaxed players do too.
+  - Pausing ends at the next puzzle's ready beat, not back on the old verdict: the verdict was already read.
+  - The Rush result's "tap a missed puzzle to replay its reveal" is part of the result screen build in V3.
+- What broke and how it was fixed: nothing notable; `HomeNickname` removed with the arrival modal.
+- Checked in headless Chromium at 390 px on the dev DB: no modal on home; a key press during the ready beat is ignored; pause shows only on the verdict; nickname asked at the result, then "Score saved"; Hand Tracker shows one log line, announces the summary, "1","2" → "Confirm 12", Enter submits; Quit arms then navigates home; Today strip shows "Done · 4/5" and "Days at sea: 1". No console errors.
+- Tests: 155 passing (+2 DB tests)
+- Notes for next phase: V3 restyles all of this; behaviour lives in `src/game/` and the hooks in `useClock.ts`.
