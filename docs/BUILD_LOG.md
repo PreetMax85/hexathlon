@@ -131,3 +131,24 @@ sessions, and each commit links to its session.
 - What broke and how it was fixed: nothing.
 - Tests: 102 passing (+2 DB tests skipped without `RUN_DB_TESTS=1`)
 - Notes for next phase: run shots with `NP=$(npm root -g) node <script>`; browser at `/opt/pw-browsers`.
+
+## V1 — Engine and server game rules — done
+- What shipped (all test-first):
+  - Pip Flash `timeLimitMs` 7000 / 8000 / 10000.
+  - Hand Tracker: `secondsPerEvent` replaced by `eventDurationsMs`, one per event, from `eventDurationMs(event, tier)` = words × 60000 / wpm (180 / 220 / 260) + update time (You-only roll 500, rival gain or steal 1000, trade 1500, build 2000). Hard has 20 events and 2 questions. `handTrackerPlaybackMs` = preview + all events. Measured averages over 200 seeds sit inside the brief's ~3.5 / 3.0 / 2.6 s per event (asserted as ranges).
+  - Daily = 5-puzzle mini-run (`dailyItems`: easy, easy, medium, medium, hard; seeds `mixSeed("daily-run", seed, i)`). `runItems`, `scoreRun` and server verification all go through it.
+  - Minimum-time floor: `minPuzzleMs(puzzle)` = Hand Tracker playback length (preview + events), 300 ms otherwise. `scoreRun` returns null for any time under it, so `POST /api/results` answers 400. Tests: a scripted 0 ms run is rejected in every format and mode; one puzzle 1 ms under its floor rejects the whole run; exactly the floor passes.
+  - Daily straddling midnight: `dailyDatesAt(now)` accepts yesterday's Daily seed for 15 minutes after 00:00 UTC (was: rejected).
+- Decisions (and why):
+  - **Hand Tracker time now runs from the preview to the last answer** (v1: from the question). The floor "≥ playback + preview" only makes sense on that clock. Everyone on the same seed gets the same playback, so rankings between them are unchanged.
+  - **Word count ignores "—" and "→"** (a word must contain a letter or digit). That matches the brief's "6 words on average, max 8" figure.
+  - **New Daily seed tag** (`"mini-run-5"` replaces the v1 `"medium"` in the hash). Production still holds v1 1-puzzle Daily rows keyed by seed; a fresh tag means a v1.1 Daily can never share a leaderboard, or the unique index, with a v1 row, including on deploy day. **No schema change or migration**: the partial unique index (player, format, seed WHERE mode = 'daily') is still exactly "one Daily per player per format per day", and `drizzle-kit generate` reports no changes, so nothing touches production's existing rows.
+  - Straddling runs: with 5 puzzles, a Daily started at 23:58 is likely to finish after midnight. A 15-minute grace is long enough for a real run and too short to replay a leaked seed meaningfully (the unique index still allows one attempt per seed).
+  - Client: `GameRun` rounds each recorded time up to `minPuzzleMs`, so a very quick Skip can't get an honest run rejected. It only adds time, so it never helps a score.
+  - `marksSoFar` validates each answered puzzle directly instead of scoring a zero-padded run (zero padding would now trip the floor).
+  - Relaxed mode: results stay local, so no server or schema change; the V2 client scores them against doubled limits.
+  - ESLint now ignores `.claude/**` and `.impeccable/**` (vendored skill scripts produced 94 warnings that weren't app code).
+- What broke and how it was fixed: `marksSoFar` returned `[]` once the floor landed (padded zeros → `scoreRun` null) → per-puzzle validation. Tests with fixed 1000–1500 ms times were below the Hand Tracker floor → they now use `minPuzzleMs + 1 s`.
+- DB: migrated the empty dev branch (`v1-1-dev`) with the existing migration; `RUN_DB_TESTS=1` → 2/2 pass. No new migration.
+- Tests: 124 passing (+2 DB tests, pass with `RUN_DB_TESTS=1`)
+- Notes for next phase: `HandTrackerPuzzle.eventDurationsMs` drives playback; Relaxed doubles durations and limits on the client only.
