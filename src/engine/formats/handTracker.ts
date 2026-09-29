@@ -6,14 +6,19 @@ import { BUILD_COSTS, BUILDS, PORT_KINDS, tradeRate, type Build } from "./portMa
 
 export interface HandTrackerTierRules {
   events: number;
-  secondsPerEvent: number;
+  /** Reading speed the log is paced for, in words per minute. */
+  wpm: number;
   questions: number;
 }
 
+/**
+ * Hard gets harder through more events and two questions, not through speed:
+ * every tier is paced at or below typical silent reading (175–300 wpm).
+ */
 export const HAND_TRACKER_RULES: Record<Tier, HandTrackerTierRules> = {
-  easy: { events: 8, secondsPerEvent: 1.5, questions: 1 },
-  medium: { events: 12, secondsPerEvent: 1.2, questions: 1 },
-  hard: { events: 16, secondsPerEvent: 0.9, questions: 2 },
+  easy: { events: 8, wpm: 180, questions: 1 },
+  medium: { events: 12, wpm: 220, questions: 1 },
+  hard: { events: 20, wpm: 260, questions: 2 },
 };
 
 /** How long the rival's starting hand is shown. */
@@ -39,7 +44,8 @@ export interface HandTrackerPuzzle {
   seed: number;
   startHand: ResourceCounts;
   events: HandEvent[];
-  secondsPerEvent: number;
+  /** How long each event stays on screen, from `eventDurationMs`. */
+  eventDurationsMs: number[];
   revealMs: number;
   /** Each question asks: how many of this resource does Rival hold? */
   questions: Resource[];
@@ -112,6 +118,39 @@ export function describeEvent(event: HandEvent): string {
     case "rival-steal":
       return `Rival stole 1 ${event.resource} from you`;
   }
+}
+
+/** Extra time to update the running count, by what the event does to Rival's hand. */
+function updateMs(event: HandEvent): number {
+  switch (event.type) {
+    case "roll":
+      // Only "You" collecting is a distractor; the rival's hand doesn't move.
+      return event.rival ? 1000 : 500;
+    case "you-steal":
+    case "rival-steal":
+      return 1000;
+    case "trade":
+      return 1500;
+    case "build":
+      // The player has to recall the build cost.
+      return 2000;
+  }
+}
+
+/** Words in a log line; punctuation like "—" and "→" isn't read as a word. */
+function countWords(line: string): number {
+  return line.split(/\s+/).filter((w) => /[A-Za-z0-9]/.test(w)).length;
+}
+
+/** Time an event stays on screen: reading time at the tier's wpm plus update time. */
+export function eventDurationMs(event: HandEvent, tier: Tier): number {
+  const words = countWords(describeEvent(event));
+  return Math.round((words * 60_000) / HAND_TRACKER_RULES[tier].wpm + updateMs(event));
+}
+
+/** Preview of the starting hand plus every event: the shortest possible solve. */
+export function handTrackerPlaybackMs(puzzle: HandTrackerPuzzle): number {
+  return puzzle.revealMs + puzzle.eventDurationsMs.reduce((a, b) => a + b, 0);
 }
 
 /** 2d6 re-rolled until it isn't 7 (sevens move the robber, which is out of scope). */
@@ -223,7 +262,7 @@ export function generateHandTracker(tier: Tier, seed: number): HandTrackerPuzzle
       seed,
       startHand,
       events,
-      secondsPerEvent: rules.secondsPerEvent,
+      eventDurationsMs: events.map((e) => eventDurationMs(e, tier)),
       revealMs: REVEAL_MS,
       questions,
     };

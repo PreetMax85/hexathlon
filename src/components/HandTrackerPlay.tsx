@@ -18,7 +18,7 @@ import { now, useElapsed } from "./useClock";
 
 interface Props {
   puzzle: HandTrackerPuzzle;
-  /** Fired once after the last question, with the counts and answering time. */
+  /** Fired once after the last question, with the counts and the time since the preview. */
   onAnswer: (answer: HandTrackerAnswer, ms: number) => void;
 }
 
@@ -51,18 +51,19 @@ export function HandTrackerPlay({ puzzle, onAnswer }: Props) {
   const phase = handPhaseAt(puzzle, elapsed);
   const asking = phase.kind === "ask";
 
-  // Answering time starts when the question appears.
-  const askedAt = useRef<number | null>(null);
+  // The puzzle's time runs from the preview to the last answer, so it can
+  // never be shorter than the playback (the server enforces that floor).
+  const startedAt = useRef<number | null>(null);
   useEffect(() => {
-    if (asking && askedAt.current === null) askedAt.current = now();
-  }, [asking]);
+    startedAt.current = now();
+  }, []);
 
   const pick = (n: number) => {
     if (!asking || finished) return;
     const next = [...answers, n];
     setAnswers(next);
     if (next.length === puzzle.questions.length) {
-      onAnswer(next, now() - (askedAt.current ?? now()));
+      onAnswer(next, now() - (startedAt.current ?? now()));
     }
   };
 

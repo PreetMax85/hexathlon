@@ -37,9 +37,9 @@ function Demo({ format }: { format: Format }) {
   const puzzle = useMemo(() => {
     if (format === "pip-flash") return generate("pip-flash", "easy", seed);
     if (format === "port-math") return generate("port-math", "easy", seed);
-    // Shorter and slower than the real thing, so it is a friendly first try.
+    // Shorter than the real thing, so it is a friendly first try.
     const base = generate("hand-tracker", "easy", seed) as HandTrackerPuzzle;
-    return { ...base, events: base.events.slice(0, 4), secondsPerEvent: 2 };
+    return { ...base, events: base.events.slice(0, 4), eventDurationsMs: base.eventDurationsMs.slice(0, 4) };
   }, [format, seed]);
 
   const answer = (a: unknown, ms: number) => setResult(verdict(puzzle, a, format === "pip-flash" ? 0 : ms));

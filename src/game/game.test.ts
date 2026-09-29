@@ -166,7 +166,7 @@ describe("hand tracker flow", () => {
     expect(handPhaseAt(p, 0)).toEqual({ kind: "reveal" });
     expect(handPhaseAt(p, p.revealMs - 1)).toEqual({ kind: "reveal" });
     expect(handPhaseAt(p, p.revealMs)).toEqual({ kind: "events", index: 0 });
-    expect(handPhaseAt(p, p.revealMs + p.secondsPerEvent * 1000)).toEqual({
+    expect(handPhaseAt(p, p.revealMs + p.eventDurationsMs[0])).toEqual({
       kind: "events",
       index: 1,
     });

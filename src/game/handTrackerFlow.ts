@@ -1,4 +1,4 @@
-import type { HandTrackerPuzzle } from "@/engine";
+import { handTrackerPlaybackMs, type HandTrackerPuzzle } from "@/engine";
 
 export type HandPhase =
   | { kind: "reveal" }
@@ -7,15 +7,19 @@ export type HandPhase =
 
 /**
  * Phase at `elapsedMs` since the puzzle started: the starting hand shows for
- * `revealMs`, then one event per `secondsPerEvent`, then the question.
+ * `revealMs`, then each event for its own `eventDurationsMs`, then the question.
  */
 export function handPhaseAt(puzzle: HandTrackerPuzzle, elapsedMs: number): HandPhase {
   if (elapsedMs < puzzle.revealMs) return { kind: "reveal" };
-  const index = Math.floor((elapsedMs - puzzle.revealMs) / (puzzle.secondsPerEvent * 1000));
-  return index < puzzle.events.length ? { kind: "events", index } : { kind: "ask" };
+  let end = puzzle.revealMs;
+  for (let index = 0; index < puzzle.events.length; index++) {
+    end += puzzle.eventDurationsMs[index];
+    if (elapsedMs < end) return { kind: "events", index };
+  }
+  return { kind: "ask" };
 }
 
 /** Total time before the question appears. */
 export function handPlaybackMs(puzzle: HandTrackerPuzzle): number {
-  return puzzle.revealMs + puzzle.events.length * puzzle.secondsPerEvent * 1000;
+  return handTrackerPlaybackMs(puzzle);
 }
