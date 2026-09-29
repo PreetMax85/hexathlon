@@ -165,6 +165,8 @@ A paper-chart palette: cool white paper, ink with a blue cast, two water tints, 
 ### Palettes
 Every colour is a CSS custom property with three values: day (the hexes above), dusk, and night. Dusk (`data-theme="dusk"`, and the default under `prefers-color-scheme: dark`) and night (`data-theme="night"`) values live in `.impeccable/design.json`. New surfaces must use the custom properties, never literal hexes, so they follow the palette.
 
+The primary button draws from its own pair, `--action` / `--on-action`: ink on paper by day and dusk, and a dim plate (`#22313a` with `#8fa0a8` text, 4.95:1) at night so the main control is never the brightest thing on a night screen.
+
 ### Named Rules
 **The Board Owns Saturation Rule.** The land colours appear only on the board and in its share-card rendition. Chrome is paper, ink, the water tints, magenta and the verdict pair.
 

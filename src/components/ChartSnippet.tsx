@@ -146,7 +146,6 @@ function IslandPlate({ board }: { board: Board }) {
             justifyContent: "center",
             background: "#ffffff",
             border: `1.5px solid ${MAGENTA}`,
-            borderRadius: 4,
             fontFamily: "ArchivoItalic",
             fontStyle: "italic",
             fontSize: 14,

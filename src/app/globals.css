@@ -22,6 +22,9 @@
   --token: #fbf8ef;
   --token-ink: #1d2b36;
   --token-red: #b3122b;
+  /* Primary action plate; night keeps it dim so nothing glares. */
+  --action: var(--ink);
+  --on-action: var(--paper);
   color-scheme: light;
 }
 
@@ -85,6 +88,8 @@
   --token: #9a968c;
   --token-ink: #05080a;
   --token-red: #560812;
+  --action: #22313a;
+  --on-action: #8fa0a8;
   color-scheme: dark;
 }
 
@@ -96,6 +101,8 @@
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-hair: var(--hair);
+  --color-action: var(--action);
+  --color-on-action: var(--on-action);
   --color-magenta: var(--magenta);
   --color-on-magenta: var(--on-magenta);
   --color-green: var(--green);
