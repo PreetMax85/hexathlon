@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { isRed, TOPOLOGY, toCartesian, type Board } from "@/engine";
 import { RESOURCE_META } from "@/game/meta";
+import { portMark } from "@/components/Board";
 import { glyphPath } from "@/components/glyphs";
 
 /**
@@ -50,16 +51,8 @@ function hexPoints(id: number, scale = 1) {
     .join(" ");
 }
 
-function portMarks(board: Board) {
-  return board.ports.map((port) => {
-    const a = VERTS[port.vertices[0]];
-    const b = VERTS[port.vertices[1]];
-    const mx = (a.x + b.x) / 2;
-    const my = (a.y + b.y) / 2;
-    const len = Math.hypot(mx, my) || 1;
-    return { port, a, b, p: { x: mx + (mx / len) * 1.02, y: my + (my / len) * 1.02 } };
-  });
-}
+// Same port geometry as the in-app board.
+const portMarks = (board: Board) => board.ports.map((port) => ({ port, ...portMark(port.vertices[0], port.vertices[1]) }));
 
 function SnippetPlate({ board }: { board: Board }) {
   const ports = portMarks(board);

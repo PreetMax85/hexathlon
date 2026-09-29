@@ -80,27 +80,22 @@ for (const vp of VIEWPORTS) {
     const { ctx, page } = await context(vp);
     await startRun(page, "/play/port-math/rush", /Start Rush/);
     await page.waitForTimeout(900);
-    const give = page.locator('button[aria-label^="Trade away"]:not([disabled])').first();
-    if (await give.count()) {
-      await give.click();
-      await page.waitForTimeout(200);
-      await page.locator('button[aria-label^="Get 1"]').first().click();
-    }
     await shot(page, "play-port-math", vp);
-    await click(page, /^Skip$/);
-    await shot(page, "play-port-math-skip-confirm", vp);
+    await page.keyboard.press("3");
+    await shot(page, "play-port-math-verdict", vp);
     await ctx.close();
   }
   {
     const { ctx, page } = await context(vp);
     await startRun(page, "/play/hand-tracker/rush", /Start Rush/);
-    await page.waitForTimeout(5200);
+    await page.waitForTimeout(4200);
     await shot(page, "play-hand-tracker-log", vp);
     await page.waitForSelector('section[aria-label="Question"]', { timeout: 90_000 });
-    await page.keyboard.press("3");
+    await page.keyboard.press("9");
     await shot(page, "play-hand-tracker-pad", vp);
     await page.keyboard.press("Enter");
     await page.waitForTimeout(400);
+    await shot(page, "play-hand-tracker-miss", vp);
     await click(page, /^Pause/);
     await shot(page, "play-paused", vp);
     await ctx.close();
@@ -177,8 +172,7 @@ for (const vp of VIEWPORTS) {
     await startRun(page, "/play/port-math/daily", /Sail today/);
     for (let i = 0; i < 5; i++) {
       await page.waitForTimeout(900);
-      await click(page, /^Skip/);
-      await click(page, /Tap again/);
+      await page.keyboard.press("2");
       await page.waitForTimeout(300);
       await click(page, /^(Next|See results)/);
     }
@@ -204,8 +198,8 @@ for (const vp of VIEWPORTS) {
     await shot(page, "play-hand-tracker-relaxed", vp);
     await ctx.close();
   }
-  // Dusk and night palettes.
-  for (const theme of ["dusk", "night"]) {
+  // Dusk palette.
+  for (const theme of ["dusk"]) {
     const { ctx, page } = await context(vp, { theme });
     await page.goto(BASE + "/");
     await shot(page, `home-${theme}`, vp);

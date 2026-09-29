@@ -117,6 +117,13 @@ components:
     rounded: "{rounded.none}"
     padding: "12px 16px"
 ---
+> **v1.2 note.** The owner's review replaced parts of the Chart Room below:
+> magenta → a sea-blue `--accent`; the neatline, scale bar, soundings,
+> graticule and range ring are gone (the timer is a bar); Day and Dusk only;
+> ports are resource-coloured chips; answer buttons sit under the board. See
+> the amendment in `.impeccable/surfaces/src-app.md`. Where this file
+> disagrees, the amendment and the code win.
+
 
 # Design System: Hexathlon
 
