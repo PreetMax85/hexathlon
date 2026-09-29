@@ -85,3 +85,26 @@ sessions, and each commit links to its session.
   - `pkill -f` matched my own shell while restarting the preview server → target the process name.
 - Tests: 82 passing
 - Notes for next phase: `scoreRun(format, mode, seed, answers, times)` is the server recompute; for Daily also require `seed === dailySeed(format, today UTC)`. `LocalResult` shape in `src/game/storage.ts` mirrors the future API result. `GameRun` accepts `fixedSeed` for `/c/<id>`.
+
+## P4 — Persistence and challenges — done
+- What shipped:
+  - `src/db/schema.ts` (players, challenges, results) + first migration in `drizzle/`, **applied to Neon** with `drizzle-kit migrate` over `DATABASE_URL_UNPOOLED` (the database was empty beforehand). `src/db/client.ts` uses `drizzle-orm/neon-http` on the pooled `DATABASE_URL`.
+  - API: `POST /api/players`, `POST /api/results`, `GET /api/daily/<format>`, `POST /api/challenges`, `GET /api/challenges/<id>`. Server logic is layered: `server/verify.ts` (parse + recompute, pure), `server/leaderboard.ts` (pure), `server/store.ts` (DB), thin route files.
+  - Client: `game/api.ts` (never-throwing fetch wrapper), `Leaderboard` (loading skeleton, error + retry, empty state), `ChallengeShare` ("Challenge a friend": create link, copy or share), `/c/[id]` page (`ChallengeClient`: loading, not-found, error states, then the same Rush). Runs are submitted the moment the last puzzle is answered; a Daily finished offline is resent when the page reopens.
+  - `vercel.json` pins functions to `sin1`.
+- Decisions (and why):
+  - **The server never reads a claimed score.** The body carries only answers and times; `scoreRun` regenerates the puzzles from the seed and recomputes correctness. Unknown body fields are dropped by parsing.
+  - Daily: seed must equal `dailySeed(format, today UTC)` exactly (else 409). One row per (player, format, daily seed) is enforced by a **partial unique index** (`WHERE mode = 'daily'`); a second submit returns 409 plus the first score. A run that straddles 00:00 UTC is rejected; acceptable for a 1-puzzle mode.
+  - Challenges can only be created by a player who already has a server-verified Rush result for that seed, so seeds cannot be minted from nothing. Creating one attaches the creator's own result(s) so friends have a score to beat; creating twice returns the same id. Leaderboards show each player's best run (correct desc, then time), ties share a rank.
+  - Player ids are effectively bearer secrets, so the API never returns them; leaderboards return a `mine` flag computed from an optional `?playerId=`.
+  - `POST /api/players` is an upsert (create or rename). Nickname is cleaned server-side (control chars, whitespace, 20 chars).
+  - No interactive transactions (neon-http has none); every write is a single statement and correctness comes from the unique indexes.
+  - Body cap 16 KB; unexpected errors return generic JSON, a missing `DATABASE_URL` returns 503.
+  - DB integration test (`store.db.test.ts`) writes `dbtest-` rows to a real database, so it only runs with `RUN_DB_TESTS=1` and cleans up after itself. Run once against Neon: 2/2 pass. It shows as skipped in plain `pnpm check`.
+  - Dependencies: none added.
+- What broke and how it was fixed:
+  - `set-state-in-effect` lint on the offline Daily resend → split into `perform()` (async, returns the new sync state) and `send()` (sets "saving", then result); the effect only calls `perform().then(setSync)`.
+  - `psql`-style parameter placeholders don't work with the neon `sql` tagged helper via `-e` args; used tagged template values instead (only for one-off DB inspection scripts).
+- End-to-end check (real Neon, headless Chromium at 360 px, throwaway `e2e-` players, deleted afterwards; DB left empty): Daily play → saved → leaderboard; reload shows "already played" + board; Rush → challenge link → second player opens `/c/<id>`, plays the same 13 puzzles, both appear on the challenge leaderboard; unknown challenge shows the not-found state. Also curl-checked: bad shape → 400, unknown player → 404, wrong Daily seed → 409, challenge before a Rush result → 403.
+- Tests: 102 passing (+2 DB integration tests run separately with `RUN_DB_TESTS=1`)
+- Notes for next phase: `pnpm build` lists all API routes as dynamic. Rate limiting is not implemented (out of v1 scope). OG description/title polish and README are P5.
