@@ -7,12 +7,12 @@ import { NicknameDialog } from "./NicknameDialog";
 import { Logo } from "./ui";
 
 /** Top bar: brand link and the player's nickname chip (tap to rename). */
-export function AppHeader() {
+export function AppHeader({ wide = false }: { wide?: boolean }) {
   const player = usePlayer();
   const [renaming, setRenaming] = useState(false);
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-bg/90 backdrop-blur">
-      <div className="mx-auto flex h-14 w-full max-w-xl items-center justify-between px-4">
+      <div className={`mx-auto flex h-14 w-full items-center justify-between px-4 ${wide ? "max-w-xl lg:max-w-6xl" : "max-w-xl"}`}>
         <Link href="/" className="flex min-h-11 items-center gap-2 text-lg font-extrabold tracking-tight">
           <Logo />
           Hexathlon
