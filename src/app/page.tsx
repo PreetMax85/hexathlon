@@ -1,29 +1,31 @@
-const FORMATS = [
-  { name: "Pip Flash", blurb: "Spot the vertex with the most pips before the clock runs out." },
-  { name: "Port Math", blurb: "Reach the build in the fewest maritime trades." },
-  { name: "Hand Tracker", blurb: "Follow the game log and count your rival's cards." },
-];
+import { AppHeader } from "@/components/AppHeader";
+import { FormatCard } from "@/components/FormatCard";
+import { HomeNickname } from "@/components/HomeNickname";
+import { FORMATS } from "@/engine";
 
 export default function Home() {
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-10">
-      <header>
-        <h1 className="text-3xl font-bold tracking-tight">Hexathlon</h1>
-        <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          Short, competitive drills for hex-board trading games. Coming soon.
+    <>
+      <AppHeader />
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-5 px-4 pt-6 pb-10">
+        <section>
+          <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl">
+            Sharpen your board&nbsp;sense.
+          </h1>
+          <p className="mt-2 text-base text-muted">
+            Short puzzle drills for hex-board trading games. A Daily puzzle for everyone, and Rush runs you can send to friends.
+          </p>
+        </section>
+        <ul className="flex flex-col gap-4">
+          {FORMATS.map((f) => (
+            <FormatCard key={f} format={f} />
+          ))}
+        </ul>
+        <p className="text-center text-xs text-muted">
+          No login. Every puzzle is generated from a seed, so everyone sees the same board.
         </p>
-      </header>
-      <ul className="flex flex-col gap-3">
-        {FORMATS.map((f) => (
-          <li
-            key={f.name}
-            className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"
-          >
-            <h2 className="text-lg font-semibold">{f.name}</h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">{f.blurb}</p>
-          </li>
-        ))}
-      </ul>
-    </main>
+      </main>
+      <HomeNickname />
+    </>
   );
 }
