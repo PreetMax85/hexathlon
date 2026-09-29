@@ -72,6 +72,9 @@ you have a reason; record the reason under "Decisions" in BUILD_LOG.
 - The Daily is a **5-puzzle mini-run** (2 easy, 2 medium, 1 hard) from the
   daily seed. Update `runItems`, the verification and the daily-uniqueness
   rules. The results tables are empty, so no data migration is needed.
+  The session's `DATABASE_URL` is the empty Neon dev branch `v1-1-dev`, but
+  production still holds a few v1 players and results. Any new constraint or
+  migration must apply cleanly to those rows too, so don't assume empty tables.
 - **Minimum-time floor** (a known v1 gap: client times are trusted). Reject a
   puzzle time under the human floor: Hand Tracker ≥ its playback length +
   preview, the other formats ≥ 300 ms. Write tests that a scripted 0 ms run is
