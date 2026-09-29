@@ -1,5 +1,5 @@
 import type { Format } from "./formats/common";
-import { dailySeed, DAILY_TIER, generate, rushSeeds, validate, type RushItem } from "./puzzles";
+import { dailyItems, dailySeed, generate, rushSeeds, validate, type RushItem } from "./puzzles";
 
 export const MODES = ["daily", "rush"] as const;
 export type Mode = (typeof MODES)[number];
@@ -11,9 +11,9 @@ export function isMode(x: unknown): x is Mode {
 /** Longest a single puzzle may take before a submitted time is rejected. */
 export const MAX_PUZZLE_MS = 10 * 60 * 1000;
 
-/** The (tier, seed) puzzles of a run: 1 for Daily, 13 for Rush. */
+/** The (tier, seed) puzzles of a run: 5 for Daily, 13 for Rush. */
 export function runItems(mode: Mode, seed: number): RushItem[] {
-  return mode === "daily" ? [{ tier: DAILY_TIER, seed: seed >>> 0 }] : rushSeeds(seed);
+  return mode === "daily" ? dailyItems(seed) : rushSeeds(seed);
 }
 
 /** Seed of today's Daily for a format. Daily runs use it directly. */

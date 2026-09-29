@@ -12,10 +12,16 @@ function perfect(format: (typeof FORMATS)[number], mode: "daily" | "rush", seed:
 }
 
 describe("runItems", () => {
-  it("has 1 puzzle for daily and 13 for rush", () => {
-    expect(runItems("daily", 5)).toHaveLength(1);
-    expect(runItems("daily", 5)[0].tier).toBe("medium");
+  it("has 13 puzzles for rush", () => {
     expect(runItems("rush", 5)).toHaveLength(RUSH_LENGTH);
+  });
+
+  it("makes the Daily a 5-puzzle mini-run: 2 easy, 2 medium, 1 hard", () => {
+    const items = runItems("daily", 5);
+    expect(items.map((it) => it.tier)).toEqual(["easy", "easy", "medium", "medium", "hard"]);
+    expect(new Set(items.map((it) => it.seed)).size).toBe(5);
+    expect(runItems("daily", 5)).toEqual(items);
+    expect(runItems("daily", 6)).not.toEqual(items);
   });
 });
 
@@ -39,7 +45,7 @@ describe("scoreRun", () => {
 
   it("scores a daily run", () => {
     const { answers, times } = perfect("port-math", "daily", 9);
-    expect(scoreRun("port-math", "daily", 9, answers, times)?.correct).toBe(1);
+    expect(scoreRun("port-math", "daily", 9, answers, times)?.correct).toBe(5);
   });
 
   it("rejects wrong lengths and bad times", () => {
