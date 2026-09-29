@@ -19,7 +19,7 @@ export interface LocalResult {
   seed: number;
 }
 
-const PLAYER_KEY = "hexathlon:player";
+export const PLAYER_KEY = "hexathlon:player";
 const RESULT_PREFIX = "hexathlon:result:";
 export const NICKNAME_MAX = 20;
 
@@ -61,7 +61,7 @@ export function savePlayer(kv: KV, nickname: string): Player | null {
   return player;
 }
 
-function resultKey(format: Format, mode: Mode, tag: string): string {
+export function resultKey(format: Format, mode: Mode, tag: string): string {
   return `${RESULT_PREFIX}${format}:${mode}:${tag}`;
 }
 

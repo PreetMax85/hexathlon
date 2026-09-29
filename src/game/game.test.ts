@@ -4,6 +4,9 @@ import {
   generatePortMath,
   solve,
   generateHandTracker,
+  replayTrades,
+  covers,
+  targetCost,
   runItems,
   type PortMathPuzzle,
 } from "@/engine";
@@ -32,6 +35,7 @@ import {
   type LocalResult,
 } from "./storage";
 import { formatClock, formatSeconds } from "./time";
+import { verdict } from "./verdict";
 
 function fakeKV(): KV & { data: Map<string, string> } {
   const data = new Map<string, string>();
@@ -196,5 +200,45 @@ describe("run state", () => {
     });
     expect(isFinished("rush", seed, progress)).toBe(true);
     expect(finalScore("hand-tracker", "rush", seed, progress)?.correct).toBe(12);
+  });
+});
+
+describe("verdict", () => {
+  it("explains each format", () => {
+    for (const format of ["pip-flash", "port-math", "hand-tracker"] as const) {
+      const puzzle = generate(format, "medium", 5);
+      const good = verdict(puzzle, solve(puzzle), 1000);
+      expect(good.correct).toBe(true);
+      expect(good.title).toBe("Correct");
+      const bad = verdict(puzzle, null, 1000);
+      expect(bad.correct).toBe(false);
+      expect(bad.detail.length).toBeGreaterThan(5);
+    }
+  });
+
+  it("flags a Pip Flash timeout", () => {
+    const puzzle = generate("pip-flash", "easy", 2);
+    expect(verdict(puzzle, solve(puzzle), 60_000).title).toBe("Time's up");
+  });
+
+  it("flags a covered-but-suboptimal Port Math answer", () => {
+    const resources = ["wood", "brick", "sheep", "wheat", "ore"] as const;
+    let found = false;
+    for (let seed = 0; seed < 100 && !found; seed++) {
+      const puzzle = generate("port-math", "easy", seed);
+      const need = targetCost(puzzle.target);
+      for (const give of resources) {
+        for (const get of resources) {
+          if (give === get || found) continue;
+          const padded = [{ give, get }, ...solve(puzzle)];
+          const end = replayTrades(puzzle, padded);
+          if (end && covers(end, need)) {
+            found = true;
+            expect(verdict(puzzle, padded, 1).title).toBe("Too many trades");
+          }
+        }
+      }
+    }
+    expect(found).toBe(true);
   });
 });
