@@ -1,4 +1,5 @@
-import type { Format, Resource, Tier } from "@/engine";
+import { HAND_TRACKER_RULES, PIP_FLASH_RULES, REVEAL_MS, TIERS, type Format, type Resource, type Tier } from "@/engine";
+import { RELAXED_FACTOR } from "./relaxed";
 
 export interface FormatMeta {
   name: string;
@@ -65,3 +66,22 @@ export const BUILD_EMOJI = {
   city: "🏙️",
   dev: "🃏",
 } as const;
+
+/**
+ * Average seconds each Hand Tracker log line stays up, measured over 500
+ * seeds per tier (engine `eventDurationMs`). Shown on the intro, not used in play.
+ */
+export const HAND_TRACKER_PACE_S: Record<Tier, number> = { easy: 3.0, medium: 2.7, hard: 2.5 };
+
+/** One line on the intro screen giving each tier's clock before play starts. */
+export function introTiming(format: Format, relaxed: boolean): string {
+  const k = relaxed ? RELAXED_FACTOR : 1;
+  switch (format) {
+    case "pip-flash":
+      return `Time limit per board: ${TIERS.map((t) => `${(PIP_FLASH_RULES[t].timeLimitMs * k) / 1000} s ${t}`).join(" · ")}.`;
+    case "port-math":
+      return "No time limit. Your total time only breaks ties.";
+    case "hand-tracker":
+      return `${(REVEAL_MS * k) / 1000} s to memorise the hand, then ${TIERS.map((t) => HAND_TRACKER_RULES[t].events).join(" / ")} log lines, each shown about ${TIERS.map((t) => (HAND_TRACKER_PACE_S[t] * k).toFixed(1)).join(" / ")} s.`;
+  }
+}
