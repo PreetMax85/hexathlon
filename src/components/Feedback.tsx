@@ -41,7 +41,8 @@ export function Feedback({ verdict, action, onNext, onPause, glideMs, inline }: 
               </Button>
             )}
             {action && onNext && (
-              <Button onClick={onNext} className="relative overflow-hidden px-4">
+              /* Focused on arrival, so Enter or Space moves on from the keyboard. */
+              <Button onClick={onNext} className="relative overflow-hidden px-4" autoFocus={!inline}>
                 {action}
                 {glideMs != null && (
                   <span

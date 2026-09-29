@@ -81,6 +81,8 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
         }
         return;
       }
+      // Enter confirms here; stop it also pressing the Next button that takes focus next.
+      if (e.key === "Enter") e.preventDefault();
       const r = padKey(pad, e.key, now());
       setPad(r.state);
       if (r.submit) confirm(r.state.value);
