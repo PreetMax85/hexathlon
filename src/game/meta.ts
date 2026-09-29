@@ -80,8 +80,8 @@ export function introTiming(format: Format, relaxed: boolean): string {
 }
 
 /** Which puzzles of a run are which tier, e.g. "easy 1–4, medium 5–9, hard 10–13". */
-export function tierRamp(mode: "daily" | "rush"): string {
-  const tiers = runItems(mode, 0).map((it) => it.tier);
+export function tierRamp(mode: "daily" | "rush", length?: number): string {
+  const tiers = runItems(mode, 0, length).map((it) => it.tier);
   return TIERS.map((t) => {
     const first = tiers.indexOf(t) + 1;
     const last = tiers.lastIndexOf(t) + 1;

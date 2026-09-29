@@ -24,6 +24,8 @@ export interface LocalResult {
   synced?: boolean;
   /** Played in Relaxed mode: local only, never ranked or sent. */
   relaxed?: boolean;
+  /** An unranked quick set (a Rush shorter than 13); `total` is its length. */
+  quick?: boolean;
 }
 
 export const PLAYER_KEY = "hexathlon:player";

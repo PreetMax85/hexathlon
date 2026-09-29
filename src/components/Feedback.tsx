@@ -9,14 +9,14 @@ interface Props {
   onNext?: () => void;
   /** Pause before the next puzzle; only offered between puzzles. */
   onPause?: () => void;
-  /** True while a correct answer is about to auto-advance. */
-  autoAdvance?: boolean;
+  /** When set, the next puzzle starts by itself after this long; the button drains to show it. */
+  glideMs?: number | null;
   /** Render in the flow instead of as a sticky bottom bar. */
   inline?: boolean;
 }
 
 /** After an answer: the buoy, the explanation and the next step. Calm either way. */
-export function Feedback({ verdict, action, onNext, onPause, autoAdvance, inline }: Props) {
+export function Feedback({ verdict, action, onNext, onPause, glideMs, inline }: Props) {
   const ok = verdict.correct;
   return (
     <div
@@ -41,9 +41,15 @@ export function Feedback({ verdict, action, onNext, onPause, autoAdvance, inline
               </Button>
             )}
             {action && onNext && (
-              <Button onClick={onNext} className="px-4">
+              <Button onClick={onNext} className="relative overflow-hidden px-4">
                 {action}
-                {autoAdvance ? " →" : ""}
+                {glideMs != null && (
+                  <span
+                    aria-hidden
+                    className="anim-glide absolute inset-x-0 bottom-0 h-1 origin-left bg-accent"
+                    style={{ animationDuration: `${glideMs}ms` }}
+                  />
+                )}
               </Button>
             )}
           </div>

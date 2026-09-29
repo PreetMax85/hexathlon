@@ -96,6 +96,19 @@ export function rushSeeds(seed: number): RushItem[] {
   }));
 }
 
+/** Unranked quick-set lengths, played locally only. */
+export const QUICK_SET_LENGTHS = [3, 5, 10] as const;
+
+/** A run of `length` puzzles on the Rush ramp: the first ~30% easy, then ~40% medium, the rest hard. */
+export function quickSetItems(seed: number, length: number): RushItem[] {
+  const easy = Math.round(length * 0.3);
+  const medium = Math.round(length * 0.7);
+  return Array.from({ length }, (_, i) => ({
+    tier: i < easy ? "easy" : i < medium ? "medium" : "hard",
+    seed: mixSeed("quick-set", seed >>> 0, i),
+  }));
+}
+
 /** Daily mini-run ramp: 2 easy, 2 medium, 1 hard. */
 export const DAILY_TIERS: readonly Tier[] = ["easy", "easy", "medium", "medium", "hard"];
 

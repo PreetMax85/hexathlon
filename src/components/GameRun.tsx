@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import {
   dailyRunSeed,
   generate,
+  QUICK_SET_LENGTHS,
+  RUSH_LENGTH,
   runItems,
   type Format,
   type HandTrackerAnswer,
@@ -18,7 +20,7 @@ import { browserKV, haptic, useLocalResult, usePlayer, useSettings, useTodayKey 
 import { comboOf, lightCharacter } from "@/game/combo";
 import { FORMAT_META, introTiming, tierRamp } from "@/game/meta";
 import { relaxPuzzle } from "@/game/relaxed";
-import { betweenPuzzles, initialBetween, type BetweenState } from "@/game/runFlow";
+import { advanceDelayMs, betweenPuzzles, initialBetween, type BetweenState } from "@/game/runFlow";
 import { dailyResubmission, finishRun, type FinishedRun } from "@/game/finishRun";
 import { emptyProgress, marksSoFar, record, recordedTime, type RunProgress } from "@/game/runState";
 import { saveSettings } from "@/game/settings";
@@ -45,6 +47,8 @@ type Stage =
       seed: number;
       dateKey: string | null;
       relaxed: boolean;
+      /** Quick-set length, or undefined for a ranked run. */
+      length?: number;
       progress: RunProgress;
       between: BetweenState;
       final: FinishedRun | null;
@@ -59,8 +63,6 @@ interface Props {
   /** Set when playing someone's challenge link. */
   challenge?: { id: string; createdBy: string };
 }
-
-const AUTO_ADVANCE_MS = 1200;
 
 function randomSeed(): number {
   const a = new Uint32Array(1);
@@ -81,12 +83,12 @@ function LightChar({ combo }: { combo: number }) {
       <svg width={18} height={18} viewBox="-9 -9 18 18" aria-hidden>
         <g key={combo} className="light-flash" style={{ animationIterationCount: Math.min(combo, 8) }}>
           {[0, 60, 120, 180, 240, 300].map((a) => (
-            <line key={a} x1={0} y1={-4.6} x2={0} y2={-8} stroke="var(--magenta)" strokeWidth={1.6} strokeLinecap="round" transform={`rotate(${a})`} />
+            <line key={a} x1={0} y1={-4.6} x2={0} y2={-8} stroke="var(--accent)" strokeWidth={1.6} strokeLinecap="round" transform={`rotate(${a})`} />
           ))}
-          <circle r={3.4} fill="var(--magenta)" />
+          <circle r={3.4} fill="var(--accent)" />
         </g>
       </svg>
-      <b key={`n${combo}`} className="anim-pop text-l leading-none text-magenta condensed">×{combo}</b>
+      <b key={`n${combo}`} className="anim-pop text-l leading-none text-accent condensed">×{combo}</b>
       <span className="sea text-s text-ink-2">{text}</span>
     </span>
   );
@@ -170,10 +172,14 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
   const dailyResult = useLocalResult(format, "daily", mode === "daily" ? today : null);
   const [stage, setStage] = useState<Stage>({ kind: "intro" });
   const [sync, setSync] = useState<Sync>(idleSync);
+  const [length, setLength] = useState<number>(RUSH_LENGTH);
+  // Pip Flash Rush can also be a short, unranked quick set.
+  const quickSets = format === "pip-flash" && mode === "rush" && !challenge && fixedSeed === undefined;
+
 
   const play = stage.kind === "play" ? stage : null;
   const relaxed = play?.relaxed ?? settings?.relaxed ?? false;
-  const items = useMemo(() => (play ? runItems(mode, play.seed) : []), [mode, play?.seed]); // eslint-disable-line react-hooks/exhaustive-deps
+  const items = useMemo(() => (play ? runItems(mode, play.seed, play.length) : []), [mode, play?.seed, play?.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const answered = play ? play.progress.answers.length : 0;
   const showing = play ? play.between.phase !== "puzzle" : false;
   const index = play ? (showing ? answered - 1 : answered) : 0;
@@ -185,7 +191,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
   }, [format, item, relaxed]);
   const finished = play ? answered >= items.length : false;
   const last = play && showing && puzzle ? verdict(puzzle, play.progress.answers[index], play.progress.times[index]) : null;
-  const marks = play ? marksSoFar(format, mode, play.seed, play.progress, { relaxed }) : [];
+  const marks = play ? marksSoFar(format, mode, play.seed, play.progress, { relaxed, length: play.length }) : [];
 
   const step = (event: "pause" | "resume" | "next") => {
     if (!play) return;
@@ -214,15 +220,15 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
     setSync(await perform(who, body, local));
   };
 
-  // Correct answers glide on; wrong ones wait so the explanation can be read.
-  const autoAdvance = last?.correct === true && play?.between.phase === "verdict";
+  // Pip Flash glides on by itself (a touch slower each puzzle); the others wait for Next.
+  const glideMs = last && play?.between.phase === "verdict" && !finished ? advanceDelayMs(format, last.correct, index) : null;
   useEffect(() => {
-    if (!autoAdvance) return;
-    const id = window.setTimeout(() => step("next"), AUTO_ADVANCE_MS);
+    if (glideMs === null) return;
+    const id = window.setTimeout(() => step("next"), glideMs);
     return () => window.clearTimeout(id);
     // `step` closes over the same stage that `last` derives from.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoAdvance, answered]);
+  }, [glideMs, answered]);
 
   const start = () => {
     const dateKey = mode === "daily" ? today : null;
@@ -234,6 +240,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
       seed,
       dateKey,
       relaxed: settings?.relaxed ?? false,
+      length: quickSets && length !== RUSH_LENGTH ? length : undefined,
       progress: emptyProgress,
       between: initialBetween,
       final: null,
@@ -253,6 +260,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
             seed: play.seed,
             dateKey: play.dateKey,
             relaxed: play.relaxed,
+            length: play.length,
             progress,
             playerId: player?.id ?? "",
             challengeId: challenge?.id ?? null,
@@ -277,7 +285,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retryKey]);
 
-  if (player === undefined || settings === undefined) return <p className="sea py-10 text-center text-ink-2">Loading the chart…</p>;
+  if (player === undefined || settings === undefined) return <p className="sea py-10 text-center text-ink-2">Loading…</p>;
 
   const boards = (result: LocalResult, seed: number, challengeId: string | undefined) => {
     if (result.relaxed) return null;
@@ -350,12 +358,36 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
           <h1 className="text-l font-extrabold wide uppercase">
             {meta.name} {mode === "rush" ? "Rush" : "Daily"}
           </h1>
-          {challenge && <p className="sea text-magenta">A challenge from {challenge.createdBy}</p>}
+          {challenge && <p className="sea text-accent">A challenge from {challenge.createdBy}</p>}
           <p>{meta.tagline}</p>
         </header>
-        <Note title="Sailing directions" as="div">
+        {quickSets && (
+          <fieldset className="flex flex-col gap-2">
+            <legend className="mb-2 font-bold">How many?</legend>
+            <div className="grid grid-cols-4 gap-2">
+              {[...QUICK_SET_LENGTHS, RUSH_LENGTH].map((n) => (
+                <label
+                  key={n}
+                  className={`flex min-h-14 cursor-pointer flex-col items-center justify-center rounded-md border-2 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-accent ${
+                    length === n ? "border-ink bg-ink text-paper" : "border-hair bg-deep"
+                  }`}
+                >
+                  <input type="radio" name="length" value={n} checked={length === n} onChange={() => setLength(n)} className="sr-only" />
+                  <span className="text-l font-extrabold leading-none">{n}</span>
+                  <span className="text-s">{n === RUSH_LENGTH ? "ranked" : "quick"}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
+        <Note title="How it works" as="div">
           <ul className="flex flex-col gap-2 text-s">
-            {mode === "rush" ? (
+            {mode === "rush" && quickSets && length !== RUSH_LENGTH ? (
+              <>
+                <li><b>{length} puzzles</b>, easy to hard. A quick set is unranked and stays on this device.</li>
+                <li>Each answer moves on by itself, a touch slower as the set goes on.</li>
+              </>
+            ) : mode === "rush" ? (
               <>
                 <li><b>13 puzzles</b> back to back: {tierRamp("rush")}.</li>
                 <li>Score is the number right. Ties go to the faster total time.</li>
@@ -387,7 +419,13 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
         <div className="flex gap-2">
           <ButtonLink href="/" variant="secondary">Back</ButtonLink>
           <Button className="flex-1" onClick={start} disabled={mode === "daily" && !today}>
-            {challenge ? "Accept challenge" : mode === "rush" ? "Start Rush" : "Play today's Daily"}
+            {challenge
+              ? "Accept challenge"
+              : mode === "daily"
+                ? "Sail today's Daily"
+                : quickSets && length !== RUSH_LENGTH
+                  ? `Sail ${length}`
+                  : "Start Rush"}
             {rel && <span className="sea font-normal"> relaxed</span>}
           </Button>
         </div>
@@ -438,7 +476,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
           action={finished ? "See results" : "Next"}
           onNext={() => step("next")}
           onPause={finished ? undefined : () => step("pause")}
-          autoAdvance={last.correct}
+          glideMs={glideMs}
         />
       )}
     </div>

@@ -10,9 +10,9 @@ function fakeKV(): KV {
   return { getItem: (k) => data.get(k) ?? null, setItem: (k, v) => void data.set(k, v) };
 }
 
-function perfect(format: "pip-flash" | "port-math", mode: "daily" | "rush", seed: number, extraMs = 900) {
+function perfect(format: "pip-flash" | "port-math", mode: "daily" | "rush", seed: number, extraMs = 900, length?: number) {
   let p = emptyProgress;
-  for (const it of runItems(mode, seed)) {
+  for (const it of runItems(mode, seed, length)) {
     const puzzle = generate(format, it.tier, it.seed);
     p = record(p, solve(puzzle), minPuzzleMs(puzzle) + extraMs);
   }
@@ -56,6 +56,15 @@ describe("finishRun", () => {
     expect(done.body).toBeNull();
     expect(done.comparison).toBeNull();
     expect(done.result.relaxed).toBe(true);
+    expect(readResult(kv, "pip-flash", "rush", "best")).toBeNull();
+  });
+
+  it("keeps quick sets local and unranked, and remembers their length", () => {
+    const kv = fakeKV();
+    const done = finishRun(kv, { ...base, format: "pip-flash", mode: "rush", seed: 9, dateKey: null, length: 5, progress: perfect("pip-flash", "rush", 9, 900, 5) })!;
+    expect(done.result).toMatchObject({ correct: 5, total: 5, quick: true });
+    expect(done.body).toBeNull();
+    expect(done.comparison).toBeNull();
     expect(readResult(kv, "pip-flash", "rush", "best")).toBeNull();
   });
 

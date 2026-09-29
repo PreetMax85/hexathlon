@@ -50,11 +50,11 @@ function BestLine({ comparison: c }: { comparison: BestComparison }) {
 function PassageStamp({ result, format, mode, date }: { result: LocalResult; format: Format; mode: Mode; date: string | null }) {
   return (
     <div
-      className="anim-stamp mx-auto flex w-fit flex-col items-center px-6 py-3 text-magenta"
+      className="anim-stamp mx-auto flex w-fit flex-col items-center px-6 py-3 text-accent"
       style={{ border: "3px double currentColor", transform: "rotate(-4deg)" }}
     >
       <span className="label">
-        {FORMAT_META[format].name} {mode === "rush" ? "Rush" : "Daily"}
+        {FORMAT_META[format].name} {mode === "daily" ? "Daily" : result.quick ? "Quick set" : "Rush"}
       </span>
       <span className="label">
         {result.correct >= result.total * 0.6 ? (mode === "rush" ? "Passage complete" : "Daily charted") : "Rough passage"}
@@ -82,7 +82,7 @@ export function Result({ format, mode, result, date, comparison, nickname, alrea
   const today = useTodayKey();
   const edition = date ?? today;
   const now = useNowMinute();
-  const items = runItems(mode, result.seed);
+  const items = runItems(mode, result.seed, result.total);
   const text = shareText({ format, mode, correct: result.correct, total: result.total, totalMs: result.totalMs, date: edition });
   const canReplay = !!result.answers && !!result.times;
 
@@ -110,6 +110,7 @@ export function Result({ format, mode, result, date, comparison, nickname, alrea
         <PassageStamp result={result} format={format} mode={mode} date={edition} />
         <div className="flex flex-col gap-1">
           {result.relaxed && <p className="sea">Sailed in Relaxed mode: unranked, kept on this device.</p>}
+          {result.quick && <p className="sea">A quick set of {result.total}: unranked, kept on this device.</p>}
           {comparison && <BestLine comparison={comparison} />}
           {alreadyPlayed && (
             <p className="text-s text-ink-2">
@@ -153,7 +154,7 @@ export function Result({ format, mode, result, date, comparison, nickname, alrea
             </li>
           ))}
         </ol>
-        <p className="text-s text-ink-2">{tierRamp(mode)}</p>
+        <p className="text-s text-ink-2">{tierRamp(mode, result.total)}</p>
         {open !== null && canReplay && (
           <PuzzleReveal
             key={open}
@@ -172,14 +173,17 @@ export function Result({ format, mode, result, date, comparison, nickname, alrea
       {children}
 
       <section aria-label="Share" className="flex flex-col gap-2">
-        <output className="block whitespace-pre-line border border-dashed border-ink-2 bg-deep p-3 text-center text-s font-semibold">
-          {text}
-          {"\n"}
-          <span className="tracking-[0.15em]">{marksStrip(result.marks)}</span>
-        </output>
         <Button variant="secondary" onClick={share}>
-          {copied === "copied" ? "Copied" : copied === "failed" ? "Copy failed. Select the text above" : "Share result"}
+          {copied === "copied" ? "Copied" : "Share result"}
         </Button>
+        {/* Only when the clipboard refuses: the text to copy by hand. */}
+        {copied === "failed" && (
+          <output className="block select-all whitespace-pre-line rounded-md border border-hair bg-deep p-3 text-center text-s font-semibold">
+            {text}
+            {"\n"}
+            <span className="tracking-[0.15em]">{marksStrip(result.marks)}</span>
+          </output>
+        )}
       </section>
 
       <div className="flex gap-2">
