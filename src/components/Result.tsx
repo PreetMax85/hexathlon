@@ -5,6 +5,7 @@ import { runItems, type Format, type Mode } from "@/engine";
 import type { BestComparison } from "@/game/best";
 import { useNowMinute, useTodayKey } from "@/game/browser";
 import { chartDate } from "@/game/chart";
+import { stampLine } from "@/game/today";
 import { FORMAT_META, TIER_LABEL, tierRamp } from "@/game/meta";
 import { marksStrip, shareText } from "@/game/share";
 import type { LocalResult } from "@/game/storage";
@@ -57,7 +58,7 @@ function PassageStamp({ result, format, mode, date }: { result: LocalResult; for
         {FORMAT_META[format].name} {mode === "daily" ? "Daily" : result.quick ? "Quick set" : "Rush"}
       </span>
       <span className="label">
-        {result.correct >= result.total * 0.6 ? (mode === "rush" ? "Passage complete" : "Daily charted") : "Rough passage"}
+        {stampLine(result.correct, result.total, mode)}
       </span>
       <span className="font-extrabold leading-none condensed" style={{ fontSize: "4.5rem" }}>
         {result.correct}
@@ -85,6 +86,8 @@ export function Result({ format, mode, result, date, comparison, nickname, alrea
   const items = runItems(mode, result.seed, result.total);
   const text = shareText({ format, mode, quick: result.quick, correct: result.correct, total: result.total, totalMs: result.totalMs, date: edition });
   const canReplay = !!result.answers && !!result.times;
+  // A clean sweep: the whole strip of cones bobs in a wave after the stamp lands.
+  const clean = result.correct === result.total && !alreadyPlayed;
 
   const share = async () => {
     const payload = `${text}\n${marksStrip(result.marks)}`;
@@ -134,7 +137,7 @@ export function Result({ format, mode, result, date, comparison, nickname, alrea
 
       <section aria-label="Per-puzzle results" className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between border-b border-ink pb-1.5">
-          <h2 className="sea">The passage</h2>
+          <h2 className="sea text-l">The passage</h2>
           {canReplay && <span className="text-s text-ink-2">Tap a buoy to replay it</span>}
         </div>
         <ol className={`grid gap-y-1 ${result.marks.length > 7 ? "grid-cols-7" : "grid-cols-5"} sm:max-w-md`}>
@@ -148,7 +151,9 @@ export function Result({ format, mode, result, date, comparison, nickname, alrea
                 aria-label={`Puzzle ${i + 1}, ${TIER_LABEL[items[i].tier]}: ${ok ? "right" : "wrong"}. Replay`}
                 className={`flex min-h-12 w-full flex-col items-center justify-end pb-0.5 ${open === i ? "bg-shoal-2 ring-1 ring-inset ring-ink" : ""}`}
               >
-                <Buoy kind={ok ? "cone" : "can"} size={24} />
+                <span className={clean ? "anim-buoy-wave" : undefined} style={clean ? { animationDelay: `${600 + i * 70}ms` } : undefined}>
+                  <Buoy kind={ok ? "cone" : "can"} size={24} />
+                </span>
                 <span className="text-s leading-none text-ink-2">{i + 1}</span>
               </button>
             </li>

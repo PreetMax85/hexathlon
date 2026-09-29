@@ -44,9 +44,7 @@ export function ChallengeClient({ id }: { id: string }) {
           </h1>
           <p className="sea text-ink-2">
             {missing ? (
-              <>
-                <b className="not-italic text-accent">ED</b>, existence doubtful: the link may be mistyped, or the challenge was never charted.
-              </>
+              "The link may be mistyped, or the challenge doesn't exist."
             ) : (
               result.error
             )}

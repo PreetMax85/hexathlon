@@ -78,3 +78,13 @@ export function todayStatus(kv: KV, today: string): TodayStatus {
 export function coverBoard(seed: number): Board {
   return generateBoard(mixSeed(seed, "cover"));
 }
+
+/** The result stamp's line: a clean sweep gets its own. */
+export function stampLine(correct: number, total: number, mode: "daily" | "rush"): string {
+  if (correct === total) return "Clean passage";
+  if (correct >= total * 0.6) return mode === "rush" ? "Passage complete" : "Daily done";
+  return "Rough passage";
+}
+
+/** Every fifth right answer in a row gets a moment of its own. */
+export const isMilestone = (combo: number): boolean => combo > 0 && combo % 5 === 0;

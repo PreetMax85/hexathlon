@@ -3,7 +3,7 @@ import { compareToBest } from "./best";
 import { introTiming, tierRamp } from "./meta";
 import { readSettings, saveSettings } from "./settings";
 import { saveResult, type KV, type LocalResult } from "./storage";
-import { coverBoard, markDailyDay, readStreak, streakFrom, todayStatus } from "./today";
+import { coverBoard, isMilestone, markDailyDay, stampLine, readStreak, streakFrom, todayStatus } from "./today";
 import { dailyItems, dailySeed, generate, runItems } from "@/engine";
 import { formatCountdown, untilNextDaily } from "./time";
 
@@ -144,5 +144,19 @@ describe("cover board", () => {
   it("is the same for everyone on the same seed", () => {
     expect(coverBoard(42)).toEqual(coverBoard(42));
     expect(coverBoard(43).hexes).not.toEqual(coverBoard(42).hexes);
+  });
+});
+
+describe("result stamp and milestones", () => {
+  it("names a clean run, a completed one and a rough one", () => {
+    expect(stampLine(13, 13, "rush")).toBe("Clean passage");
+    expect(stampLine(5, 5, "daily")).toBe("Clean passage");
+    expect(stampLine(9, 13, "rush")).toBe("Passage complete");
+    expect(stampLine(3, 5, "daily")).toBe("Daily done");
+    expect(stampLine(2, 5, "daily")).toBe("Rough passage");
+  });
+
+  it("marks every fifth right answer in a row", () => {
+    expect([1, 4, 5, 6, 10].map(isMilestone)).toEqual([false, false, true, false, true]);
   });
 });

@@ -19,6 +19,7 @@ import {
 import { ensurePlayer, submitResult, type SubmitBody } from "@/game/api";
 import { browserKV, haptic, useLocalResult, usePlayer, useSettings, useTodayKey } from "@/game/browser";
 import { comboOf } from "@/game/combo";
+import { isMilestone } from "@/game/today";
 import { FORMAT_META, introTiming, tierRamp } from "@/game/meta";
 import { relaxPuzzle } from "@/game/relaxed";
 import { advanceDelayMs, betweenPuzzles, initialBetween, type BetweenState } from "@/game/runFlow";
@@ -480,6 +481,16 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
           />
         )}
       </div>
+      {/* Every fifth right answer in a row gets its moment. */}
+      {last?.correct && isMilestone(comboOf(marks)) && (
+        <div
+          role="status"
+          className="anim-milestone fixed top-4 left-1/2 z-30 flex items-center gap-2 rounded-full bg-ink px-4 py-2 font-extrabold text-paper shadow-lg"
+        >
+          <Buoy kind="cone" size={20} />
+          {comboOf(marks)} in a row
+        </div>
+      )}
       {last && (
         <Feedback
           verdict={last}

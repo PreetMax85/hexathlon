@@ -58,7 +58,7 @@ export function ChallengeShare({ playerId, format, seed, saved, challengeId, sha
   return (
     <section aria-label="Challenge a friend" className="flex flex-col gap-2">
       <div className="border-b border-ink pb-1.5">
-        <h2 className="sea">{challengeId ? "Send it on" : "Challenge a friend"}</h2>
+        <h2 className="sea text-l">{challengeId ? "Send it on" : "Challenge a friend"}</h2>
       </div>
       <p className="text-s text-ink-2">They sail the exact same 13 puzzles and land on the same leaderboard.</p>
       <Button onClick={go} disabled={!saved || state.kind === "working"}>
