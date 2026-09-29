@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { generate, runItems, RUSH_LENGTH, solve } from "@/engine";
-import { emptyProgress, finalScore, marksSoFar, record } from "./runState";
+import { emptyProgress, finalScore, marksSoFar, record, recordedTime } from "./runState";
 import { beatAt, READY_MS } from "./beat";
 import { relaxPuzzle, RELAXED_FACTOR } from "./relaxed";
 
@@ -49,5 +49,26 @@ describe("relaxed scoring (local only)", () => {
     expect(relaxed?.correct).toBe(RUSH_LENGTH);
     expect(relaxed?.totalMs).toBe(13_000 * RUSH_LENGTH);
     expect(marksSoFar("pip-flash", "rush", seed, record(emptyProgress, answers[0], 13_000), { relaxed: true })).toEqual([true]);
+  });
+});
+
+describe("recorded answer time", () => {
+  it("rounds up to the human floor, so a fast Skip can't sink an honest run", () => {
+    const p = generate("port-math", "easy", 3);
+    expect(recordedTime(p, 120.4, false)).toBe(300);
+    expect(recordedTime(p, 1234.6, false)).toBe(1235);
+  });
+
+  it("scales the floor in Relaxed mode, so halving the time never lands under it", () => {
+    const pip = generate("pip-flash", "easy", 3);
+    expect(recordedTime(pip, 200, true)).toBe(600);
+    const seed = 31;
+    const items = runItems("rush", seed);
+    let progress = emptyProgress;
+    for (const it of items) {
+      const puzzle = generate("pip-flash", it.tier, it.seed);
+      progress = record(progress, solve(puzzle), recordedTime(puzzle, 150, true));
+    }
+    expect(finalScore("pip-flash", "rush", seed, progress, { relaxed: true })?.correct).toBe(RUSH_LENGTH);
   });
 });

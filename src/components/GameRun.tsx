@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   dailyRunSeed,
   generate,
-  minPuzzleMs,
   runItems,
   type Format,
   type HandTrackerAnswer,
@@ -21,7 +20,7 @@ import { FORMAT_META, introTiming } from "@/game/meta";
 import { relaxPuzzle } from "@/game/relaxed";
 import { betweenPuzzles, initialBetween, type BetweenState } from "@/game/runFlow";
 import { finishRun, type FinishedRun } from "@/game/finishRun";
-import { emptyProgress, marksSoFar, record, type RunProgress } from "@/game/runState";
+import { emptyProgress, marksSoFar, record, recordedTime, type RunProgress } from "@/game/runState";
 import { saveSettings } from "@/game/settings";
 import { saveResult, type LocalResult, type Player } from "@/game/storage";
 import { idleSync, type Sync } from "@/game/sync";
@@ -38,7 +37,6 @@ import { Result } from "./Result";
 import { Buoy } from "./glyphs";
 import { Button, ButtonLink, Note, TierMark } from "./ui";
 import { useConfirm } from "./useClock";
-
 
 type Stage =
   | { kind: "intro" }
@@ -244,10 +242,9 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
 
   const onAnswer = (answer: unknown, ms: number) => {
     if (!play || !puzzle || play.between.phase !== "puzzle") return;
-    // A real tap can't beat the human floor, but a fast Skip can land under
-    // it; round up so the server doesn't reject the whole run.
-    const progress = record(play.progress, answer, Math.max(Math.round(ms), minPuzzleMs(puzzle)));
-    if (verdict(puzzle, answer, ms).correct) haptic();
+    const time = recordedTime(generate(format, item!.tier, item!.seed), ms, play.relaxed);
+    const progress = record(play.progress, answer, time);
+    if (verdict(puzzle, answer, time).correct) haptic();
     const final =
       progress.answers.length >= items.length
         ? finishRun(browserKV, {

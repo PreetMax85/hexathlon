@@ -1,4 +1,4 @@
-import { generate, runItems, scoreRun, validate, type Format, type Mode, type RunScore } from "@/engine";
+import { generate, minPuzzleMs, runItems, scoreRun, validate, type Format, type Mode, type Puzzle, type RunScore } from "@/engine";
 import { RELAXED_FACTOR } from "./relaxed";
 
 /** Answers and times collected so far in a run. */
@@ -20,6 +20,16 @@ export const emptyProgress: RunProgress = { answers: [], times: [] };
 
 export function record(progress: RunProgress, answer: unknown, ms: number): RunProgress {
   return { answers: [...progress.answers, answer], times: [...progress.times, ms] };
+}
+
+/**
+ * The time to record for an answer on `puzzle` (the ranked version, not the
+ * relaxed one). A real tap can't beat the human floor, but a fast Skip can
+ * land under it; round up so the scorer doesn't reject the whole run. In
+ * Relaxed mode times are halved before scoring, so the floor is doubled here.
+ */
+export function recordedTime(puzzle: Puzzle, ms: number, relaxed: boolean): number {
+  return Math.max(Math.round(ms), minPuzzleMs(puzzle) * (relaxed ? RELAXED_FACTOR : 1));
 }
 
 export function isFinished(mode: Mode, seed: number, progress: RunProgress): boolean {
