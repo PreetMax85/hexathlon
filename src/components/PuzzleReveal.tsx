@@ -15,6 +15,7 @@ import { RESOURCE_META } from "@/game/meta";
 import { relaxPuzzle } from "@/game/relaxed";
 import { tradeText, verdict } from "@/game/verdict";
 import { Board } from "./Board";
+import { PipLegend } from "./PipFlashPlay";
 import { Buoy, Glyph } from "./glyphs";
 
 interface Props {
@@ -46,14 +47,18 @@ export function PuzzleReveal({ format, item, index, answer, ms, relaxed }: Props
       {puzzle.format === "pip-flash" && (() => {
         const ranking = pipFlashRanking(puzzle.board, puzzle.candidates);
         const picked = typeof answer === "number" ? answer : null;
+        const reveal = { totals: ranking.totals, best: ranking.best, picked };
         return (
-          <Board
-            board={puzzle.board}
-            candidates={puzzle.candidates}
-            reveal={{ totals: ranking.totals, best: ranking.best, picked }}
-            className="mx-auto w-full max-w-[26rem]"
-            label={`Board of puzzle ${index + 1}: corner ${CANDIDATE_LABELS[ranking.best]} had the most pips`}
-          />
+          <>
+            <Board
+              board={puzzle.board}
+              candidates={puzzle.candidates}
+              reveal={reveal}
+              className="mx-auto w-full max-w-[26rem]"
+              label={`Board of puzzle ${index + 1}: corner ${CANDIDATE_LABELS[ranking.best]} had the most pips`}
+            />
+            <PipLegend reveal={reveal} />
+          </>
         );
       })()}
       {puzzle.format === "port-math" && (

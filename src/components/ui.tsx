@@ -57,7 +57,13 @@ export function Button({
   className = "",
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
-  return <button type="button" className={`${BASE} ${VARIANTS[variant]} ${className}`} {...props} />;
+  const { children, ...rest } = props;
+  // The label sits on its own paper plate so disabled hatching never crosses it.
+  return (
+    <button type="button" className={`${BASE} ${VARIANTS[variant]} ${className}`} {...rest}>
+      <span className="btn-label">{children}</span>
+    </button>
+  );
 }
 
 export function ButtonLink({

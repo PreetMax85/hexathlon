@@ -45,12 +45,15 @@ function BestLine({ comparison: c }: { comparison: BestComparison }) {
 }
 
 /** The chart stamp: score, time and the edition date, pressed onto the result. */
-function PassageStamp({ result, mode, date }: { result: LocalResult; mode: Mode; date: string | null }) {
+function PassageStamp({ result, format, mode, date }: { result: LocalResult; format: Format; mode: Mode; date: string | null }) {
   return (
     <div
       className="anim-stamp mx-auto flex w-fit flex-col items-center px-6 py-3 text-magenta"
       style={{ border: "3px double currentColor", transform: "rotate(-4deg)" }}
     >
+      <span className="label">
+        {FORMAT_META[format].name} {mode === "rush" ? "Rush" : "Daily"}
+      </span>
       <span className="label">{mode === "rush" ? "Passage complete" : "Daily charted"}</span>
       <span className="font-extrabold leading-none condensed" style={{ fontSize: "4.5rem" }}>
         {result.correct}
@@ -96,12 +99,12 @@ export function Result({ format, mode, result, comparison, nickname, alreadyPlay
   return (
     <div className="anim-pop flex flex-col gap-6">
       <header className="flex flex-col gap-4 text-center">
-        <p className="sea text-ink-2">
-          {FORMAT_META[format].name} {mode === "rush" ? "Rush" : "Daily"}
-          {result.relaxed && " · Relaxed, unranked"}
-        </p>
-        <PassageStamp result={result} mode={mode} date={today} />
+        <h1 className="sr-only">
+          {FORMAT_META[format].name} {mode === "rush" ? "Rush" : "Daily"} result
+        </h1>
+        <PassageStamp result={result} format={format} mode={mode} date={today} />
         <div className="flex flex-col gap-1">
+          {result.relaxed && <p className="sea">Sailed in Relaxed mode: unranked, kept on this device.</p>}
           {comparison && <BestLine comparison={comparison} />}
           {alreadyPlayed && (
             <p className="text-s text-ink-2">
@@ -111,6 +114,16 @@ export function Result({ format, mode, result, comparison, nickname, alreadyPlay
           )}
           <p className="text-s text-ink-2">Average {formatSeconds(result.totalMs / result.total)} a puzzle.</p>
         </div>
+      {sync && syncLabel(sync) && (
+          <p role="status" className={`flex min-h-11 items-center justify-center gap-3 text-s ${sync.kind === "error" ? "text-red" : "text-ink-2"}`}>
+            <span>{syncLabel(sync)}</span>
+            {sync.kind === "error" && onRetrySync && (
+              <Button variant="ghost" className="min-h-11 shrink-0 px-2" onClick={onRetrySync}>
+                Retry
+              </Button>
+            )}
+          </p>
+        )}
       </header>
 
       <section aria-label="Per-puzzle results" className="flex flex-col gap-2">
@@ -118,7 +131,7 @@ export function Result({ format, mode, result, comparison, nickname, alreadyPlay
           <h2 className="sea">The passage</h2>
           {canReplay && <span className="text-s text-ink-2">Tap a buoy to replay it</span>}
         </div>
-        <ol className="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-y-1">
+        <ol className={`grid gap-y-1 ${result.marks.length > 7 ? "grid-cols-7" : "grid-cols-5"} sm:max-w-md`}>
           {result.marks.map((ok, i) => (
             <li key={i}>
               <button
@@ -150,17 +163,6 @@ export function Result({ format, mode, result, comparison, nickname, alreadyPlay
       </section>
 
       {nickname}
-
-      {sync && syncLabel(sync) && (
-        <p role="status" className={`flex min-h-11 items-center justify-between gap-3 text-s ${sync.kind === "error" ? "text-red" : "text-ink-2"}`}>
-          <span>{syncLabel(sync)}</span>
-          {sync.kind === "error" && onRetrySync && (
-            <Button variant="ghost" className="min-h-11 shrink-0 px-2" onClick={onRetrySync}>
-              Retry
-            </Button>
-          )}
-        </p>
-      )}
 
       {children}
 

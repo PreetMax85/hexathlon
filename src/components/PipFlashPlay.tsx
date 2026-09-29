@@ -3,8 +3,25 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CANDIDATE_LABELS, pipFlashRanking, type PipFlashAnswer, type PipFlashPuzzle } from "@/engine";
 import { useReducedMotion } from "@/game/browser";
-import { Board } from "./Board";
+import { Board, type BoardReveal } from "./Board";
+import { Buoy } from "./glyphs";
 import { usePuzzleClock } from "./useClock";
+
+/** Pip totals per corner, read below the plate so no label sits on a token. */
+export function PipLegend({ reveal }: { reveal: BoardReveal }) {
+  const order = reveal.totals.map((_, i) => i).sort((a, b) => reveal.totals[b] - reveal.totals[a]);
+  return (
+    <ul className="anim-pop flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-y border-hair py-1.5" aria-label="Pips per corner">
+      {order.map((i) => (
+        <li key={i} className="flex min-h-7 items-center gap-1 text-s">
+          {i === reveal.best ? <Buoy kind="cone" size={20} /> : i === reveal.picked ? <Buoy kind="can" size={20} /> : null}
+          <b>{CANDIDATE_LABELS[i]}</b>
+          <span>{reveal.totals[i]} pips</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 interface Props {
   puzzle: PipFlashPuzzle;
@@ -93,6 +110,7 @@ export function PipFlashPlay({ puzzle, onAnswer, untimed = false }: Props) {
         className="mx-auto w-full max-w-[36rem]"
         label="Board with lettered corners"
       />
+      {reveal && <PipLegend reveal={reveal} />}
     </div>
   );
 }

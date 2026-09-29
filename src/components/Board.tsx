@@ -66,17 +66,23 @@ function Pips({ count, color }: { count: number; color: string }) {
 }
 
 /** Land and its terrain glyph. Dusk and night dim this layer, never the tokens. */
-function HexLand({ hexId, board }: { hexId: number; board: BoardData }) {
+function HexLand({ hexId, board, busy }: { hexId: number; board: BoardData; busy: ReadonlySet<number> }) {
   const { terrain, token } = board.hexes[hexId];
   const meta = RESOURCE_META[terrain];
   const c = HEX_CENTERS[hexId];
+  // The glyph sits under the hex's top corner, or its bottom corner when a
+  // waypoint is on the top one, so a letter never covers it.
+  const verts = TOPOLOGY.hexes[hexId].vertices;
+  const top = verts.reduce((a, v) => (VERTEX_POINTS[v].y < VERTEX_POINTS[a].y ? v : a));
+  const bottom = verts.reduce((a, v) => (VERTEX_POINTS[v].y > VERTEX_POINTS[a].y ? v : a));
+  const glyphY = !busy.has(top) ? c.y - 0.64 : !busy.has(bottom) ? c.y + 0.74 : null;
   return (
     <g>
       <polygon points={hexPoints(hexId)} fill={meta.fill} stroke="var(--paper)" strokeWidth={0.06} strokeLinejoin="round" />
       {token === null ? (
         <BoardGlyph name="desert" x={c.x} y={c.y} s={0.9} color={meta.glyph} />
       ) : (
-        <BoardGlyph name={terrain as Resource} x={c.x} y={c.y - 0.64} s={0.44} color={meta.glyph} />
+        glyphY !== null && <BoardGlyph name={terrain as Resource} x={c.x} y={glyphY} s={glyphY > c.y ? 0.36 : 0.44} color={meta.glyph} />
       )}
     </g>
   );
@@ -191,6 +197,14 @@ function RangeRing({ fraction }: { fraction: number }) {
   );
 }
 
+/** The bearing swept from the island's centre; land is drawn over it, so it reads in open water. */
+function BearingLine({ fraction }: { fraction: number }) {
+  const rad = ((-90 + (1 - Math.max(0, Math.min(1, fraction))) * 360) * Math.PI) / 180;
+  return (
+    <line x1={0} y1={0} x2={Math.cos(rad) * RING_R} y2={Math.sin(rad) * RING_R} stroke="var(--ink)" strokeWidth={0.05} aria-hidden />
+  );
+}
+
 /** Graticule ticks along the plate's neatline. */
 function Graticule() {
   const ticks: React.ReactNode[] = [];
@@ -218,6 +232,7 @@ function Graticule() {
  */
 export function Board({ board, candidates, onPick, reveal, ring, className, label }: BoardProps) {
   const spots = soundings(board.seed, SOUNDING_BOX, nearLand);
+  const busy = new Set(candidates ?? []);
   return (
     <svg
       viewBox={`${BOUNDS.x} ${BOUNDS.y} ${BOUNDS.w} ${BOUNDS.h}`}
@@ -246,12 +261,13 @@ export function Board({ board, candidates, onPick, reveal, ring, className, labe
         ))}
       </g>
       {ring !== undefined && <RangeRing fraction={ring} />}
+      {ring !== undefined && <BearingLine fraction={ring} />}
       {board.ports.map((port) => (
         <PortMarker key={port.edge} port={port} />
       ))}
       <g style={{ filter: "var(--land-filter)" }}>
         {TOPOLOGY.hexes.map((hex) => (
-          <HexLand key={hex.id} hexId={hex.id} board={board} />
+          <HexLand key={hex.id} hexId={hex.id} board={board} busy={busy} />
         ))}
       </g>
       {TOPOLOGY.hexes.map((hex) => (
@@ -293,7 +309,7 @@ export function Board({ board, candidates, onPick, reveal, ring, className, labe
                   <circle cx={p.x} cy={p.y} r={0.5} fill="none" stroke="var(--buoy-green)" strokeWidth={0.1} className="anim-pulse" />
                 )}
                 <g className="anim-buoy">
-                  <BuoyShape kind={isBest ? "cone" : "can"} x={p.x} y={p.y + 0.4} s={0.95} />
+                  <BuoyShape kind={isBest ? "cone" : "can"} x={p.x} y={p.y + 0.36} s={0.8} />
                 </g>
               </>
             ) : (
@@ -310,14 +326,6 @@ export function Board({ board, candidates, onPick, reveal, ring, className, labe
                   {CANDIDATE_LABELS[i]}
                 </text>
               </>
-            )}
-            {reveal && (
-              <g className="anim-pop">
-                <rect x={p.x + 0.34} y={p.y - 0.24} width={0.92} height={0.46} fill="var(--deep)" stroke="var(--ink)" strokeWidth={0.035} />
-                <text x={p.x + 0.8} y={p.y + 0.08} fontSize={0.3} fontWeight={800} textAnchor="middle" fill="var(--ink)">
-                  {CANDIDATE_LABELS[i]} {reveal.totals[i]}
-                </text>
-              </g>
             )}
           </g>
         );

@@ -337,3 +337,8 @@ a {
 .waypoint:focus-visible .waypoint-focus {
   opacity: 1;
 }
+
+button:disabled .btn-label {
+  background: var(--paper);
+  padding: 0.1em 0.4em;
+}

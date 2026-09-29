@@ -390,10 +390,10 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
     return (
       <div className="anim-pop flex flex-col gap-6">
         <header className="flex flex-col gap-1">
-          <p className="sea text-ink-2">
-            {challenge ? `Challenge from ${challenge.createdBy}` : mode === "rush" ? "Rush" : "Today's Daily"}
-          </p>
-          <h1 className="text-l font-extrabold wide uppercase">{meta.name}</h1>
+          <h1 className="text-l font-extrabold wide uppercase">
+            {meta.name} {mode === "rush" ? "Rush" : "Daily"}
+          </h1>
+          {challenge && <p className="sea text-magenta">A challenge from {challenge.createdBy}</p>}
           <p>{meta.tagline}</p>
         </header>
         <Note title="Sailing directions" as="div">

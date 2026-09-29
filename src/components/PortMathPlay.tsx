@@ -137,7 +137,7 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
                     aria-label={`Trade away ${rate} ${r}`}
                     className="min-h-11 w-full bg-deep text-s font-bold ring-1 ring-inset ring-ink disabled:hatch disabled:bg-transparent disabled:text-ink-2 disabled:ring-hair"
                   >
-                    give {rate}
+                    <span className="btn-label">give {rate}</span>
                   </button>
                 ) : giving ? (
                   <button

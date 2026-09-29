@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { isRed, TOPOLOGY, toCartesian, type Board } from "@/engine";
+import { soundings } from "@/game/chart";
 import { RESOURCE_META } from "@/game/meta";
 
 /**
@@ -45,7 +46,23 @@ function hexPoints(id: number, scale = 1) {
     .join(" ");
 }
 
+const nearLand = (x: number, y: number) => CENTERS.some((c) => Math.hypot(c.x - x, c.y - y) < 2.05);
+
+function portMarks(board: Board) {
+  return board.ports.map((port) => {
+    const a = VERTS[port.vertices[0]];
+    const b = VERTS[port.vertices[1]];
+    const mx = (a.x + b.x) / 2;
+    const my = (a.y + b.y) / 2;
+    const len = Math.hypot(mx, my) || 1;
+    return { port, a, b, p: { x: mx + (mx / len) * 1.02, y: my + (my / len) * 1.02 } };
+  });
+}
+
 function IslandPlate({ board }: { board: Board }) {
+  const spots = soundings(board.seed, { x: -HALF + 0.3, y: -HALF + 0.3, w: HALF * 2 - 0.6, h: HALF * 2 - 0.6 }, nearLand);
+  const ports = portMarks(board);
+  const ticks = Array.from({ length: Math.floor((HALF * 2) / 0.5) + 1 }, (_, i) => i * 0.5 * k);
   return (
     <div style={{ display: "flex", position: "relative", width: PLATE, height: PLATE, }}>
       <svg width={PLATE} height={PLATE} viewBox={`0 0 ${PLATE} ${PLATE}`} style={{ position: "absolute", left: 0, top: 0 }}>
@@ -56,6 +73,24 @@ function IslandPlate({ board }: { board: Board }) {
         ))}
         {TOPOLOGY.hexes.map((h) => (
           <polygon key={`b${h.id}`} points={hexPoints(h.id, 1.45)} fill="#9ed6df" />
+        ))}
+        {ports.map(({ port, a, b, p }) => (
+          <path
+            key={`p${port.edge}`}
+            d={`M${px(a.x)} ${px(a.y)}L${px(p.x)} ${px(p.y)}L${px(b.x)} ${px(b.y)}`}
+            fill="none"
+            stroke={MAGENTA}
+            strokeWidth={2}
+            strokeDasharray="5 3"
+          />
+        ))}
+        {ticks.map((t, i) => (
+          <path
+            key={`g${i}`}
+            d={`M${t} 0v${i % 4 === 0 ? 14 : 7}M${t} ${PLATE}v-${i % 4 === 0 ? 14 : 7}M0 ${t}h${i % 4 === 0 ? 14 : 7}M${PLATE} ${t}h-${i % 4 === 0 ? 14 : 7}`}
+            stroke={INK}
+            strokeWidth={1.5}
+          />
         ))}
         {TOPOLOGY.hexes.map((h) => (
           <polygon
@@ -72,6 +107,49 @@ function IslandPlate({ board }: { board: Board }) {
           ),
         )}
       </svg>
+      {spots.map((sp, i) => (
+        <div
+          key={`s${i}`}
+          style={{
+            position: "absolute",
+            left: px(sp.x) - 14,
+            top: px(sp.y) - 10,
+            width: 28,
+            display: "flex",
+            justifyContent: "center",
+            fontFamily: "ArchivoItalic",
+            fontStyle: "italic",
+            fontSize: 13,
+            color: INK2,
+          }}
+        >
+          {sp.depth}
+        </div>
+      ))}
+      {ports.map(({ port, p }) => (
+        <div
+          key={`q${port.edge}`}
+          style={{
+            position: "absolute",
+            left: px(p.x) - 22,
+            top: px(p.y) - 12,
+            width: 44,
+            height: 24,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#ffffff",
+            border: `1.5px solid ${MAGENTA}`,
+            borderRadius: 4,
+            fontFamily: "ArchivoItalic",
+            fontStyle: "italic",
+            fontSize: 14,
+            color: MAGENTA,
+          }}
+        >
+          {port.kind === "generic" ? "3:1" : "2:1"}
+        </div>
+      ))}
       {TOPOLOGY.hexes.map((h) => {
         const token = board.hexes[h.id].token;
         if (token === null) return null;
@@ -153,15 +231,24 @@ export function ChartSnippet({
               style={{
                 display: "flex",
                 alignSelf: "flex-start",
-                padding: "6px 22px",
-                border: `5px double ${MAGENTA}`,
-                color: MAGENTA,
-                fontFamily: "ArchivoWide",
-                fontSize: 64,
+                padding: 4,
+                border: `2px solid ${MAGENTA}`,
                 transform: "rotate(-4deg)",
               }}
             >
-              {score}
+              {/* Two nested rules: Satori has no double border style. */}
+              <div
+                style={{
+                  display: "flex",
+                  padding: "4px 22px",
+                  border: `2px solid ${MAGENTA}`,
+                  color: MAGENTA,
+                  fontFamily: "ArchivoWide",
+                  fontSize: 64,
+                }}
+              >
+                {score}
+              </div>
             </div>
           )}
           <div style={{ fontFamily: "Archivo", fontSize: 28 }}>{detail}</div>
