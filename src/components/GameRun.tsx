@@ -17,7 +17,7 @@ import {
 } from "@/engine";
 import { ensurePlayer, submitResult, type SubmitBody } from "@/game/api";
 import { browserKV, haptic, useLocalResult, usePlayer, useSettings, useTodayKey } from "@/game/browser";
-import { comboOf, lightCharacter } from "@/game/combo";
+import { comboOf } from "@/game/combo";
 import { FORMAT_META, introTiming, tierRamp } from "@/game/meta";
 import { relaxPuzzle } from "@/game/relaxed";
 import { advanceDelayMs, betweenPuzzles, initialBetween, type BetweenState } from "@/game/runFlow";
@@ -70,14 +70,9 @@ function randomSeed(): number {
   return a[0];
 }
 
-/**
- * The combo as a lighthouse characteristic: the lamp flashes once per step of
- * the streak on each right answer, and the label reads like a chart light.
- */
+/** The combo: a lighthouse lamp that flashes once per right answer in a row. */
 function LightChar({ combo }: { combo: number }) {
-  const text = lightCharacter(combo);
-  // Momentum reads as a plain count; the light characteristic is its caption.
-  if (!text || combo < 2) return <span className="h-[22px]" aria-hidden />;
+  if (combo < 2) return <span className="h-[22px]" aria-hidden />;
   return (
     <span className="flex items-center gap-1.5" aria-label={`Combo ${combo}`}>
       <svg width={18} height={18} viewBox="-9 -9 18 18" aria-hidden>
@@ -89,7 +84,7 @@ function LightChar({ combo }: { combo: number }) {
         </g>
       </svg>
       <b key={`n${combo}`} className="anim-pop text-l leading-none text-accent condensed">×{combo}</b>
-      <span className="sea text-s text-ink-2">{text}</span>
+      <span className="sea text-s text-ink-2">in a row</span>
     </span>
   );
 }

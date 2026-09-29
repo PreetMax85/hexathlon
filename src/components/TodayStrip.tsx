@@ -25,7 +25,7 @@ export function IslandPlate() {
       ) : (
         <div className="hatch aspect-[1.05] w-full rounded-lg" aria-hidden />
       )}
-      <figcaption className="sea text-s text-ink-2">Today&apos;s island, from the Pip Flash Daily. Same chart for every player.</figcaption>
+      <figcaption className="sea text-s text-ink-2">Today&apos;s island, from the Pip Flash Daily. Same board for every player.</figcaption>
     </figure>
   );
 }

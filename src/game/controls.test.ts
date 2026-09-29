@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { generate } from "@/engine";
-import { comboOf, lightCharacter } from "./combo";
+import { comboOf } from "./combo";
 import { CONFIRM_WINDOW_MS, pressConfirm } from "./confirm";
 import { logSummary } from "./handTrackerFlow";
 import { emptyPad, padKey, padTap } from "./numberPad";
@@ -53,12 +53,6 @@ describe("combo", () => {
     expect(comboOf([])).toBe(0);
     expect(comboOf([true, true, false])).toBe(0);
     expect(comboOf([false, true, true, true])).toBe(3);
-  });
-
-  it("reads like a lighthouse characteristic", () => {
-    expect(lightCharacter(0)).toBeNull();
-    expect(lightCharacter(1)).toBe("Fl");
-    expect(lightCharacter(4)).toBe("Fl(4)");
   });
 });
 
