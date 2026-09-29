@@ -171,6 +171,11 @@ a {
   font-stretch: 72%;
 }
 
+/* During a run the puzzle owns the screen: the app header steps aside (the run's X exits). */
+body[data-playing] [data-app-header] {
+  display: none;
+}
+
 /* Restricted-area hatching for used and disabled states, never opacity. */
 @utility hatch {
   background-image: repeating-linear-gradient(

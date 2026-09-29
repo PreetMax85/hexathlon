@@ -1,7 +1,5 @@
 import { AppHeader } from "@/components/AppHeader";
-import { FormatCard } from "@/components/FormatCard";
 import { IslandPlate, ThumbAction, TodayStrip } from "@/components/TodayStrip";
-import { FORMATS } from "@/engine";
 
 export default function Home() {
   return (
@@ -15,17 +13,6 @@ export default function Home() {
         <div className="flex flex-col gap-7">
           <TodayStrip />
           <ThumbAction />
-          <section aria-labelledby="directions-title" className="flex flex-col">
-            <div className="border-b border-ink pb-2">
-              <h2 id="directions-title" className="sea text-l">The drills</h2>
-              <p className="text-s text-ink-2">Three drills, one skill each. Every puzzle comes from a seed, so everyone sees the same board.</p>
-            </div>
-            <ul>
-              {FORMATS.map((f) => (
-                <FormatCard key={f} format={f} />
-              ))}
-            </ul>
-          </section>
           <p className="pb-6 text-s text-ink-2">No login. A nickname is asked only when you first put a score on a board.</p>
         </div>
       </main>

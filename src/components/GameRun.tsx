@@ -32,6 +32,7 @@ import { marksStrip, shareText } from "@/game/share";
 import { ChallengeShare } from "./ChallengeShare";
 import { Feedback } from "./Feedback";
 import { HandTrackerPlay } from "./HandTrackerPlay";
+import { HowToPlay } from "./HowToPlay";
 import { ChallengeBoard, DailyBoard } from "./Leaderboard";
 import { NicknameForm } from "./NicknameDialog";
 import { PipFlashPlay } from "./PipFlashPlay";
@@ -217,6 +218,16 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
     setSync(await perform(who, body, local));
   };
 
+  // While a run is on, the app header steps aside so the puzzle gets the screen.
+  const playing = stage.kind === "play";
+  useEffect(() => {
+    if (!playing) return;
+    document.body.dataset.playing = "";
+    return () => {
+      delete document.body.dataset.playing;
+    };
+  }, [playing]);
+
   // Pip Flash glides on by itself (a touch slower each puzzle); the others wait for Next.
   const glideMs = last && play?.between.phase === "verdict" && !finished ? advanceDelayMs(format, last.correct, index) : null;
   useEffect(() => {
@@ -321,7 +332,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
         comparison={comparison}
         sync={sync}
         onRetrySync={player && body ? () => sendNow(player) : undefined}
-        onPlayAgain={mode === "rush" && fixedSeed === undefined ? () => setStage({ kind: "intro" }) : undefined}
+        onPlayAgain={mode === "rush" && fixedSeed === undefined ? start : undefined}
         nickname={needsName ? <NicknameForm title="Put your score on the board" onSaved={sendNow} /> : null}
       >
         {boards(result, stage.seed, challenge?.id)}
@@ -401,6 +412,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
             <li>Each clock starts after a short steady beat. You can pause between puzzles.</li>
           </ul>
         </Note>
+        <HowToPlay format={format} />
         <label className="flex min-h-12 cursor-pointer items-center justify-between gap-4 border-y border-hair py-3">
           <span className="text-s">
             <b className="text-m">Relaxed mode</b>

@@ -38,31 +38,33 @@ function ChartedMark() {
   );
 }
 
+/** One row per drill: today's Daily (open or done) and a Rush, side by side. */
 function DailyRow({ format, today }: { format: Format; today: string | null }) {
   const result = useLocalResult(format, "daily", today);
   return (
-    <li>
-      <Link
-        href={`/play/${format}/daily`}
-        className="group flex min-h-14 items-center gap-3 border-b border-hair py-1.5 hover:bg-shoal-2"
-      >
+    <li className="flex items-stretch gap-2 border-b border-hair">
+      <Link href={`/play/${format}/daily`} className="group flex min-h-16 flex-1 items-center gap-3 py-2 hover:bg-shoal-2">
         {result ? <ChartedMark /> : <Buoy kind="current" size={26} />}
         <span className="min-w-0 flex-1">
           <span className="block font-bold">{FORMAT_META[format].name}</span>
           <span className="block text-s text-ink-2">
             {result === undefined ? " " : result ? (
               <>
-                Charted · <b className="text-ink">{result.correct}/{result.total}</b> in {formatClock(result.totalMs)}
+                Daily done · <b className="text-ink">{result.correct}/{result.total}</b> in {formatClock(result.totalMs)}
                 {result.relaxed && <span className="sea"> · relaxed</span>}
               </>
             ) : (
-              "Open · 5 puzzles"
+              `Daily open · ${FORMAT_META[format].skill.toLowerCase()}`
             )}
           </span>
         </span>
-        <svg width={14} height={14} viewBox="0 0 14 14" aria-hidden className="text-ink-2 group-hover:text-ink">
-          <path d="M4 2l5 5-5 5" fill="none" stroke="currentColor" strokeWidth={1.8} />
-        </svg>
+      </Link>
+      <Link
+        href={`/play/${format}/rush`}
+        className="my-2 flex min-h-11 min-w-16 items-center justify-center rounded-md border border-ink px-3 text-s font-bold hover:bg-shoal-2"
+        aria-label={`${FORMAT_META[format].name} Rush`}
+      >
+        Rush
       </Link>
     </li>
   );
@@ -81,10 +83,13 @@ export function TodayStrip() {
     <section aria-labelledby="today-title" className="flex flex-col">
       <div className="flex items-end justify-between gap-4 border-b border-ink pb-2">
         <h2 id="today-title" className="sea text-l">Today&apos;s Dailies</h2>
-        <div className="flex shrink-0 flex-col items-center rounded-md border border-hair bg-deep px-3 py-1.5" aria-label={`Days at sea: ${streak ?? 0}`}>
-          <b className="text-l leading-none condensed">{streak ?? "–"}</b>
-          <span className="mt-0.5 text-s text-ink-2">days at sea</span>
-        </div>
+        {/* A first visit has no streak to show yet; from day one it counts. */}
+        {!!streak && (
+          <div className="flex shrink-0 flex-col items-center rounded-md border border-hair bg-deep px-3 py-1.5" aria-label={`${streak} ${streak === 1 ? "day" : "days"} at sea`}>
+            <b className="text-l leading-none condensed">{streak}</b>
+            <span className="mt-0.5 text-s text-ink-2">{streak === 1 ? "day" : "days"} at sea</span>
+          </div>
+        )}
       </div>
       <ul>
         {FORMATS.map((f) => (
@@ -119,7 +124,7 @@ function NextDailyAction() {
   return (
     <div className="flex items-center justify-between gap-3">
       <p className="text-s text-ink-2">
-        All three charted.{now !== null && <> Next in <b className="text-ink">{formatCountdown(untilNextDaily(new Date(now)))}</b>.</>}
+        All three done.{now !== null && <> Next in <b className="text-ink">{formatCountdown(untilNextDaily(new Date(now)))}</b>.</>}
       </p>
       <ButtonLink href="/play/pip-flash/rush" variant="secondary" className="shrink-0">
         Rush

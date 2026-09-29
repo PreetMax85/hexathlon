@@ -30,7 +30,7 @@ interface Props {
   /** Progress of sending this run to the server. */
   sync?: Sync;
   onRetrySync?: () => void;
-  /** Leaderboard and challenge panels, shown between the puzzle strip and sharing. */
+  /** Leaderboard and challenge panels, shown after sharing and the next actions. */
   children?: ReactNode;
 }
 
@@ -170,7 +170,6 @@ export function Result({ format, mode, result, date, comparison, nickname, alrea
 
       {nickname}
 
-      {children}
 
       <section aria-label="Share" className="flex flex-col gap-2">
         <Button variant="secondary" onClick={share}>
@@ -196,6 +195,8 @@ export function Result({ format, mode, result, date, comparison, nickname, alrea
           Home
         </ButtonLink>
       </div>
+      {/* Boards and the challenge come last, so Share and Sail again stay in reach. */}
+      {children}
     </div>
   );
 }
