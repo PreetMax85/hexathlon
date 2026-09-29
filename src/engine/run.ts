@@ -1,6 +1,6 @@
 import type { Format } from "./formats/common";
 import { handTrackerPlaybackMs } from "./formats/handTracker";
-import { dailyItems, dailySeed, generate, rushSeeds, validate, type Puzzle, type RushItem } from "./puzzles";
+import { dailyItems, dailySeed, generate, quickSetItems, RUSH_LENGTH, rushSeeds, validate, type Puzzle, type RushItem } from "./puzzles";
 
 export const MODES = ["daily", "rush"] as const;
 export type Mode = (typeof MODES)[number];
@@ -23,9 +23,18 @@ export function minPuzzleMs(puzzle: Puzzle): number {
   return puzzle.format === "hand-tracker" ? handTrackerPlaybackMs(puzzle) : MIN_ANSWER_MS;
 }
 
-/** The (tier, seed) puzzles of a run: 5 for Daily, 13 for Rush. */
-export function runItems(mode: Mode, seed: number): RushItem[] {
-  return mode === "daily" ? dailyItems(seed) : rushSeeds(seed);
+/** A Rush of any length but 13 is an unranked quick set. */
+export function isQuickSet(mode: Mode, length: number | undefined): boolean {
+  return mode === "rush" && length !== undefined && length !== RUSH_LENGTH;
+}
+
+/**
+ * The (tier, seed) puzzles of a run: 5 for Daily, 13 for Rush. A Rush of any
+ * other `length` is an unranked quick set with its own seeds.
+ */
+export function runItems(mode: Mode, seed: number, length?: number): RushItem[] {
+  if (mode === "daily") return dailyItems(seed);
+  return isQuickSet(mode, length) ? quickSetItems(seed, length!) : rushSeeds(seed);
 }
 
 /** Seed of today's Daily for a format. Daily runs use it directly. */
@@ -52,8 +61,10 @@ export function scoreRun(
   seed: number,
   answers: readonly unknown[],
   times: readonly unknown[],
+  /** Quick-set length; the server never passes it, so it only scores ranked runs. */
+  length?: number,
 ): RunScore | null {
-  const items = runItems(mode, seed);
+  const items = runItems(mode, seed, length);
   if (answers.length !== items.length || times.length !== items.length) return null;
   let totalMs = 0;
   const marks: boolean[] = [];

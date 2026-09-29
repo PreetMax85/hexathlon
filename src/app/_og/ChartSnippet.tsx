@@ -1,13 +1,13 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { isRed, TOPOLOGY, toCartesian, type Board } from "@/engine";
-import { soundings } from "@/game/chart";
 import { RESOURCE_META } from "@/game/meta";
+import { portMark } from "@/components/Board";
 import { glyphPath } from "@/components/glyphs";
 
 /**
- * The share card as a chart snippet: the island plate on the left and a
- * cartouche on the right with the title, the score and the edition date.
+ * The share card: the island on the left and, on the right, the title, the
+ * score stamp and the edition date.
  * Rendered by `ImageResponse` (Satori), so layout is flexbox only.
  */
 
@@ -33,12 +33,14 @@ export async function ogFonts() {
 const PAPER = "#f3f7f7";
 const INK = "#1d2b36";
 const INK2 = "#475a68";
-const MAGENTA = "#c2187a";
+const ACCENT = "#1b6a96";
+const SEA = "#a8d6e4";
+const SEA2 = "#c9e8f0";
 
 const PLATE = 560;
 const VERTS = TOPOLOGY.vertices.map((v) => toCartesian(v.x, v.y));
 const CENTERS = TOPOLOGY.hexes.map((h) => toCartesian(h.x, h.y));
-const HALF = 6.4;
+const HALF = 6.1;
 const k = PLATE / (HALF * 2);
 const px = (u: number) => (u + HALF) * k;
 
@@ -49,54 +51,25 @@ function hexPoints(id: number, scale = 1) {
     .join(" ");
 }
 
-const portSpots = (board: Board) => portMarks(board).map((m) => m.p);
-
-function portMarks(board: Board) {
-  return board.ports.map((port) => {
-    const a = VERTS[port.vertices[0]];
-    const b = VERTS[port.vertices[1]];
-    const mx = (a.x + b.x) / 2;
-    const my = (a.y + b.y) / 2;
-    const len = Math.hypot(mx, my) || 1;
-    return { port, a, b, p: { x: mx + (mx / len) * 1.02, y: my + (my / len) * 1.02 } };
-  });
-}
+// Same port geometry as the in-app board.
+const portMarks = (board: Board) => board.ports.map((port) => ({ port, ...portMark(port.vertices[0], port.vertices[1]) }));
 
 function SnippetPlate({ board }: { board: Board }) {
   const ports = portMarks(board);
-  const labels = portSpots(board);
-  // Soundings stay off the land, the shoal band and the port labels.
-  const clear = (x: number, y: number) =>
-    CENTERS.some((c) => Math.hypot(c.x - x, c.y - y) < 2.05) || labels.some((l) => Math.hypot(l.x - x, l.y - y) < 1.1);
-  const spots = soundings(board.seed, { x: -HALF + 0.3, y: -HALF + 0.3, w: HALF * 2 - 0.6, h: HALF * 2 - 0.6 }, clear);
-  const ticks = Array.from({ length: Math.floor((HALF * 2) / 0.5) + 1 }, (_, i) => i * 0.5 * k);
   return (
     <div style={{ display: "flex", position: "relative", width: PLATE, height: PLATE, }}>
       <svg width={PLATE} height={PLATE} viewBox={`0 0 ${PLATE} ${PLATE}`} style={{ position: "absolute", left: 0, top: 0 }}>
-        <rect width={PLATE} height={PLATE} fill="#ffffff" />
-        <rect x={1.5} y={1.5} width={PLATE - 3} height={PLATE - 3} fill="none" stroke={INK} strokeWidth={3} />
+        <rect width={PLATE} height={PLATE} rx={16} fill={SEA} />
         {TOPOLOGY.hexes.map((h) => (
-          <polygon key={`a${h.id}`} points={hexPoints(h.id, 2.05)} fill="#cfebef" />
-        ))}
-        {TOPOLOGY.hexes.map((h) => (
-          <polygon key={`b${h.id}`} points={hexPoints(h.id, 1.45)} fill="#9ed6df" />
+          <polygon key={`b${h.id}`} points={hexPoints(h.id, 1.32)} fill={SEA2} />
         ))}
         {ports.map(({ port, a, b, p }) => (
           <path
             key={`p${port.edge}`}
-            d={`M${px(a.x)} ${px(a.y)}L${px(p.x)} ${px(p.y)}L${px(b.x)} ${px(b.y)}`}
-            fill="none"
-            stroke={MAGENTA}
-            strokeWidth={2}
-            strokeDasharray="5 3"
-          />
-        ))}
-        {ticks.map((t, i) => (
-          <path
-            key={`g${i}`}
-            d={`M${t} 0v${i % 4 === 0 ? 14 : 7}M${t} ${PLATE}v-${i % 4 === 0 ? 14 : 7}M0 ${t}h${i % 4 === 0 ? 14 : 7}M${PLATE} ${t}h-${i % 4 === 0 ? 14 : 7}`}
-            stroke={INK}
-            strokeWidth={1.5}
+            d={`M${px(a.x)} ${px(a.y)}L${px(p.x)} ${px(p.y)}M${px(b.x)} ${px(b.y)}L${px(p.x)} ${px(p.y)}`}
+            stroke={INK2}
+            strokeWidth={3}
+            strokeLinecap="round"
           />
         ))}
         {TOPOLOGY.hexes.map((h) => (
@@ -114,25 +87,6 @@ function SnippetPlate({ board }: { board: Board }) {
           ),
         )}
       </svg>
-      {spots.map((sp, i) => (
-        <div
-          key={`s${i}`}
-          style={{
-            position: "absolute",
-            left: px(sp.x) - 14,
-            top: px(sp.y) - 10,
-            width: 28,
-            display: "flex",
-            justifyContent: "center",
-            fontFamily: "ArchivoItalic",
-            fontStyle: "italic",
-            fontSize: 13,
-            color: INK2,
-          }}
-        >
-          {sp.depth}
-        </div>
-      ))}
       {ports.map(({ port, p }) => (
         <div
           key={`q${port.edge}`}
@@ -146,18 +100,18 @@ function SnippetPlate({ board }: { board: Board }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "#ffffff",
-            border: `1.5px solid ${MAGENTA}`,
-            fontFamily: "ArchivoItalic",
-            fontStyle: "italic",
-            fontSize: 14,
-            color: MAGENTA,
+            background: port.kind === "generic" ? "#ffffff" : RESOURCE_META[port.kind].fill,
+            border: `1.5px solid ${port.kind === "generic" ? INK2 : PAPER}`,
+            borderRadius: 6,
+            fontFamily: "Archivo",
+            fontSize: 15,
+            color: port.kind === "generic" ? INK : RESOURCE_META[port.kind].glyph,
           }}
         >
           {port.kind === "generic" ? "3:1" : "2:1"}
           {port.kind !== "generic" && (
             <svg width="16" height="16" viewBox="0 0 24 24">
-              <path d={glyphPath(port.kind)} fill="none" stroke={MAGENTA} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d={glyphPath(port.kind)} fill="none" stroke={RESOURCE_META[port.kind].glyph} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           )}
         </div>
@@ -223,8 +177,6 @@ export function ChartSnippet({
           alignItems: "center",
           gap: 44,
           padding: "0 40px",
-          border: `3px solid ${INK}`,
-          outline: `1px solid ${INK}`,
         }}
       >
         <SnippetPlate board={board} />
@@ -232,7 +184,7 @@ export function ChartSnippet({
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <svg width="44" height="44" viewBox="-12 -12 24 24">
               <polygon points="0,-9.5 8.2,-4.75 8.2,4.75 0,9.5 -8.2,4.75 -8.2,-4.75" fill="none" stroke={INK} strokeWidth="2.2" />
-              <circle r="3.2" fill={MAGENTA} />
+              <circle r="3.2" fill={ACCENT} />
             </svg>
             <div style={{ fontFamily: "ArchivoWide", fontSize: 36, letterSpacing: 5 }}>HEXATHLON</div>
           </div>
@@ -244,7 +196,7 @@ export function ChartSnippet({
                 display: "flex",
                 alignSelf: "flex-start",
                 padding: 4,
-                border: `2px solid ${MAGENTA}`,
+                border: `2px solid ${ACCENT}`,
                 transform: "rotate(-4deg)",
               }}
             >
@@ -253,8 +205,8 @@ export function ChartSnippet({
                 style={{
                   display: "flex",
                   padding: "4px 22px",
-                  border: `2px solid ${MAGENTA}`,
-                  color: MAGENTA,
+                  border: `2px solid ${ACCENT}`,
+                  color: ACCENT,
                   fontFamily: "ArchivoWide",
                   fontSize: 64,
                 }}

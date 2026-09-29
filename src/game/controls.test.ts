@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { generate } from "@/engine";
-import { comboOf, lightCharacter } from "./combo";
+import { comboOf } from "./combo";
 import { CONFIRM_WINDOW_MS, pressConfirm } from "./confirm";
 import { logSummary } from "./handTrackerFlow";
 import { emptyPad, padKey, padTap } from "./numberPad";
@@ -54,23 +54,17 @@ describe("combo", () => {
     expect(comboOf([true, true, false])).toBe(0);
     expect(comboOf([false, true, true, true])).toBe(3);
   });
-
-  it("reads like a lighthouse characteristic", () => {
-    expect(lightCharacter(0)).toBeNull();
-    expect(lightCharacter(1)).toBe("Fl");
-    expect(lightCharacter(4)).toBe("Fl(4)");
-  });
 });
 
 describe("Hand Tracker screen-reader summary", () => {
   it("announces once after playback, not every event", () => {
     const p = generate("hand-tracker", "hard", 2);
     expect(logSummary(p, 0)).toBe(
-      `Log finished: 20 events. Question 1 of 2: how many ${p.questions[0]} does Rival hold? Choose 0 to 19, then confirm.`,
+      `Log finished: 14 events. Question 1 of 2: how many ${p.questions[0]} does Rival hold? Choose 0 to 19, then confirm.`,
     );
     const easy = generate("hand-tracker", "easy", 2);
     expect(logSummary(easy, 0)).toBe(
-      `Log finished: 8 events. How many ${easy.questions[0]} does Rival hold? Choose 0 to 19, then confirm.`,
+      `Log finished: 5 events. How many ${easy.questions[0]} does Rival hold? Choose 0 to 19, then confirm.`,
     );
   });
 });

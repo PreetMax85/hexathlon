@@ -10,10 +10,12 @@ export function shareText(args: {
   correct: number;
   total: number;
   totalMs: number;
+  /** An unranked quick set. */
+  quick?: boolean;
   /** UTC date the run finished, printed as the chart's edition. */
   date?: string | null;
 }): string {
-  const mode = args.mode === "rush" ? "Rush" : "Daily";
+  const mode = args.mode === "daily" ? "Daily" : args.quick ? "Quick set" : "Rush";
   const edition = args.date ? ` · Ed. ${chartDate(args.date)}` : "";
   return `Hexathlon ${mode} · ${FORMAT_META[args.format].name} ${args.correct}/${args.total} · ${formatClock(args.totalMs)}${edition}`;
 }

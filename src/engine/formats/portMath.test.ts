@@ -7,7 +7,9 @@ import {
   generatePortMath,
   greedyTrades,
   optimalTrades,
+  PORT_MATH_CHOICES,
   PORT_MATH_RULES,
+  portMathRoute,
   replayTrades,
   solvePortMath,
   targetCost,
@@ -42,8 +44,10 @@ describe.each(TIERS)("port math (%s)", (tier) => {
       expect(covers(p.hand, need)).toBe(false);
       for (const r of RESOURCES) expect(p.hand[r]).toBeLessThanOrEqual(19);
 
-      const best = solvePortMath(p);
+      const best = portMathRoute(p);
       expect(best.length).toBe(p.optimalTrades);
+      expect(solvePortMath(p)).toBe(p.optimalTrades);
+      expect(PORT_MATH_CHOICES).toContain(p.optimalTrades);
       expect(p.optimalTrades).toBeGreaterThanOrEqual(rules.minTrades);
       expect(p.optimalTrades).toBeLessThanOrEqual(rules.maxTrades);
 
@@ -51,13 +55,11 @@ describe.each(TIERS)("port math (%s)", (tier) => {
       expect(p.optimalTrades).toBeLessThanOrEqual(greedy);
       if (rules.greedyMustFail) expect(greedy).toBeGreaterThan(p.optimalTrades);
 
-      expect(validatePortMath(p, best)).toBe(true);
+      // The answer is the count: one off either way is wrong.
+      expect(validatePortMath(p, p.optimalTrades)).toBe(true);
+      expect(validatePortMath(p, p.optimalTrades - 1)).toBe(false);
+      expect(validatePortMath(p, p.optimalTrades + 1)).toBe(false);
       expect(covers(replayTrades(p, best)!, need)).toBe(true);
-
-      // Perturbations: one trade short, and an illegal trade swapped in.
-      expect(validatePortMath(p, best.slice(0, -1))).toBe(false);
-      const illegal = best.map((t, i) => (i === 0 ? { give: t.give, get: t.give } : t));
-      expect(validatePortMath(p, illegal)).toBe(false);
     }
   });
 
@@ -114,9 +116,17 @@ describe("port math rules", () => {
     expect(generatePortMath("hard", 9)).toEqual(generatePortMath("hard", 9));
   });
 
+  it("tiers overlap, so the tier badge never gives the count away", () => {
+    const counts = (tier: (typeof TIERS)[number]) => new Set(SEEDS.slice(0, 200).map((s) => generatePortMath(tier, s).optimalTrades));
+    expect(counts("easy")).toEqual(new Set([1, 2]));
+    expect(counts("medium")).toEqual(new Set([2, 3]));
+    expect(counts("hard").has(3)).toBe(true);
+    expect(Math.max(...counts("hard"))).toBeGreaterThanOrEqual(4);
+  });
+
   it("rejects malformed answers", () => {
     const p = generatePortMath("easy", 3);
-    for (const bad of [undefined, null, "x", {}, [{ give: "gold", get: "ore" }], [1, 2]]) {
+    for (const bad of [undefined, null, "x", {}, String(p.optimalTrades), p.optimalTrades + 0.5, [p.optimalTrades], portMathRoute(p)]) {
       expect(validatePortMath(p, bad)).toBe(false);
     }
   });

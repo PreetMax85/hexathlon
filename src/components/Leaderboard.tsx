@@ -48,7 +48,7 @@ function LeaderboardView({ title, result, onRetry, total, limit, empty }: ViewPr
               <span className="w-6 text-center font-bold text-ink-2">{e.rank}</span>
               <span className="min-w-0 flex-1 truncate">
                 {e.nickname}
-                {e.mine && <span className="sea ml-2 text-s font-semibold text-magenta">you</span>}
+                {e.mine && <span className="sea ml-2 text-s font-semibold text-accent">you</span>}
               </span>
               <span className="font-bold">
                 {e.correct}/{total}

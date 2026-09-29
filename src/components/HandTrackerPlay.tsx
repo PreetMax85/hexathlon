@@ -14,6 +14,7 @@ import {
 import { handPhaseAt, handPhaseAtStep, logSummary } from "@/game/handTrackerFlow";
 import { RESOURCE_META } from "@/game/meta";
 import { emptyPad, PAD_VALUES, padKey, padTap, type PadState } from "@/game/numberPad";
+import { CountLog } from "./CountLog";
 import { Glyph } from "./glyphs";
 import { Button, RangeDial } from "./ui";
 import { now, usePuzzleClock } from "./useClock";
@@ -80,6 +81,8 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
         }
         return;
       }
+      // Enter confirms here; stop it also pressing the Next button that takes focus next.
+      if (e.key === "Enter") e.preventDefault();
       const r = padKey(pad, e.key, now());
       setPad(r.state);
       if (r.submit) confirm(r.state.value);
@@ -119,7 +122,7 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
           <div className="flex items-baseline justify-between">
             <h3 className="sea">Rival&apos;s starting hand</h3>
             {!tapPaced && (
-              <span className="text-s font-bold text-magenta">
+              <span className="text-s font-bold text-accent">
                 {ready ? "Steady" : `${Math.max(0, Math.ceil((puzzle.revealMs - elapsed) / 1000))} s`}
               </span>
             )}
@@ -178,7 +181,7 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
                   onClick={() => setPad(padTap(pad, n))}
                   aria-pressed={pad.value === n}
                   className={`min-h-12 w-full text-l font-semibold condensed ${
-                    pad.value === n ? "bg-magenta text-on-magenta" : "bg-deep ring-1 ring-inset ring-hair hover:ring-ink"
+                    pad.value === n ? "bg-accent text-on-accent" : "bg-deep ring-1 ring-inset ring-hair hover:ring-ink"
                   }`}
                 >
                   {n}
@@ -200,6 +203,8 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
           <p className="text-s text-ink-2">
             You answered {answers.map((a, i) => `${a} ${puzzle.questions[i]}`).join(" and ")}.
           </p>
+          {/* A miss shows where the count moved, line by line: that's where it slipped. */}
+          {answers.some((a, i) => a !== finalHand[puzzle.questions[i]]) && <CountLog puzzle={puzzle} />}
         </section>
       )}
     </div>

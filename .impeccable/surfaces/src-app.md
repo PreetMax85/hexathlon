@@ -13,6 +13,20 @@ and the empty and error states. Game behaviour comes from
 `docs/briefs/game-feel.md`. Product truth is in PRODUCT.md. Build path:
 **code-led** (no image generation this session).
 
+## v1.2 amendment (owner review, 2026-09-29) — overrides the contract below
+
+Where this block and the contract below disagree, this block wins.
+- **Clarity over chart.** No soundings, graticule, neatline, scale bar or range
+  ring. The board is island + plain sea + ports; it fills the width on phones.
+- **Accent is sea blue** (`--accent`, day `#1B6A96`, dusk `#6DB3DD`). No
+  magenta anywhere. Ports are chips in their resource's own colours.
+- **Two palettes: Day and Dusk.** No night.
+- **Fewer things on the play screen**: the question, a timer bar, the board and
+  big answer buttons. No demos or previews that repeat what a tap will show.
+- **Words: a mix.** Sea flavour for moments (Sail the Daily, days at sea,
+  Passage complete, buoys); the game's own terms for instructions and puzzles.
+  No light characteristics ("Fl(4)").
+
 ## Direction contract
 
 THESIS: Every puzzle is a chart of one island. The sea, the ports and the

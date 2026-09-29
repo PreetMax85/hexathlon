@@ -47,16 +47,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${archivo.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
-        {/* Applies a chosen day/dusk/night palette before first paint. */}
+        {/* Applies a chosen day/dusk palette before first paint. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
-      <body className="flex min-h-full flex-col p-2 sm:p-3">
-        {/* The neatline frames every screen, like the border of a chart. */}
-        <div className="neatline flex min-h-[calc(100dvh-1rem)] flex-1 flex-col sm:min-h-[calc(100dvh-1.5rem)]">
-          <div className="scale-bar" aria-hidden />
-          {children}
-        </div>
-      </body>
+      <body className="flex min-h-dvh flex-col">{children}</body>
     </html>
   );
 }

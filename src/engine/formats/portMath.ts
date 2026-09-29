@@ -1,6 +1,6 @@
 import type { PortKind } from "../board";
 import { createRng, mixSeed, type Rng } from "../rng";
-import { emptyCounts, isResource, RESOURCES, type Resource, type ResourceCounts } from "../types";
+import { emptyCounts, RESOURCES, type Resource, type ResourceCounts } from "../types";
 import type { Tier } from "./common";
 
 export const BUILDS = ["road", "settlement", "city", "dev"] as const;
@@ -22,11 +22,18 @@ export interface PortMathTierRules {
   greedyMustFail: boolean;
 }
 
+/**
+ * Trade counts per tier. The ranges overlap so that, with a one-tap count as
+ * the answer, the tier badge never gives the answer away.
+ */
 export const PORT_MATH_RULES: Record<Tier, PortMathTierRules> = {
   easy: { minTrades: 1, maxTrades: 2, greedyMustFail: false },
-  medium: { minTrades: 3, maxTrades: 3, greedyMustFail: false },
-  hard: { minTrades: 4, maxTrades: 5, greedyMustFail: true },
+  medium: { minTrades: 2, maxTrades: 3, greedyMustFail: false },
+  hard: { minTrades: 3, maxTrades: 5, greedyMustFail: true },
 };
+
+/** The counts a player can tap: one more than the hardest optimum, so 5 is never a sure thing. */
+export const PORT_MATH_CHOICES = [1, 2, 3, 4, 5, 6] as const;
 
 export interface PortMathPuzzle {
   format: "port-math";
@@ -46,7 +53,8 @@ export interface Trade {
   get: Resource;
 }
 
-export type PortMathAnswer = Trade[];
+/** The fewest trades the player thinks it takes. */
+export type PortMathAnswer = number;
 
 /** Cards given per trade: 2 with that resource's 2:1 port, 3 with a generic port, else 4. */
 export function tradeRate(ports: readonly PortKind[], resource: Resource): number {
@@ -254,10 +262,15 @@ export function generatePortMath(tier: Tier, seed: number): PortMathPuzzle {
   throw new Error(`port-math: no puzzle for ${tier}/${seed}`);
 }
 
-export function solvePortMath(puzzle: PortMathPuzzle): Trade[] {
+/** One fewest-trade route, for explaining the answer. */
+export function portMathRoute(puzzle: PortMathPuzzle): Trade[] {
   const best = optimalTrades(puzzle.hand, puzzle.ports, puzzle.target);
   if (!best) throw new Error("port-math puzzle has no solution");
   return best;
+}
+
+export function solvePortMath(puzzle: PortMathPuzzle): PortMathAnswer {
+  return puzzle.optimalTrades;
 }
 
 /** Final hand after a trade sequence, or null if any trade is illegal. */
@@ -273,16 +286,7 @@ export function replayTrades(
   return hand;
 }
 
-function isTrade(x: unknown): x is Trade {
-  if (typeof x !== "object" || x === null) return false;
-  const t = x as Record<string, unknown>;
-  return isResource(t.give) && isResource(t.get);
-}
-
-/** Correct iff every trade is legal, the final hand covers the target, and the count is optimal. */
+/** Correct iff the answer is the fewest trades that cover the target. */
 export function validatePortMath(puzzle: PortMathPuzzle, answer: unknown): boolean {
-  if (!Array.isArray(answer) || !answer.every(isTrade)) return false;
-  if (answer.length !== puzzle.optimalTrades) return false;
-  const final = replayTrades(puzzle, answer);
-  return final !== null && covers(final, targetCost(puzzle.target));
+  return typeof answer === "number" && answer === puzzle.optimalTrades;
 }

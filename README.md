@@ -8,40 +8,38 @@ Mobile-first, no AI at runtime.
 | Format | Skill | You do | Clock (easy / medium / hard) |
 |---|---|---|---|
 | **Pip Flash** | Reading the board | Tap the corner touching the most pips | 7 / 8 / 10 s per board |
-| **Port Math** | Trade efficiency | Reach a build in the fewest bank/port trades | None; time only breaks ties |
-| **Hand Tracker** | Card counting | Follow a game log, then count your rival's cards | 3 s preview, then 8 / 12 / 20 log lines paced for reading (≈3.0 / 2.7 / 2.5 s each) |
+| **Port Math** | Trade efficiency | See the hand, the build and the trade rates; tap the fewest trades it takes | None; time only breaks ties |
+| **Hand Tracker** | Card counting | Follow a game log, then count your rival's cards | 3 s preview, then 5 / 9 / 14 log lines paced for reading (≈3.0 / 2.7 / 2.5 s each) |
 
 Modes: **Daily** (5 puzzles per format per UTC day: 2 easy, 2 medium, 1 hard;
 the same for everyone; one scored attempt), **Rush** (13 puzzles, easy → hard),
-and **Challenge links** (`/c/<id>`) so friends play the same 13 puzzles.
+Pip Flash **quick sets** of 3, 5 or 10 (unranked, kept on the device), and
+**Challenge links** (`/c/<id>`) so friends play the same 13 puzzles.
 
 Game feel: every puzzle starts with a short steady beat before its clock
-runs; you can pause between puzzles (never during one); Skip and Quit ask
-once more inline; right answers build a combo; a streak ("days at sea")
+runs; you can pause between puzzles (never during one); Pip Flash moves on by
+itself after each verdict (a touch slower each puzzle), Port Math and Hand
+Tracker wait for Next; a Hand Tracker miss shows the rival's count after every
+log line; Quit asks once more inline; right answers build a combo; a streak ("days at sea")
 counts consecutive days with a Daily. **Relaxed mode** doubles every limit and
 lets the Hand Tracker log step on tap; relaxed runs stay on your device and
 are never ranked.
 
-## Design: the Chart Room
+## Design
 
-Every puzzle is a chart of one island. The board sits on a nautical chart
-plate: shoal bands that follow the coast, seed-derived depth soundings in the
-sea, ports as magenta harbour notes, graticule ticks on the neatline that
-frames every screen. The board owns the saturated colours; the chrome is chart
-white and sounding ink, with chart magenta for lights, notes and focus.
+The board comes first. Each puzzle is one island in a plain sea: resource
+hexes, number tokens with their pips, and ports as chips in their resource's
+own colours. The chrome around it is paper and ink with one sea-blue accent.
 
-- The Pip Flash timer is a **range ring**: a bearing line sweeps once around
-  the island over the time limit (a stepped arc under reduced motion).
+- The Pip Flash clock is a bar above the board; answers are big lettered
+  buttons in thumb reach, which turn into each corner's pip total. On a verdict
+  the hexes that fed the best corner light up.
 - Verdicts are **buoys** by shape, not just colour: a green cone for right, a
-  red can for wrong, dropped onto the corner you chose.
-- The combo reads like a **lighthouse characteristic**, `Fl(4)`, and the lamp
-  flashes once per step.
-- A finished run is stamped **"Passage complete"** with score, time and the
-  chart's edition date; tap any buoy in the strip to replay that puzzle.
-- Share cards are chart snippets: the island, the score in the cartouche, the
-  date as the edition.
-- Day, dusk and night palettes (dimmed, ECDIS-style) follow the system or a
-  header switch. Type is Archivo, using its width axis and italic for sea labels.
+  red can for wrong.
+- The sea stays in the words where it adds flavour: sail the Daily, days at
+  sea, "Passage complete". Instructions use the game's own terms.
+- Share cards show the island, the score stamp and the date.
+- Day and Dusk palettes; a first visit follows the system. Type is Archivo.
 
 The direction contract lives in `.impeccable/surfaces/src-app.md` and the
 design system in `DESIGN.md`.
@@ -70,7 +68,7 @@ the same seed gives an identical board and puzzle on every device.
   `{format, mode, seed, answers, times}`. The server regenerates the puzzles from
   the seed and recomputes correctness with the same engine; a claimed score is
   never read. Daily seeds must match today's UTC seed (or yesterday's for 15 minutes after midnight, so a run that straddles 00:00 still counts), challenge runs must match
-  the challenge's seed, and Port Math answers are replayed trade by trade.
+  the challenge's seed, and every answer is re-checked against the puzzle regenerated from its seed.
 - **Fair Dailies.** A partial unique index in Postgres allows one Daily result per
   player, format and daily seed.
 - **A human time floor.** Each puzzle time must be at least 300 ms, and a Hand
@@ -124,9 +122,10 @@ local-only results, showing "score not saved" with a retry.
   Pip Flash time limits.
 - **Server**: request parsing, the Daily-seed and challenge rules, leaderboard
   ranking, no player ids in responses.
-- **Client logic**: trade state, Hand Tracker phase clock and tap-paced log,
-  ready beat, pause flow, inline confirm, number pad, combos, streaks and Today
-  data, Relaxed scoring, storage, API client, share text, soundings.
+- **Client logic**: Hand Tracker phase clock, tap-paced log and running-count
+  review, ready beat, pause and auto-advance flow, quick sets, inline confirm,
+  number pad, combos, streaks and Today data, Relaxed scoring, palettes,
+  storage, API client, share text.
 - **Database integration** (`RUN_DB_TESTS=1 pnpm vitest run src/server/store.db.test.ts`):
   Daily uniqueness and challenge leaderboards against a real Postgres, with
   cleanup. Skipped unless enabled.

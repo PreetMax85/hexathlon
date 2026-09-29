@@ -147,8 +147,10 @@ describe("hand tracker event timing (v1.1 game-feel brief)", () => {
     expect(eventDurationMs({ type: "you-steal", resource: "sheep" }, "hard")).toBe(2385);
   });
 
-  it("hard gets 20 events and 2 questions, not more speed", () => {
-    expect(HAND_TRACKER_RULES.hard.events).toBe(20);
+  it("ramps 5 → 9 → 14 lines, and hard asks 2 questions", () => {
+    expect(HAND_TRACKER_RULES.easy.events).toBe(5);
+    expect(HAND_TRACKER_RULES.medium.events).toBe(9);
+    expect(HAND_TRACKER_RULES.hard.events).toBe(14);
     expect(HAND_TRACKER_RULES.hard.questions).toBe(2);
   });
 

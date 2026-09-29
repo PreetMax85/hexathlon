@@ -54,7 +54,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     );
   }
   const name = FORMAT_META[c.format].name;
-  const edition = `ED. ${chartDate(c.createdAt.toISOString().slice(0, 10))}`;
+  const edition = `Ed. ${chartDate(c.createdAt.toISOString().slice(0, 10))}`;
   return new ImageResponse(
     (
       <ChartSnippet

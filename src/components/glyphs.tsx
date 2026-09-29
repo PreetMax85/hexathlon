@@ -123,7 +123,7 @@ export function Buoy({ kind, size = 22, label }: { kind: "cone" | "can" | "pendi
           cy={14}
           r={kind === "current" ? 5 : 3.2}
           fill={kind === "current" ? "var(--deep)" : "var(--hair)"}
-          stroke={kind === "current" ? "var(--magenta)" : "none"}
+          stroke={kind === "current" ? "var(--accent)" : "none"}
           strokeWidth={2.4}
         />
       )}

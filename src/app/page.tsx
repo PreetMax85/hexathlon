@@ -16,8 +16,8 @@ export default function Home() {
           <TodayStrip />
           <ThumbAction />
           <section aria-labelledby="directions-title" className="flex flex-col">
-            <div className="border-b-2 border-ink pb-1.5">
-              <h2 id="directions-title" className="sea">Sailing Directions</h2>
+            <div className="border-b border-ink pb-2">
+              <h2 id="directions-title" className="sea text-l">The drills</h2>
               <p className="text-s text-ink-2">Three drills, one skill each. Every puzzle comes from a seed, so everyone sees the same board.</p>
             </div>
             <ul>

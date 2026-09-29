@@ -1,29 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   generate,
-  generatePortMath,
   solve,
   generateHandTracker,
   handTrackerPlaybackMs,
-  replayTrades,
-  covers,
-  targetCost,
   runItems,
   pipFlashRanking,
   CANDIDATE_LABELS,
-  type PortMathPuzzle,
 } from "@/engine";
 import { handPhaseAt } from "./handTrackerFlow";
 import { PAD_VALUES } from "./numberPad";
-import {
-  addTrade,
-  canBuild,
-  canGive,
-  currentHand,
-  initialTrades,
-  shortfall,
-  undoTrade,
-} from "./portMathState";
 import { emptyProgress, finalScore, isFinished, marksSoFar, record } from "./runState";
 import { marksStrip, shareText } from "./share";
 import {
@@ -65,8 +51,14 @@ describe("time and share", () => {
     // The chart snippet: the date is the edition, buoys are shapes (cone ▲ right, can ■ wrong).
     expect(
       shareText({ format: "port-math", mode: "rush", correct: 11, total: 13, totalMs: 161_000, date: "2026-09-29" }),
-    ).toBe("Hexathlon Rush · Port Math 11/13 · 2:41 · Ed. 29 SEP 2026");
+    ).toBe("Hexathlon Rush · Port Math 11/13 · 2:41 · Ed. 29 Sep 2026");
     expect(marksStrip([true, false])).toBe("▲■");
+  });
+
+  it("labels an unranked quick set as one, not as a Rush", () => {
+    expect(shareText({ format: "pip-flash", mode: "rush", quick: true, correct: 3, total: 5, totalMs: 9_000 })).toBe(
+      "Hexathlon Quick set · Pip Flash 3/5 · 0:09",
+    );
   });
 
   it("never mentions the protected words", () => {
@@ -125,45 +117,6 @@ describe("storage", () => {
     saveResult(kv, "pip-flash", "daily", "2026-01-01", r(1, 1));
     expect(readResult(kv, "pip-flash", "daily", "2026-01-01")?.correct).toBe(1);
     expect(readResult(kv, "pip-flash", "daily", "2026-01-02")).toBeNull();
-  });
-});
-
-describe("port math trade state", () => {
-  function puzzleWithTrades(): PortMathPuzzle {
-    for (let seed = 0; seed < 200; seed++) {
-      const p = generatePortMath("medium", seed);
-      if (p.optimalTrades === 3) return p;
-    }
-    throw new Error("none");
-  }
-
-  it("replays the reference solution to a buildable hand", () => {
-    const puzzle = puzzleWithTrades();
-    let state = initialTrades;
-    expect(canBuild(puzzle, state)).toBe(false);
-    for (const t of solve(puzzle)) {
-      expect(canGive(puzzle, state, t.give)).toBe(true);
-      state = addTrade(puzzle, state, t);
-    }
-    expect(state.trades).toHaveLength(puzzle.optimalTrades);
-    expect(canBuild(puzzle, state)).toBe(true);
-    expect(Object.values(shortfall(puzzle, state)).every((n) => n === 0)).toBe(true);
-  });
-
-  it("ignores illegal trades and supports undo", () => {
-    const puzzle = puzzleWithTrades();
-    const broke = (["wood", "brick", "sheep", "wheat", "ore"] as const).find(
-      (r) => !canGive(puzzle, initialTrades, r),
-    );
-    if (broke) {
-      const other = broke === "wood" ? "brick" : "wood";
-      expect(addTrade(puzzle, initialTrades, { give: broke, get: other })).toBe(initialTrades);
-    }
-    const first = solve(puzzle)[0];
-    const s1 = addTrade(puzzle, initialTrades, first);
-    expect(s1.trades).toHaveLength(1);
-    expect(currentHand(puzzle, undoTrade(s1))).toEqual(puzzle.hand);
-    expect(undoTrade(initialTrades).trades).toEqual([]);
   });
 });
 
@@ -248,25 +201,14 @@ describe("verdict", () => {
     expect(verdict(puzzle, solve(puzzle), 60_000).title).toBe("Time's up");
   });
 
-  it("flags a covered-but-suboptimal Port Math answer", () => {
-    const resources = ["wood", "brick", "sheep", "wheat", "ore"] as const;
-    let found = false;
-    for (let seed = 0; seed < 100 && !found; seed++) {
-      const puzzle = generate("port-math", "easy", seed);
-      const need = targetCost(puzzle.target);
-      for (const give of resources) {
-        for (const get of resources) {
-          if (give === get || found) continue;
-          const padded = [{ give, get }, ...solve(puzzle)];
-          const end = replayTrades(puzzle, padded);
-          if (end && covers(end, need)) {
-            found = true;
-            expect(verdict(puzzle, padded, 1).title).toBe("Too many trades");
-          }
-        }
-      }
-    }
-    expect(found).toBe(true);
+  it("names the player's Port Math count against the best route", () => {
+    const puzzle = generate("port-math", "medium", 4);
+    const wrong = puzzle.optimalTrades + 1;
+    const v = verdict(puzzle, wrong, 1);
+    expect(v.correct).toBe(false);
+    expect(v.detail).toContain(`You said ${wrong}`);
+    expect(v.detail).toContain(`Best is ${puzzle.optimalTrades}`);
+    expect(verdict(puzzle, puzzle.optimalTrades, 1).detail).toMatch(/→/);
   });
 });
 

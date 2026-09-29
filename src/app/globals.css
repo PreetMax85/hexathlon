@@ -1,20 +1,22 @@
 @import "tailwindcss";
 
 /*
- * Chart Room. Day is a paper chart; dusk and night are dimmed ECDIS
- * palettes (no glow). The board owns the saturated land colours; the chrome
- * is paper and ink, with chart magenta for lights, notes and focus.
+ * Two palettes: day paper and dusk. The board owns the saturated land
+ * colours; the chrome is paper and ink, with a sea-blue accent for focus,
+ * links and the timer.
  */
 :root {
   --paper: #f3f7f7;
   --deep: #ffffff;
   --shoal: #9ed6df;
   --shoal-2: #cfebef;
+  --sea: #a8d6e4;
+  --sea-2: #c9e8f0;
   --ink: #1d2b36;
   --ink-2: #475a68;
   --hair: #c3d1d6;
-  --magenta: #c2187a;
-  --on-magenta: #ffffff;
+  --accent: #1b6a96;
+  --on-accent: #ffffff;
   --green: #007a52;
   --buoy-green: #00875a;
   --red: #c8102e;
@@ -22,23 +24,25 @@
   --token: #fbf8ef;
   --token-ink: #1d2b36;
   --token-red: #b3122b;
-  /* Primary action plate; night keeps it dim so nothing glares. */
+  /* Primary action plate. */
   --action: var(--ink);
   --on-action: var(--paper);
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="day"]):not([data-theme="night"]) {
+  :root:not([data-theme="day"]) {
     --paper: #11191f;
     --deep: #18232b;
     --shoal: #1f4550;
     --shoal-2: #173640;
+  --sea: #1a3a47;
+  --sea-2: #21495a;
     --ink: #c8d3d8;
     --ink-2: #8fa1ab;
     --hair: #2c3b45;
-    --magenta: #d46aa6;
-    --on-magenta: #11191f;
+    --accent: #6db3dd;
+    --on-accent: #11191f;
     --green: #3fae84;
     --buoy-green: #3fae84;
     --red: #e0606f;
@@ -55,11 +59,13 @@
   --deep: #18232b;
   --shoal: #1f4550;
   --shoal-2: #173640;
+  --sea: #1a3a47;
+  --sea-2: #21495a;
   --ink: #c8d3d8;
   --ink-2: #8fa1ab;
   --hair: #2c3b45;
-  --magenta: #d46aa6;
-  --on-magenta: #11191f;
+  --accent: #6db3dd;
+  --on-accent: #11191f;
   --green: #3fae84;
   --buoy-green: #3fae84;
   --red: #e0606f;
@@ -70,41 +76,19 @@
   color-scheme: dark;
 }
 
-/* Night: the bridge at 3 a.m. Everything dim, nothing bright enough to spoil dark adaptation. */
-:root[data-theme="night"] {
-  --paper: #05080a;
-  --deep: #0b1115;
-  --shoal: #10262c;
-  --shoal-2: #0c1c21;
-  --ink: #8fa0a8;
-  --ink-2: #74848c;
-  --hair: #1a252b;
-  --magenta: #ba6090;
-  --on-magenta: #05080a;
-  --green: #3a9474;
-  --buoy-green: #3a9474;
-  --red: #c85c68;
-  --land-filter: saturate(0.55) brightness(0.52);
-  --token: #9a968c;
-  --token-ink: #05080a;
-  --token-red: #560812;
-  --action: #22313a;
-  --on-action: #8fa0a8;
-  color-scheme: dark;
-}
-
 @theme inline {
   --color-paper: var(--paper);
   --color-deep: var(--deep);
   --color-shoal: var(--shoal);
   --color-shoal-2: var(--shoal-2);
+  --color-sea: var(--sea);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-hair: var(--hair);
   --color-action: var(--action);
   --color-on-action: var(--on-action);
-  --color-magenta: var(--magenta);
-  --color-on-magenta: var(--on-magenta);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
   --color-green: var(--green);
   --color-red: var(--red);
   --font-chart: var(--font-archivo), "Archivo", system-ui, sans-serif;
@@ -131,13 +115,13 @@ body {
 }
 
 ::selection {
-  background: var(--magenta);
-  color: var(--on-magenta);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 input {
-  caret-color: var(--magenta);
-  accent-color: var(--magenta);
+  caret-color: var(--accent);
+  accent-color: var(--accent);
 }
 
 html {
@@ -156,7 +140,7 @@ a {
 }
 
 :focus-visible {
-  outline: 3px solid var(--magenta);
+  outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -185,23 +169,6 @@ a {
 
 .condensed {
   font-stretch: 72%;
-}
-
-/*
- * Neatline: the chart's border. A heavy rule, a thin rule, and between them
- * the latitude scale of alternating ink and paper bars.
- */
-.neatline {
-  position: relative;
-  border: 1.5px solid var(--ink);
-  outline: 1px solid var(--ink);
-  outline-offset: 5px;
-}
-
-.scale-bar {
-  height: 5px;
-  background: repeating-linear-gradient(90deg, var(--ink) 0 12px, transparent 12px 24px);
-  border-block: 1px solid var(--ink);
 }
 
 /* Restricted-area hatching for used and disabled states, never opacity. */
@@ -291,6 +258,20 @@ a {
     transform: scale(1.8);
     opacity: 0;
   }
+}
+
+/* Auto-advance: the Next button's underline drains until the next puzzle starts. */
+@keyframes glide {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.anim-glide {
+  animation: glide linear both;
 }
 
 .anim-pop {

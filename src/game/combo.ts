@@ -5,11 +5,3 @@ export function comboOf(marks: readonly boolean[]): number {
   return n;
 }
 
-/**
- * The combo written as a lighthouse characteristic: "Fl" is one flash,
- * "Fl(4)" a group of four. Display only; combos never change the score.
- */
-export function lightCharacter(combo: number): string | null {
-  if (combo <= 0) return null;
-  return combo === 1 ? "Fl" : `Fl(${combo})`;
-}

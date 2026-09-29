@@ -35,7 +35,7 @@ export function Logo({ size = 26 }: { size?: number }) {
         strokeWidth={2}
         strokeLinejoin="round"
       />
-      <circle cx={0} cy={0} r={3} fill="var(--magenta)" />
+      <circle cx={0} cy={0} r={3} fill="var(--accent)" />
     </svg>
   );
 }
@@ -44,10 +44,10 @@ const BASE =
   "inline-flex min-h-12 items-center justify-center gap-2 px-5 text-m font-semibold tracking-[0.01em] transition-[transform,background-color,color] duration-150 active:translate-y-px disabled:cursor-not-allowed";
 
 const VARIANTS = {
-  primary: "bg-action text-on-action ring-1 ring-inset ring-action [@media(hover:hover)]:hover:bg-[color-mix(in_srgb,var(--action)_88%,var(--magenta))] disabled:hatch disabled:bg-paper disabled:text-ink-2 disabled:ring-1 disabled:ring-inset disabled:ring-hair",
+  primary: "bg-action text-on-action ring-1 ring-inset ring-action [@media(hover:hover)]:hover:bg-[color-mix(in_srgb,var(--action)_88%,var(--accent))] disabled:hatch disabled:bg-paper disabled:text-ink-2 disabled:ring-1 disabled:ring-inset disabled:ring-hair",
   secondary:
     "bg-deep text-ink ring-1 ring-inset ring-ink hover:bg-shoal-2 disabled:hatch disabled:text-ink-2 disabled:ring-hair",
-  ghost: "text-magenta underline decoration-1 underline-offset-4 hover:decoration-2 disabled:text-ink-2 disabled:no-underline",
+  ghost: "text-accent underline decoration-1 underline-offset-4 hover:decoration-2 disabled:text-ink-2 disabled:no-underline",
 } as const;
 
 export type ButtonVariant = keyof typeof VARIANTS;
@@ -110,7 +110,7 @@ export function Note({
 }
 
 /**
- * A small range ring: remaining arc in magenta with a bearing tick. Used as
+ * A small range ring: remaining arc in accent with a bearing tick. Used as
  * the Hand Tracker log dial; the board draws the full-size ring itself.
  */
 export function RangeDial({ fraction, size = 28, label }: { fraction: number; size?: number; label: string }) {
@@ -124,7 +124,7 @@ export function RangeDial({ fraction, size = 28, label }: { fraction: number; si
       <circle
         r={r}
         fill="none"
-        stroke="var(--magenta)"
+        stroke="var(--accent)"
         strokeWidth={2.4}
         strokeDasharray={`${f * c} ${c}`}
         transform={`rotate(${(1 - f) * 360 - 90})`}

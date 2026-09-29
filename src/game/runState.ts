@@ -14,6 +14,8 @@ export interface ScoreOptions {
    * never receives relaxed runs.
    */
   relaxed?: boolean;
+  /** Quick-set length for an unranked short Rush. */
+  length?: number;
 }
 
 export const emptyProgress: RunProgress = { answers: [], times: [] };
@@ -32,8 +34,8 @@ export function recordedTime(puzzle: Puzzle, ms: number, relaxed: boolean): numb
   return Math.max(Math.round(ms), minPuzzleMs(puzzle) * (relaxed ? RELAXED_FACTOR : 1));
 }
 
-export function isFinished(mode: Mode, seed: number, progress: RunProgress): boolean {
-  return progress.answers.length >= runItems(mode, seed).length;
+export function isFinished(mode: Mode, seed: number, progress: RunProgress, opts?: ScoreOptions): boolean {
+  return progress.answers.length >= runItems(mode, seed, opts?.length).length;
 }
 
 const scale = (ms: number, opts?: ScoreOptions) => (opts?.relaxed ? ms / RELAXED_FACTOR : ms);
@@ -46,7 +48,7 @@ export function marksSoFar(
   progress: RunProgress,
   opts?: ScoreOptions,
 ): boolean[] {
-  const items = runItems(mode, seed);
+  const items = runItems(mode, seed, opts?.length);
   return progress.answers.slice(0, items.length).map((answer, i) =>
     validate(generate(format, items[i].tier, items[i].seed), answer, scale(progress.times[i], opts)),
   );
@@ -59,7 +61,7 @@ export function finalScore(
   progress: RunProgress,
   opts?: ScoreOptions,
 ): RunScore | null {
-  const score = scoreRun(format, mode, seed, progress.answers, progress.times.map((t) => scale(t, opts)));
+  const score = scoreRun(format, mode, seed, progress.answers, progress.times.map((t) => scale(t, opts)), opts?.length);
   if (!score) return null;
   // Report the time actually spent, not the scaled one.
   return { ...score, totalMs: progress.times.reduce((a, t) => a + Math.round(t), 0) };

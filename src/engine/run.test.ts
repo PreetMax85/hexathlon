@@ -18,6 +18,24 @@ describe("runItems", () => {
     expect(runItems("rush", 5)).toHaveLength(RUSH_LENGTH);
   });
 
+  it("builds quick sets of 3, 5 and 10 on the same easy → hard ramp", () => {
+    expect(runItems("rush", 5, 3).map((it) => it.tier)).toEqual(["easy", "medium", "hard"]);
+    expect(runItems("rush", 5, 5).map((it) => it.tier)).toEqual(["easy", "easy", "medium", "medium", "hard"]);
+    expect(runItems("rush", 5, 10).map((it) => it.tier)).toEqual([
+      ...Array(3).fill("easy"),
+      ...Array(4).fill("medium"),
+      ...Array(3).fill("hard"),
+    ]);
+    expect(runItems("rush", 5, 10)).toEqual(runItems("rush", 5, 10));
+    expect(runItems("rush", 6, 10)).not.toEqual(runItems("rush", 5, 10));
+  });
+
+  it("keeps the ranked Rush when asked for 13, and never lets a quick set share its puzzles", () => {
+    expect(runItems("rush", 5, RUSH_LENGTH)).toEqual(runItems("rush", 5));
+    const rush = new Set(runItems("rush", 5).map((it) => it.seed));
+    expect(runItems("rush", 5, 10).some((it) => rush.has(it.seed))).toBe(false);
+  });
+
   it("makes the Daily a 5-puzzle mini-run: 2 easy, 2 medium, 1 hard", () => {
     const items = runItems("daily", 5);
     expect(items.map((it) => it.tier)).toEqual(["easy", "easy", "medium", "medium", "hard"]);

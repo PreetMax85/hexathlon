@@ -16,9 +16,9 @@ export interface HandTrackerTierRules {
  * every tier is paced at or below typical silent reading (175–300 wpm).
  */
 export const HAND_TRACKER_RULES: Record<Tier, HandTrackerTierRules> = {
-  easy: { events: 8, wpm: 180, questions: 1 },
-  medium: { events: 12, wpm: 220, questions: 1 },
-  hard: { events: 20, wpm: 260, questions: 2 },
+  easy: { events: 5, wpm: 180, questions: 1 },
+  medium: { events: 9, wpm: 220, questions: 1 },
+  hard: { events: 14, wpm: 260, questions: 2 },
 };
 
 /** How long the rival's starting hand is shown. */
