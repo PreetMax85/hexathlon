@@ -12,29 +12,44 @@ import {
   type PipFlashAnswer,
   type PortMathAnswer,
 } from "@/engine";
+import { ensurePlayer, submitResult, type SubmitBody } from "@/game/api";
 import { browserKV, useLocalResult, usePlayer, useTodayKey } from "@/game/browser";
 import { FORMAT_META } from "@/game/meta";
 import { emptyProgress, finalScore, marksSoFar, record, type RunProgress } from "@/game/runState";
-import { saveResult, saveRushBest, type LocalResult } from "@/game/storage";
+import { saveResult, saveRushBest, type LocalResult, type Player } from "@/game/storage";
+import { idleSync, type Sync } from "@/game/sync";
 import { verdict } from "@/game/verdict";
+import { ChallengeShare } from "./ChallengeShare";
 import { Feedback } from "./Feedback";
 import { HandTrackerPlay } from "./HandTrackerPlay";
+import { ChallengeBoard, DailyBoard } from "./Leaderboard";
 import { NicknameDialog } from "./NicknameDialog";
 import { PipFlashPlay } from "./PipFlashPlay";
 import { PortMathPlay } from "./PortMathPlay";
 import { Result } from "./Result";
+import { shareText } from "@/game/share";
 import { Button, ButtonLink, TierBadge } from "./ui";
+
+/** A finished run: the local result and the payload sent to the server. */
+interface Finished {
+  result: LocalResult;
+  isBest: boolean;
+  body: SubmitBody;
+  dateKey: string | null;
+}
 
 type Stage =
   | { kind: "intro" }
-  | { kind: "play"; seed: number; dateKey: string | null; progress: RunProgress; showing: boolean }
-  | { kind: "result"; seed: number; result: LocalResult; isBest: boolean };
+  | { kind: "play"; seed: number; dateKey: string | null; progress: RunProgress; showing: boolean; final: Finished | null }
+  | { kind: "result"; seed: number; final: Finished };
 
 interface Props {
   format: Format;
   mode: Mode;
   /** Fixed Rush seed (challenge links). Otherwise a fresh random seed per run. */
   fixedSeed?: number;
+  /** Set when playing someone's challenge link. */
+  challenge?: { id: string; createdBy: string };
 }
 
 const AUTO_ADVANCE_MS = 1200;
@@ -105,12 +120,13 @@ function RunHeader({
   );
 }
 
-export function GameRun({ format, mode, fixedSeed }: Props) {
+export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
   const meta = FORMAT_META[format];
   const player = usePlayer();
   const today = useTodayKey();
   const dailyResult = useLocalResult(format, "daily", mode === "daily" ? today : null);
   const [stage, setStage] = useState<Stage>({ kind: "intro" });
+  const [sync, setSync] = useState<Sync>(idleSync);
 
   const play = stage.kind === "play" ? stage : null;
   const items = useMemo(() => (play ? runItems(mode, play.seed) : []), [mode, play?.seed]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -127,19 +143,28 @@ export function GameRun({ format, mode, fixedSeed }: Props) {
   const next = () => {
     if (!play) return;
     if (finished) {
-      const score = finalScore(format, mode, play.seed, play.progress);
-      if (!score) return;
-      const result: LocalResult = {
-        correct: score.correct,
-        total: items.length,
-        totalMs: score.totalMs,
-        marks: score.marks,
-        seed: play.seed,
-      };
-      setStage({ kind: "result", seed: play.seed, result, isBest: false });
+      if (play.final) setStage({ kind: "result", seed: play.seed, final: play.final });
       return;
     }
     setStage({ ...play, showing: false });
+  };
+
+  /** Send a run to the server; the local copy is marked synced on success. */
+  const perform = async (who: Player, body: SubmitBody, local?: { dateKey: string; result: LocalResult }): Promise<Sync> => {
+    const reg = await ensurePlayer(who);
+    if (!reg.ok) return { kind: "error", message: reg.error };
+    const res = await submitResult(body);
+    const conflict = !res.ok && res.status === 409 && body.mode === "daily";
+    if ((res.ok || conflict) && local) {
+      saveResult(browserKV, format, "daily", local.dateKey, { ...local.result, synced: true });
+    }
+    if (res.ok) return { kind: "saved" };
+    return conflict ? { kind: "conflict" } : { kind: "error", message: res.error };
+  };
+
+  const send = async (who: Player, body: SubmitBody, local?: { dateKey: string; result: LocalResult }) => {
+    setSync({ kind: "saving" });
+    setSync(await perform(who, body, local));
   };
 
   // Correct answers glide on; wrong ones wait so the explanation can be read.
@@ -155,54 +180,132 @@ export function GameRun({ format, mode, fixedSeed }: Props) {
     const dateKey = mode === "daily" ? today : null;
     if (mode === "daily" && !dateKey) return;
     const seed = mode === "daily" ? dailyRunSeed(format, dateKey!) : (fixedSeed ?? randomSeed());
-    setStage({ kind: "play", seed, dateKey, progress: emptyProgress, showing: false });
+    setSync(idleSync);
+    setStage({ kind: "play", seed, dateKey, progress: emptyProgress, showing: false, final: null });
   };
 
   const onAnswer = (answer: unknown, ms: number) => {
-    setStage((s) => {
-      if (s.kind !== "play") return s;
-      const progress = record(s.progress, answer, ms);
-      if (progress.answers.length >= items.length) {
-        const score = finalScore(format, mode, s.seed, progress);
-        if (score) {
-          const result: LocalResult = {
-            correct: score.correct,
-            total: items.length,
-            totalMs: score.totalMs,
-            marks: score.marks,
-            seed: s.seed,
-          };
-          if (mode === "daily" && s.dateKey) saveResult(browserKV, format, "daily", s.dateKey, result);
-          if (mode === "rush") saveRushBest(browserKV, format, result);
-        }
+    if (!play || !player) return;
+    const progress = record(play.progress, answer, ms);
+    let final: Finished | null = null;
+    if (progress.answers.length >= items.length) {
+      const score = finalScore(format, mode, play.seed, progress);
+      if (score) {
+        const result: LocalResult = {
+          correct: score.correct,
+          total: items.length,
+          totalMs: score.totalMs,
+          marks: score.marks,
+          seed: play.seed,
+          answers: progress.answers,
+          times: progress.times,
+          synced: false,
+        };
+        if (mode === "daily" && play.dateKey) saveResult(browserKV, format, "daily", play.dateKey, result);
+        const isBest = mode === "rush" && saveRushBest(browserKV, format, result);
+        const body: SubmitBody = {
+          playerId: player.id,
+          format,
+          mode,
+          seed: play.seed,
+          answers: progress.answers,
+          times: progress.times,
+          challengeId: challenge?.id ?? null,
+        };
+        final = { result, isBest, body, dateKey: play.dateKey };
+        void send(player, body, play.dateKey ? { dateKey: play.dateKey, result } : undefined);
       }
-      return { ...s, progress, showing: true };
-    });
+    }
+    setStage({ ...play, progress, showing: true, final });
   };
+
+  // A Daily finished while offline is sent again when the page is reopened.
+  const retryDaily =
+    mode === "daily" && stage.kind === "intro" && dailyResult && !dailyResult.synced && dailyResult.answers && dailyResult.times && today && player
+      ? { result: dailyResult, today, player }
+      : null;
+  const retryKey = retryDaily ? `${retryDaily.today}:${retryDaily.player.id}` : null;
+  useEffect(() => {
+    if (!retryDaily) return;
+    const { result, today: dateKey, player: who } = retryDaily;
+    void perform(
+      who,
+      { playerId: who.id, format, mode: "daily", seed: result.seed, answers: result.answers!, times: result.times! },
+      { dateKey, result },
+    ).then(setSync);
+    // Runs once per (date, player) when an unsent Daily is found.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [retryKey]);
 
   if (player === undefined) return <p className="py-10 text-center text-muted">Loading…</p>;
   if (player === null) return <NicknameDialog />;
 
+  const boards = (result: LocalResult, seed: number, challengeId: string | undefined) => {
+    const key = sync.kind;
+    if (mode === "daily") return <DailyBoard format={format} playerId={player.id} refreshKey={key} />;
+    return (
+      <>
+        {challengeId && <ChallengeBoard id={challengeId} playerId={player.id} refreshKey={key} />}
+        <ChallengeShare
+          playerId={player.id}
+          format={format}
+          seed={seed}
+          saved={sync.kind === "saved"}
+          challengeId={challengeId}
+          shareLine={shareText({ format, mode, correct: result.correct, total: result.total, totalMs: result.totalMs })}
+        />
+      </>
+    );
+  };
+
   if (stage.kind === "result") {
+    const { result, isBest, body } = stage.final;
     return (
       <Result
         format={format}
         mode={mode}
-        result={stage.result}
+        result={result}
+        isBest={isBest}
+        sync={sync}
+        onRetrySync={() => void send(player, body, stage.final.dateKey ? { dateKey: stage.final.dateKey, result } : undefined)}
         onPlayAgain={mode === "rush" && fixedSeed === undefined ? () => setStage({ kind: "intro" }) : undefined}
-      />
+      >
+        {boards(result, stage.seed, challenge?.id)}
+      </Result>
     );
   }
 
   if (stage.kind === "intro") {
     if (mode === "daily" && dailyResult) {
-      return <Result format={format} mode="daily" result={dailyResult} alreadyPlayed />;
+      return (
+        <Result
+          format={format}
+          mode="daily"
+          result={dailyResult}
+          alreadyPlayed
+          sync={sync}
+          onRetrySync={
+            retryDaily && today
+              ? () => void send(player, {
+                  playerId: player.id,
+                  format,
+                  mode: "daily",
+                  seed: dailyResult.seed,
+                  answers: dailyResult.answers ?? [],
+                  times: dailyResult.times ?? [],
+                }, { dateKey: today, result: dailyResult })
+              : undefined
+          }
+        >
+          <DailyBoard format={format} playerId={player.id} refreshKey={sync.kind} />
+        </Result>
+      );
     }
     return (
       <div className="anim-pop flex flex-col gap-5">
         <div className={`rounded-3xl bg-gradient-to-br ${meta.accent} p-5 text-white`}>
           <div className="text-sm font-bold uppercase tracking-wide opacity-90">
-            {mode === "rush" ? "Rush" : "Daily"}
+            {challenge ? `Challenge from ${challenge.createdBy}` : mode === "rush" ? "Rush" : "Daily"}
           </div>
           <h1 className="text-3xl font-black leading-tight">{meta.name}</h1>
           <p className="mt-1 font-medium opacity-95">{meta.tagline}</p>
@@ -213,6 +316,7 @@ export function GameRun({ format, mode, fixedSeed }: Props) {
               <li>⚡ <b>13 puzzles</b> back to back.</li>
               <li>📈 Gets harder: Easy 1–4, Medium 5–9, Hard 10–13.</li>
               <li>🏁 Score = number correct. Ties are broken by total time.</li>
+              {challenge && <li>🔗 Same 13 puzzles as {challenge.createdBy}. Beat their score.</li>}
             </>
           ) : (
             <>
@@ -223,10 +327,11 @@ export function GameRun({ format, mode, fixedSeed }: Props) {
           {format === "pip-flash" && <li>⏱️ Each puzzle has a time limit. Timeouts count as wrong.</li>}
           {format === "hand-tracker" && <li>👀 Watch closely. The hand and log play out on a fixed timer.</li>}
         </ul>
+        {challenge && <ChallengeBoard id={challenge.id} playerId={player.id} refreshKey="intro" limit={5} />}
         <div className="flex gap-2">
           <ButtonLink href="/" variant="secondary">Back</ButtonLink>
           <Button className="flex-1" onClick={start} disabled={mode === "daily" && !today}>
-            {mode === "rush" ? "Start Rush" : "Play today's Daily"}
+            {challenge ? "Accept challenge" : mode === "rush" ? "Start Rush" : "Play today's Daily"}
           </Button>
         </div>
       </div>

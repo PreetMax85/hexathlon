@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ensurePlayer } from "@/game/api";
 import { browserKV } from "@/game/browser";
 import { cleanNickname, NICKNAME_MAX, savePlayer } from "@/game/storage";
 import { Button, Logo } from "./ui";
@@ -20,7 +21,9 @@ export function NicknameDialog({ initial = "", onCancel, onSaved }: Props) {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!valid) return;
-    savePlayer(browserKV, name);
+    const player = savePlayer(browserKV, name);
+    // Fire and forget: results submission registers again if this fails.
+    if (player) void ensurePlayer(player);
     onSaved?.();
   };
 
