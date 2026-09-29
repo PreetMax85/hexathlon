@@ -36,3 +36,27 @@ sessions, and each commit links to its session.
 - What broke and how it was fixed: nothing.
 - Tests: 20 passing
 - Notes for next phase: use `vertexPips(board, v)` for Pip Flash; `TOPOLOGY.vertices[v].hexes.length` gives the land-hex count per vertex.
+
+## P2 — Format generators and validators — done
+- What shipped:
+  - `formats/pipFlash.ts`: K candidates (A–F) touching ≥2 land hexes, unique max, tier gap and time limit; `validate` also takes `elapsedMs` so a timeout (or `null` answer) is wrong.
+  - `formats/portMath.ts`: build costs, port trade rates, `optimalTrades` (BFS over hands, returns a shortest sequence), `greedyTrades` baseline, generator per tier, validator that replays the player's trades and requires legal trades + covered target + optimal count (any optimal sequence passes).
+  - `formats/handTracker.ts`: event simulator (roll, build, trade, you-steal, rival-steal) with `applyEvent` refusing negative or >19 counts, `describeEvent` log lines, generator and validator.
+  - `puzzles.ts`: `generate(format, tier, seed)`, `validate(puzzle, answer, elapsedMs?)`, `solve(puzzle)`, `rushSeeds(seed)` (13 × {tier, seed}, ramp 4 easy / 5 medium / 4 hard), `dailySeed(format, date)` = hash("daily", format, "medium", UTC YYYY-MM-DD), `utcDateKey`.
+  - `purity.test.ts`: fails if any engine source imports a non-relative module (React, Next, DB, Node).
+- Decisions (and why):
+  - Validators take the answer as `unknown` and type-check it, because the server will feed them raw client JSON.
+  - Answers: Pip Flash = candidate index or `null`; Port Math = `[{give, get}]`; Hand Tracker = one count per question.
+  - Pip Flash candidates are also pairwise non-adjacent so A–F labels never overlap on a phone screen. A puzzle carries its full board; the board seed is `mixSeed(seed, "pip-flash-board", n)`.
+  - **Greedy definition (SPEC §2.2 ambiguity).** Read literally: each step takes the single resource with the largest surplus (hand − target; ties → cheaper rate, then resource order) at its best rate, for the most-missing resource; if that pile can't pay, greedy is stuck (= ∞). A "smarter" greedy that skips unpayable piles was tried first and is *provably always optimal* (each trade yields exactly one card, so any finishing surplus-only strategy hits the deficit lower bound), which would make the hard-tier rule impossible. So hard puzzles are exactly those with a trap: a big pile you can't trade next to a smaller pile that you can.
+  - Same argument gives a cheap filter: when greedy finishes it is optimal, so the hard generator rejects those candidates before running BFS.
+  - Port Math hands are sampled constructively (target cost − planned deficit + payer piles sized in whole trades + odd leftovers), then the exact optimum is still computed by BFS. Pure random hands hit hard-tier puzzles ~0.3% of the time; this brings hard generation to ~3 ms.
+  - Port Math targets: easy 1 build, medium 1–2, hard 2 (hard always owns ≥1 port). Hands never exceed 19 of a resource (bank size).
+  - Hand Tracker: 7s are never rolled (the robber is out of scope); roll gains are 1–2 cards; the rival's trade rate comes from 0–2 random rival ports; questions only ask about resources the log actually changed. "You" isn't tracked, since only the rival's hand is asked about.
+  - Rush item seeds = `mixSeed("rush", seed, i)`, so a challenge only needs to store one seed.
+- What broke and how it was fixed:
+  - Hard Port Math generation never finished with the smarter greedy (see above) → switched to the literal SPEC greedy.
+  - Random hand sampling was ~50 ms/puzzle for hard → constructive sampler + greedy pre-filter.
+  - BFS packed hands 5 bits per resource, which could overflow for big hands → 6 bits and a total-cards guard (trades never raise the total).
+- Tests: 57 passing (500 seeds × 3 tiers × 3 formats: validity, tier rules, reference answer correct, perturbed answer wrong; BFS ≤ greedy everywhere and greedy > BFS on hard; BFS cross-checked by an independent depth-limited DFS).
+- Notes for next phase: import everything from `@/engine`. Use `describeEvent` for the Hand Tracker feed, `CANDIDATE_LABELS` for Pip Flash, `tradeRate`/`applyTrade`/`targetCost`/`covers` for the Port Math trade UI, and `toCartesian` + `TOPOLOGY` for the SVG board.
