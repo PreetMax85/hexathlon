@@ -77,9 +77,10 @@ export function applyTrade(
   return { ...hand, [trade.give]: hand[trade.give] - rate, [trade.get]: hand[trade.get] + 1 };
 }
 
-// Hands pack into one integer, 5 bits per resource.
-const BITS = 5;
-const MAX_PER_RESOURCE = (1 << BITS) - 1;
+// Hands pack into one integer, 6 bits per resource. Trades never raise the
+// card total, so capping the total keeps every count in range.
+const BITS = 6;
+const MAX_SEARCH_CARDS = (1 << BITS) - 1;
 
 function encode(hand: ResourceCounts): number {
   return RESOURCES.reduce((key, r, i) => key + hand[r] * 2 ** (BITS * i), 0);
@@ -103,7 +104,7 @@ export function optimalTrades(
   ports: readonly PortKind[],
   target: readonly Build[],
 ): Trade[] | null {
-  if (RESOURCES.some((r) => hand[r] > MAX_PER_RESOURCE)) {
+  if (RESOURCES.reduce((n, r) => n + hand[r], 0) > MAX_SEARCH_CARDS) {
     throw new RangeError("hand too large for search");
   }
   const need = targetCost(target);

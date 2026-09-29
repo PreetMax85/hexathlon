@@ -121,3 +121,12 @@ describe("port math rules", () => {
     }
   });
 });
+
+describe("port math search limits", () => {
+  it("handles large hands and refuses oversized ones", () => {
+    const big = { wood: 19, brick: 19, sheep: 19, wheat: 0, ore: 0 };
+    expect(optimalTrades(big, [], ["city"])).toHaveLength(5);
+    const huge = { wood: 19, brick: 19, sheep: 19, wheat: 19, ore: 0 };
+    expect(() => optimalTrades(huge, [], ["city"])).toThrow(RangeError);
+  });
+});
