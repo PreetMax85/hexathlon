@@ -2,3 +2,4 @@
 export * from "./rng";
 export * from "./types";
 export * from "./topology";
+export * from "./board";
