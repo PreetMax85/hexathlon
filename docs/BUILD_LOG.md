@@ -122,3 +122,12 @@ sessions, and each commit links to its session.
 - What broke and how it was fixed: nothing new.
 - Tests: 102 passing (+2 DB integration tests, run separately)
 - Notes for next phase: v1 is complete per PLAN. v1.1+ ideas remain in PLAN. Not done on purpose: rate limiting, ratings, accounts.
+
+## V0 — Setup — done
+- What shipped: `pnpm install` + `pnpm check` green on `v1.1-chart-room`; screenshot browser ready; 12 "before" screenshots of v1 (home, one Rush play screen per format, Pip Flash Rush result, `/c/<unknown>`, each at 390 and 1440) in `.impeccable/review/before/`, with the script that took them (`shoot-before.mjs`).
+- Decisions (and why):
+  - **Screenshot route: step 1 (browser already on the VM).** The VM ships Playwright 1.56.1 globally with Chromium 141 in `/opt/pw-browsers` (`PLAYWRIGHT_BROWSERS_PATH`). It launched headless first try, so steps 2 and 3 weren't needed. The script loads the global `playwright` via `createRequire(npm root -g)`, so `package.json` is unchanged and nothing is installed in the repo.
+  - Before shots ran on `pnpm dev` without `DATABASE_URL` (as the plan allows), so the result screen shows "Score not saved: database not configured". A fake local player is seeded in `localStorage` to skip the nickname dialog. The Next dev indicator ("N") shows bottom-left; after shots use `next start` instead.
+- What broke and how it was fixed: nothing.
+- Tests: 102 passing (+2 DB tests skipped without `RUN_DB_TESTS=1`)
+- Notes for next phase: run shots with `NP=$(npm root -g) node <script>`; browser at `/opt/pw-browsers`.
