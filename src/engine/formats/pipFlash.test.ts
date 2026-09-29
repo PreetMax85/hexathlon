@@ -52,3 +52,11 @@ describe("pip flash", () => {
     }
   });
 });
+
+describe("pip flash time limits (v1.1 game-feel brief)", () => {
+  it("gives 7 s, 8 s and 10 s for 3, 4 and 6 corners", () => {
+    expect(generatePipFlash("easy", 1).timeLimitMs).toBe(7000);
+    expect(generatePipFlash("medium", 1).timeLimitMs).toBe(8000);
+    expect(generatePipFlash("hard", 1).timeLimitMs).toBe(10000);
+  });
+});

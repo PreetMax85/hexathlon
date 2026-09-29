@@ -30,8 +30,8 @@ describe("generate / validate / solve", () => {
 
   it("pip flash enforces its time limit via elapsedMs", () => {
     const p = generate("pip-flash", "easy", 1);
-    expect(validate(p, solve(p), 5999)).toBe(true);
-    expect(validate(p, solve(p), 6001)).toBe(false);
+    expect(validate(p, solve(p), 6999)).toBe(true);
+    expect(validate(p, solve(p), 7001)).toBe(false);
   });
 
   it("normalises seeds to uint32", () => {
