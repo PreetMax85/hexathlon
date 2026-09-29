@@ -52,7 +52,7 @@ export function ChallengeClient({ id }: { id: string }) {
             )}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           {!missing && (
             <Button className="flex-1" onClick={retry}>
               Try again
