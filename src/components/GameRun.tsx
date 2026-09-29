@@ -455,7 +455,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
           <PipFlashPlay puzzle={puzzle} onAnswer={(a: PipFlashAnswer, ms) => onAnswer(a, ms)} />
         )}
         {puzzle.format === "port-math" && (
-          <PortMathPlay puzzle={puzzle} onAnswer={(a: PortMathAnswer | null, ms) => onAnswer(a, ms)} />
+          <PortMathPlay puzzle={puzzle} onAnswer={(a: PortMathAnswer, ms) => onAnswer(a, ms)} />
         )}
         {puzzle.format === "hand-tracker" && (
           <HandTrackerPlay

@@ -5,9 +5,9 @@ import {
   describeEvent,
   generate,
   pipFlashRanking,
+  portMathRoute,
   replayHand,
   RESOURCES,
-  solve,
   type Format,
   type RushItem,
 } from "@/engine";
@@ -63,7 +63,7 @@ export function PuzzleReveal({ format, item, index, answer, ms, relaxed }: Props
       })()}
       {puzzle.format === "port-math" && (
         <ol className="sea flex flex-col gap-1 text-s">
-          {solve(puzzle).map((t, i) => (
+          {portMathRoute(puzzle).map((t, i) => (
             <li key={i}>
               {i + 1}. {tradeText(puzzle, t)}
             </li>

@@ -1,11 +1,8 @@
 import {
   CANDIDATE_LABELS,
-  covers,
   pipFlashRanking,
+  portMathRoute,
   replayHand,
-  replayTrades,
-  solve,
-  targetCost,
   tradeRate,
   validate,
   type PortMathPuzzle,
@@ -54,20 +51,10 @@ export function verdict(puzzle: Puzzle, answer: unknown, ms: number): Verdict {
       };
     }
     case "port-math": {
-      const route = solve(puzzle).map((t) => tradeText(puzzle, t)).join(", then ");
-      if (correct) {
-        return { correct, title: "Correct", detail: `${plural(puzzle.optimalTrades, "trade")} is optimal.` };
-      }
-      const played = Array.isArray(answer) ? (answer as Trade[]) : null;
-      const final = played && replayTrades(puzzle, played);
-      if (final && covers(final, targetCost(puzzle.target)) && played) {
-        return {
-          correct,
-          title: "Too many trades",
-          detail: `You used ${played.length}. Best is ${puzzle.optimalTrades}: ${route}.`,
-        };
-      }
-      return { correct, title: answer === null ? "Skipped" : "Not quite", detail: `Best is ${puzzle.optimalTrades}: ${route}.` };
+      const route = portMathRoute(puzzle).map((t) => tradeText(puzzle, t)).join(", then ");
+      if (correct) return { correct, title: "Correct", detail: `${plural(puzzle.optimalTrades, "trade")}: ${route}.` };
+      const said = typeof answer === "number" ? `You said ${answer}. ` : "";
+      return { correct, title: "Not quite", detail: `${said}Best is ${puzzle.optimalTrades}: ${route}.` };
     }
     case "hand-tracker": {
       const hands = replayHand(puzzle);

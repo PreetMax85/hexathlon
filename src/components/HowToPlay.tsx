@@ -8,8 +8,8 @@ const STEPS: Record<Format, string[]> = {
   ],
   "port-math": [
     "You can trade 4 of one card for 1 of another. A 3:1 port makes it 3, a matching 2:1 port makes it 2.",
-    "Tap a resource's “→ 1” button, then tap the card you want.",
-    "Cover the Build with the fewest trades, then press Build.",
+    "You see your hand, what to build and your trade rates.",
+    "Tap the fewest trades it takes to afford the build. No clock: time only breaks ties.",
   ],
   "hand-tracker": [
     "You see Rival's starting hand for 3 seconds.",
