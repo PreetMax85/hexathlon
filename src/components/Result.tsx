@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { runItems, type Format, type Mode } from "@/engine";
 import { FORMAT_META, TIER_LABEL } from "@/game/meta";
 import { marksStrip, shareText } from "@/game/share";
 import type { LocalResult } from "@/game/storage";
+import { syncLabel, type Sync } from "@/game/sync";
 import { formatClock, formatSeconds } from "@/game/time";
 import { Button, ButtonLink } from "./ui";
 
@@ -17,10 +18,15 @@ interface Props {
   /** Daily was already played earlier today. */
   alreadyPlayed?: boolean;
   onPlayAgain?: () => void;
+  /** Progress of sending this run to the server. */
+  sync?: Sync;
+  onRetrySync?: () => void;
+  /** Leaderboard and challenge panels, shown between the puzzle strip and sharing. */
+  children?: ReactNode;
 }
 
 /** Score, time, per-puzzle ✓/✗ strip and the share text. */
-export function Result({ format, mode, result, isBest, alreadyPlayed, onPlayAgain }: Props) {
+export function Result({ format, mode, result, isBest, alreadyPlayed, onPlayAgain, sync, onRetrySync, children }: Props) {
   const [copied, setCopied] = useState<"idle" | "copied" | "failed">("idle");
   const items = runItems(mode, result.seed);
   const text = shareText({
@@ -99,6 +105,24 @@ export function Result({ format, mode, result, isBest, alreadyPlayed, onPlayAgai
           <p className="mt-3 text-xs text-muted">Easy 1–4 · Medium 5–9 · Hard 10–13</p>
         )}
       </section>
+
+      {sync && syncLabel(sync) && (
+        <div
+          role="status"
+          className={`flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-semibold ${
+            sync.kind === "error" ? "bg-bad-bg text-bad" : sync.kind === "saved" ? "bg-good-bg text-good" : "bg-surface-2 text-muted"
+          }`}
+        >
+          <span>{syncLabel(sync)}</span>
+          {sync.kind === "error" && onRetrySync && (
+            <Button variant="secondary" className="min-h-11 shrink-0 px-4" onClick={onRetrySync}>
+              Retry
+            </Button>
+          )}
+        </div>
+      )}
+
+      {children}
 
       <section aria-label="Share" className="flex flex-col gap-2">
         <output className="block rounded-xl border border-dashed border-line bg-surface p-3 text-center text-sm font-semibold">

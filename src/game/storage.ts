@@ -17,6 +17,11 @@ export interface LocalResult {
   totalMs: number;
   marks: boolean[];
   seed: number;
+  /** Kept so an unsent Daily can be submitted again (e.g. after being offline). */
+  answers?: unknown[];
+  times?: number[];
+  /** True once the server has this result. */
+  synced?: boolean;
 }
 
 export const PLAYER_KEY = "hexathlon:player";

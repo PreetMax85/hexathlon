@@ -34,6 +34,7 @@ import {
   type KV,
   type LocalResult,
 } from "./storage";
+import { call, challengeUrl, createChallenge, ensurePlayer, fetchDaily } from "./api";
 import { formatClock, formatSeconds } from "./time";
 import { verdict } from "./verdict";
 
@@ -240,5 +241,59 @@ describe("verdict", () => {
       }
     }
     expect(found).toBe(true);
+  });
+});
+
+describe("api client", () => {
+  const reply = (status: number, body: unknown) =>
+    (async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch;
+
+  it("returns data on success and sends JSON", async () => {
+    let seen: { url: string; init?: RequestInit } | null = null;
+    const f = (async (url: string, init?: RequestInit) => {
+      seen = { url, init };
+      return new Response(JSON.stringify({ id: "abc" }), { status: 201 });
+    }) as unknown as typeof fetch;
+    const res = await createChallenge({ playerId: "p".repeat(8), format: "port-math", seed: 3 }, f);
+    expect(res).toEqual({ ok: true, data: { id: "abc" } });
+    expect(seen!.url).toBe("/api/challenges");
+    expect(JSON.parse(seen!.init!.body as string)).toMatchObject({ seed: 3 });
+  });
+
+  it("surfaces server errors, non-JSON errors and offline", async () => {
+    const err = await call("/x", { json: {} }, reply(409, { error: "Daily already played", existing: { correct: 1 } }));
+    expect(err).toMatchObject({ ok: false, status: 409, error: "Daily already played" });
+    const html = await call("/x", undefined, (async () => new Response("<html>", { status: 504 })) as unknown as typeof fetch);
+    expect(html).toMatchObject({ ok: false, status: 504, error: "request failed (504)" });
+    const offline = await call("/x", undefined, (async () => {
+      throw new TypeError("failed to fetch");
+    }) as unknown as typeof fetch);
+    expect(offline).toMatchObject({ ok: false, status: 0 });
+  });
+
+  it("registers a player once per nickname", async () => {
+    let calls = 0;
+    const f = (async () => {
+      calls++;
+      return new Response("{}", { status: 201 });
+    }) as unknown as typeof fetch;
+    const p = { id: "player-000001", nickname: "Ada" };
+    await ensurePlayer(p, f);
+    await ensurePlayer(p, f);
+    await ensurePlayer({ ...p, nickname: "Grace" }, f);
+    expect(calls).toBe(2);
+  });
+
+  it("puts the viewer id in the query and builds challenge urls", async () => {
+    let url = "";
+    const f = (async (u: string) => {
+      url = u;
+      return new Response("{}", { status: 200 });
+    }) as unknown as typeof fetch;
+    await fetchDaily("pip-flash", "player-000001", f);
+    expect(url).toBe("/api/daily/pip-flash?playerId=player-000001");
+    await fetchDaily("pip-flash", null, f);
+    expect(url).toBe("/api/daily/pip-flash");
+    expect(challengeUrl("https://x.dev", "abcd2345")).toBe("https://x.dev/c/abcd2345");
   });
 });
