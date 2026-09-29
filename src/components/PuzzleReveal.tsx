@@ -15,7 +15,7 @@ import { RESOURCE_META } from "@/game/meta";
 import { relaxPuzzle } from "@/game/relaxed";
 import { tradeText, verdict } from "@/game/verdict";
 import { Board } from "./Board";
-import { PipLegend } from "./PipFlashPlay";
+import { BOARD_BLEED, CornerButtons } from "./PipFlashPlay";
 import { Buoy, Glyph } from "./glyphs";
 
 interface Props {
@@ -33,7 +33,7 @@ export function PuzzleReveal({ format, item, index, answer, ms, relaxed }: Props
   const puzzle = relaxed ? relaxPuzzle(base) : base;
   const v = verdict(puzzle, answer, ms);
   return (
-    <div className="anim-slide flex flex-col gap-3 border-y border-ink bg-deep px-3 py-3">
+    <div className="anim-slide -mx-4 flex flex-col gap-3 border-y border-hair bg-deep px-4 py-3 sm:mx-0 sm:px-3">
       <div className="flex items-center gap-3">
         <Buoy kind={v.correct ? "cone" : "can"} size={30} />
         <div className="min-w-0">
@@ -54,10 +54,10 @@ export function PuzzleReveal({ format, item, index, answer, ms, relaxed }: Props
               board={puzzle.board}
               candidates={puzzle.candidates}
               reveal={reveal}
-              className="mx-auto w-full max-w-[26rem]"
+              className={BOARD_BLEED}
               label={`Board of puzzle ${index + 1}: corner ${CANDIDATE_LABELS[ranking.best]} had the most pips`}
             />
-            <PipLegend reveal={reveal} />
+            <CornerButtons count={puzzle.candidates.length} reveal={reveal} />
           </>
         );
       })()}
@@ -85,7 +85,7 @@ export function PuzzleReveal({ format, item, index, answer, ms, relaxed }: Props
               ))}
             </ul>
             <details>
-              <summary className="min-h-11 cursor-pointer py-2 text-s font-semibold text-magenta">Read the whole log</summary>
+              <summary className="min-h-11 cursor-pointer py-2 text-s font-semibold text-accent">Read the whole log</summary>
               <ol className="flex list-decimal flex-col gap-1 pl-6 text-s">
                 {puzzle.events.map((e, i) => (
                   <li key={i}>{describeEvent(e)}</li>
