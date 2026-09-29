@@ -250,3 +250,24 @@ sessions, and each commit links to its session.
 - Screenshots: `docs/screenshots/v1.2/before` (v1.1) and `/after`, from `.impeccable/review/shoot.mjs` against `next start`; no page errors, no horizontal scroll.
 - Tests: 176 passing (+2 DB tests, skipped without a database)
 - Notes for next phase: open items from the plan are Robber Call (a new format) and per-format ratings; the OG card could share more geometry with `Board.tsx` than `portMark`.
+
+## v1.3 — Critique fixes — done
+- What shipped (from the v1.2 critique, `.impeccable/critique/2026-09-29T19-30-22Z__src-app.md`, 28/40; owner chose "everything listed", Port Math "gentle visible pace"):
+  - **Fairness (P1)**: the home island and the site share card showed the first board of today's Pip Flash Daily untimed, and a challenge card showed its Rush's first board. Both now draw `coverBoard(seed)`, a board from its own `cover` branch of the seed (tested against every Daily and Rush board of the day).
+  - **Hand Tracker (P1)**: easy and medium name the card to track from the start ("Tracking: brick"); the previous log line stays in view, faded. Hard is unchanged (surprise question, one line). `trackedFromStart` and `logWindow` in `src/game/handTrackerFlow.ts`.
+  - **Port Math (P1)**: a pace bar drains to a par of 15 / 20 / 30 s and then waits: no cutoff, time only breaks ties. 2:1 rates wear their resource's colours; short and covered cards read "short 1" / "need 1 ✓", not colour alone. The replay explains the route once.
+  - **Play-screen chrome (P2)**: the app header steps aside during a run (`body[data-playing]`); the run's X exits.
+  - **Home (P2)**: one row per drill with its Daily status and a Rush button; the drills list (`FormatCard`) is gone and How to play moved onto each intro.
+  - **Moments**: a perfect run stamps "Clean passage" and its cones bob in a wave; every fifth right answer in a row pops a "5 in a row" badge (`stampLine`, `isMilestone`).
+  - **Minor**: "1 day at sea" (and no streak box before day one); results put Share, Sail again and Home above the leaderboard; Sail again starts the next run straight away (no intro); corners read "Corner A, touching 6, 9 and desert" to screen readers; share cards show pips and terrain glyphs; section headings step up a size; the missing-challenge page drops "ED, existence doubtful".
+- Decisions (and why):
+  - **Cover board, not "show the Daily board after it's played"**: one rule for home, the site card and challenge cards, and nothing to hide or reveal per player.
+  - **Named target only below hard**: easy and medium teach the running count; hard still tests tracking everything. The engine is unchanged, so every player sees the same help.
+  - **Previous line stays on screen (faded) below hard**: a player who looked away for one line can recover, without turning the drill into re-reading.
+  - **Par, not a clock**: the owner ruled out a Port Math timer; the bar gives pace without a cutoff and the scoring is untouched. Relaxed mode keeps the same par (it's unranked anyway).
+  - **Rush best on home dropped** with the drills list; the result screen still compares with the stored best.
+  - Not done: sizing the Hand Tracker pad to plausible counts (the range would hint at the answer); the "Average 0.3 s a puzzle" line stays (it is true and helps pace).
+- What broke and how it was fixed: a commit went in with a type error because `pnpm check | grep` hid the exit code → checks now gate on `pnpm check`'s own exit status (the commit was amended before pushing).
+- Tests: 182 passing (+2 DB tests, skipped without a database)
+- Screenshots: `docs/screenshots/v1.3/`; the capture reports no page errors and no horizontal scroll.
+- Notes for next phase: v1.4 is the endgame mode ("Last Turn": can you win this turn?); agree its rules with the owner before building.
