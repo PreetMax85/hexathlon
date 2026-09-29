@@ -108,3 +108,17 @@ sessions, and each commit links to its session.
 - End-to-end check (real Neon, headless Chromium at 360 px, throwaway `e2e-` players, deleted afterwards; DB left empty): Daily play → saved → leaderboard; reload shows "already played" + board; Rush → challenge link → second player opens `/c/<id>`, plays the same 13 puzzles, both appear on the challenge leaderboard; unknown challenge shows the not-found state. Also curl-checked: bad shape → 400, unknown player → 404, wrong Daily seed → 409, challenge before a Rush result → 403.
 - Tests: 102 passing (+2 DB integration tests run separately with `RUN_DB_TESTS=1`)
 - Notes for next phase: `pnpm build` lists all API routes as dynamic. Rate limiting is not implemented (out of v1 scope). OG description/title polish and README are P5.
+
+## P5 — Polish and ship — done
+- What shipped:
+  - Titles via a `%s · Hexathlon` template, per-route titles (`Pip Flash Rush`, `Rush challenge`), Open Graph + Twitter description, generated 1200×630 Open Graph image (`next/og`, no dependency), SVG favicon (`icon.svg`, replaces the default `favicon.ico`), light/dark `theme-color`.
+  - `not-found.tsx`, `error.tsx`, `loading.tsx`; network states already covered by leaderboard skeleton/error/empty, challenge loading/not-found/error, and score-save retry.
+  - Home is a 3-column grid at ≥1024 px (1-column at phone width); header width follows.
+  - README: story, how it works (shared deterministic engine, server re-verification, unique Daily index), layout, env vars, tests summary.
+- Decisions (and why):
+  - `metadataBase` comes from `VERCEL_PROJECT_PRODUCTION_URL`, falling back to localhost so builds never need config.
+  - Play and challenge pages stay a single centred column (max-w-xl) on desktop: the board and forms are the focus, and a wider layout only adds empty space.
+  - Layout checked at 360 px and 1280 px for `/`, all play routes, `/c/<id>`, and 404: `scrollWidth` equals viewport width everywhere (no horizontal scroll); tap targets ≥ 44 px.
+- What broke and how it was fixed: nothing new.
+- Tests: 102 passing (+2 DB integration tests, run separately)
+- Notes for next phase: v1 is complete per PLAN. v1.1+ ideas remain in PLAN. Not done on purpose: rate limiting, ratings, accounts.
