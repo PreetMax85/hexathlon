@@ -176,3 +176,25 @@ sessions, and each commit links to its session.
 - Checked in headless Chromium at 390 px on the dev DB: no modal on home; a key press during the ready beat is ignored; pause shows only on the verdict; nickname asked at the result, then "Score saved"; Hand Tracker shows one log line, announces the summary, "1","2" → "Confirm 12", Enter submits; Quit arms then navigates home; Today strip shows "Done · 4/5" and "Days at sea: 1". No console errors.
 - Tests: 155 passing (+2 DB tests)
 - Notes for next phase: V3 restyles all of this; behaviour lives in `src/game/` and the hooks in `useClock.ts`.
+
+## V3 — Chart Room build — done
+- What shipped (direction contract in `.impeccable/surfaces/src-app.md`, code-led):
+  - **World**: chart-white paper, sounding ink, shallow-water cyan fading to white deep water, chart magenta for lights, notes and focus, IALA green/red for verdicts only. Tokens in `globals.css`; **day, dusk and night** palettes (dusk follows `prefers-color-scheme: dark`; a header switch cycles Auto → Day → Dusk → Night, stored locally and applied pre-paint by a tiny inline script). Dusk and night dim the land layer with a CSS filter, never the tokens.
+  - **Type**: Archivo (OFL), self-hosted via `next/font/local` with its width axis (62–125%) and true italic. Chrome uses three sizes (`text-s`/`m`/`l`); rank comes from weight, case, width and italic (water and section names are italic, as on a chart).
+  - **Frame**: a neatline (double rule plus latitude scale bar) around every screen; the header is the cartouche ("HEXATHLON · 29 SEP 2026").
+  - **Board plate**: shoal bands that follow the coast, seeded depth soundings (`game/chart.ts`, deterministic per board), graticule ticks on the plate's border, ports as magenta harbour notes, authored terrain glyphs on each hex.
+  - **Critique board fixes**: pips at r 0.058 units (~3 px dots at 360 px) on bigger tokens; lettered waypoints sit on the corners with a clear gap to every token; waypoint focus draws a magenta ring (SVG groups ignore `outline`); verdicts by **shape** (cone right, can wrong) as well as colour; 44 px hit areas that never overlap.
+  - **Required play moments**: (1) range-ring sweep timer around the Pip Flash board (magenta remaining arc, bearing line sweeping clockwise from north; reduced motion steps once a second); (2) buoy verdicts drop onto the chosen corner and bob once, with a pulse on a right answer (no bob under reduced motion); (3) combo as a light characteristic "Fl(4)" whose lamp flashes once per step; (4) "Passage complete" stamp (score, time, edition date) that presses onto the result, then the buoy strip where **tapping any puzzle replays its reveal** (the first miss opens automatically); (5) share cards: `opengraph-image` and a per-challenge `/c/[id]/opengraph-image` render a chart snippet (island, the score to beat stamped in the cartouche, edition date); the share text reads "Hexathlon Rush · Port Math 11/13 · 2:41 · Ed. 29 SEP 2026" with a ▲/■ buoy strip.
+  - **Routes and states**: home (island plate from today's Pip Flash Daily, Today's Dailies with buoys and days at sea, primary action "Sail the … Daily" pinned in the thumb zone, then Sailing Directions), play for all three formats, paused, Rush and Daily results, already-played Daily with the countdown, `/c/[id]` loading and a proper not-found ("ED, existence doubtful"), nickname form, 404 ("Off the chart"), error, loading, empty and error leaderboards. Disabled controls use restricted-area hatching, never opacity.
+  - No emoji anywhere in the UI: authored 24-unit SVG glyphs for the five resources, desert and the four builds, drawn icons for quit, theme and chevrons.
+- Decisions (and why):
+  - **Face: Archivo.** The contract asked for a workhorse grotesque with a width axis and tabular figures, not on the default list. Archivo has both, plus a true italic for sea labels; condensed widths set the big numerals, expanded widths the cartouche.
+  - **Waypoints, not light characters, for Pip Flash markers**: a circled letter reads at 360 px; a light characteristic label would need two lines per corner.
+  - Tiers are depth marks (1–3 bars, ink) so they never borrow the verdict colours.
+  - The Hand Tracker log progress uses a small range dial rather than a second full ring; the full ring stays Pip Flash's signature.
+  - OG cards use static Archivo TTFs (Satori reads TTF/OTF only); ~350 KB of fonts in the image bundle, under the 500 KB limit. The challenge card falls back to a generic card without a database.
+  - Contrast checked numerically for every text pairing in all three palettes (≥ 4.5:1; e.g. ink-2 on paper 6.6, magenta 5.3, night ink-2 5.2, night red token 4.9).
+- What broke and how it was fixed: Satori picked the italic face for everything when both shared a family name → separate family names. The challenge not-found buttons wrapped at 390 px → stacked on phones.
+- Engine untouched in this phase.
+- Tests: 161 passing (+2 DB tests)
+- Notes for next phase: `/tmp/shots/peek.mjs` was only a smoke check; V4 runs the batched round.
