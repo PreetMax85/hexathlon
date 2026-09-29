@@ -94,7 +94,11 @@ Before using any library API, check its current documentation. Don't write it fr
 
 **Tests:** results-recompute logic (a forged score is rejected), daily uniqueness.
 
-**Done when:** everything works against Neon using `DATABASE_URL`. If that variable is missing, write `BLOCKED` and finish everything else.
+**Env vars (set on Vercel and in the cloud environment; the Neon region is `ap-southeast-1` and Vercel functions run in `sin1`):**
+- `DATABASE_URL`: the **pooled** Neon URL, used by the app at runtime.
+- `DATABASE_URL_UNPOOLED`: the **direct** URL, used only by `drizzle-kit` for migrations.
+
+**Done when:** everything works against Neon, including migrations applied to the database. If either variable is missing, write `BLOCKED` and finish everything else.
 
 ## P5 — Polish and ship
 - Check the layout at 360 px and 1280 px.
