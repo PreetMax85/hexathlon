@@ -34,3 +34,9 @@ export function logSummary(puzzle: HandTrackerPuzzle, questionIndex: number): st
   const question = n > 1 ? `Question ${questionIndex + 1} of ${n}: ${ask}` : ask[0].toUpperCase() + ask.slice(1);
   return `Log finished: ${puzzle.events.length} events. ${question} Choose 0 to 19, then confirm.`;
 }
+
+/** Relaxed mode's tap-paced playback: step 0 is the hand, then one event per tap. */
+export function handPhaseAtStep(puzzle: HandTrackerPuzzle, step: number): HandPhase {
+  if (step <= 0) return { kind: "reveal" };
+  return step <= puzzle.events.length ? { kind: "events", index: step - 1 } : { kind: "ask" };
+}
