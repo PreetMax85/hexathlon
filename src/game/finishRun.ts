@@ -69,3 +69,9 @@ export function finishRun(kv: KV, run: FinishInput): FinishedRun | null {
       };
   return { result, comparison, body, dateKey };
 }
+
+/** The submission for a Daily kept locally but not yet on the server; null when it can't be sent. */
+export function dailyResubmission(format: Format, result: LocalResult, playerId: string): SubmitBody | null {
+  if (result.relaxed || !result.answers || !result.times) return null;
+  return { playerId, format, mode: "daily", seed: result.seed, answers: result.answers, times: result.times };
+}

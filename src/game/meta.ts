@@ -1,4 +1,4 @@
-import { HAND_TRACKER_RULES, PIP_FLASH_RULES, REVEAL_MS, TIERS, type Format, type Resource, type Tier } from "@/engine";
+import { HAND_TRACKER_RULES, PIP_FLASH_RULES, REVEAL_MS, runItems, TIERS, type Format, type Resource, type Tier } from "@/engine";
 import { RELAXED_FACTOR } from "./relaxed";
 
 export interface FormatMeta {
@@ -77,4 +77,14 @@ export function introTiming(format: Format, relaxed: boolean): string {
       return `${REVEAL_MS / 1000} s to memorise the hand, then ${lines} log lines, each shown about ${TIERS.map((t) => HAND_TRACKER_PACE_S[t].toFixed(1)).join(" / ")} s.`;
     }
   }
+}
+
+/** Which puzzles of a run are which tier, e.g. "easy 1–4, medium 5–9, hard 10–13". */
+export function tierRamp(mode: "daily" | "rush"): string {
+  const tiers = runItems(mode, 0).map((it) => it.tier);
+  return TIERS.map((t) => {
+    const first = tiers.indexOf(t) + 1;
+    const last = tiers.lastIndexOf(t) + 1;
+    return `${t} ${first === last ? first : `${first}–${last}`}`;
+  }).join(", ");
 }

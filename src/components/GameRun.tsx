@@ -16,10 +16,10 @@ import {
 import { ensurePlayer, submitResult, type SubmitBody } from "@/game/api";
 import { browserKV, haptic, useLocalResult, usePlayer, useSettings, useTodayKey } from "@/game/browser";
 import { comboOf, lightCharacter } from "@/game/combo";
-import { FORMAT_META, introTiming } from "@/game/meta";
+import { FORMAT_META, introTiming, tierRamp } from "@/game/meta";
 import { relaxPuzzle } from "@/game/relaxed";
 import { betweenPuzzles, initialBetween, type BetweenState } from "@/game/runFlow";
-import { finishRun, type FinishedRun } from "@/game/finishRun";
+import { dailyResubmission, finishRun, type FinishedRun } from "@/game/finishRun";
 import { emptyProgress, marksSoFar, record, recordedTime, type RunProgress } from "@/game/runState";
 import { saveSettings } from "@/game/settings";
 import { saveResult, type LocalResult, type Player } from "@/game/storage";
@@ -263,19 +263,16 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
   };
 
   // A Daily finished while offline (or before a nickname) is sent when the page reopens.
-  const retryDaily =
-    mode === "daily" && stage.kind === "intro" && dailyResult && !dailyResult.synced && !dailyResult.relaxed && dailyResult.answers && dailyResult.times && today && player
-      ? { result: dailyResult, today, player }
+  const retryBody =
+    mode === "daily" && stage.kind === "intro" && dailyResult && !dailyResult.synced && today && player
+      ? dailyResubmission(format, dailyResult, player.id)
       : null;
+  const retryDaily = retryBody && dailyResult && today && player ? { result: dailyResult, today, player, body: retryBody } : null;
   const retryKey = retryDaily ? `${retryDaily.today}:${retryDaily.player.id}` : null;
   useEffect(() => {
     if (!retryDaily) return;
-    const { result, today: dateKey, player: who } = retryDaily;
-    void perform(
-      who,
-      { playerId: who.id, format, mode: "daily", seed: result.seed, answers: result.answers!, times: result.times! },
-      { dateKey, result },
-    ).then(setSync);
+    const { result, today: dateKey, player: who, body } = retryDaily;
+    void perform(who, body, { dateKey, result }).then(setSync);
     // Runs once per (date, player) when an unsent Daily is found.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retryKey]);
@@ -337,15 +334,8 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
           alreadyPlayed
           sync={sync}
           onRetrySync={
-            retryDaily && today
-              ? () => void send(retryDaily.player, {
-                  playerId: retryDaily.player.id,
-                  format,
-                  mode: "daily",
-                  seed: dailyResult.seed,
-                  answers: dailyResult.answers ?? [],
-                  times: dailyResult.times ?? [],
-                }, { dateKey: today, result: dailyResult })
+            retryDaily
+              ? () => void send(retryDaily.player, retryDaily.body, { dateKey: retryDaily.today, result: dailyResult })
               : undefined
           }
         >
@@ -367,13 +357,13 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
           <ul className="flex flex-col gap-2 text-s">
             {mode === "rush" ? (
               <>
-                <li><b>13 puzzles</b> back to back: easy 1–4, medium 5–9, hard 10–13.</li>
+                <li><b>13 puzzles</b> back to back: {tierRamp("rush")}.</li>
                 <li>Score is the number right. Ties go to the faster total time.</li>
                 {challenge && <li>The same 13 puzzles {challenge.createdBy} sailed. Beat their score.</li>}
               </>
             ) : (
               <>
-                <li><b>5 puzzles</b>: 2 easy, 2 medium, 1 hard. The same for everyone today.</li>
+                <li><b>5 puzzles</b>: {tierRamp("daily")}. The same for everyone today.</li>
                 <li>One scored attempt a day. It resets at 00:00 UTC.</li>
               </>
             )}

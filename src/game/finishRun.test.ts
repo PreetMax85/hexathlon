@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { generate, minPuzzleMs, runItems, solve } from "@/engine";
-import { finishRun } from "./finishRun";
+import { dailyResubmission, finishRun } from "./finishRun";
 import { emptyProgress, record } from "./runState";
 import { readResult, type KV } from "./storage";
 import { readStreak } from "./today";
@@ -61,5 +61,25 @@ describe("finishRun", () => {
 
   it("returns null for a run the scorer rejects", () => {
     expect(finishRun(fakeKV(), { ...base, format: "pip-flash", mode: "rush", seed: 9, dateKey: null, progress: emptyProgress })).toBeNull();
+  });
+});
+
+describe("dailyResubmission", () => {
+  const stored = { correct: 3, total: 5, totalMs: 9000, marks: [], seed: 77, answers: [1, 2], times: [300, 400] };
+
+  it("rebuilds the submission for an unsent Daily", () => {
+    expect(dailyResubmission("pip-flash", stored, "player-0001")).toEqual({
+      playerId: "player-0001",
+      format: "pip-flash",
+      mode: "daily",
+      seed: 77,
+      answers: [1, 2],
+      times: [300, 400],
+    });
+  });
+
+  it("has nothing to send for a Relaxed Daily or one saved without answers", () => {
+    expect(dailyResubmission("pip-flash", { ...stored, relaxed: true }, "player-0001")).toBeNull();
+    expect(dailyResubmission("pip-flash", { ...stored, answers: undefined }, "player-0001")).toBeNull();
   });
 });

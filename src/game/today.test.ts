@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compareToBest } from "./best";
-import { introTiming } from "./meta";
+import { introTiming, tierRamp } from "./meta";
 import { readSettings, saveSettings } from "./settings";
 import { saveResult, type KV, type LocalResult } from "./storage";
 import { markDailyDay, readStreak, streakFrom, todayStatus } from "./today";
@@ -118,5 +118,12 @@ describe("intro timing lines", () => {
     expect(introTiming("hand-tracker", true)).toBe(
       "Memorise the hand, then 8 / 12 / 20 log lines, one per tap. Take your time.",
     );
+  });
+});
+
+describe("tier ramp copy", () => {
+  it("is derived from the run's own tiers", () => {
+    expect(tierRamp("rush")).toBe("easy 1–4, medium 5–9, hard 10–13");
+    expect(tierRamp("daily")).toBe("easy 1–2, medium 3–4, hard 5");
   });
 });

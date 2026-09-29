@@ -5,7 +5,7 @@ import { runItems, type Format, type Mode } from "@/engine";
 import type { BestComparison } from "@/game/best";
 import { useNowMinute, useTodayKey } from "@/game/browser";
 import { chartDate } from "@/game/chart";
-import { FORMAT_META, TIER_LABEL } from "@/game/meta";
+import { FORMAT_META, TIER_LABEL, tierRamp } from "@/game/meta";
 import { marksStrip, shareText } from "@/game/share";
 import type { LocalResult } from "@/game/storage";
 import { syncLabel, type Sync } from "@/game/sync";
@@ -153,7 +153,7 @@ export function Result({ format, mode, result, date, comparison, nickname, alrea
             </li>
           ))}
         </ol>
-        {mode === "rush" && <p className="text-s text-ink-2">Easy 1–4 · Medium 5–9 · Hard 10–13</p>}
+        <p className="text-s text-ink-2">{tierRamp(mode)}</p>
         {open !== null && canReplay && (
           <PuzzleReveal
             key={open}
