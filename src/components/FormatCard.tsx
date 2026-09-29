@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Format } from "@/engine";
 import { useLocalResult, useTodayKey } from "@/game/browser";
 import { FORMAT_META } from "@/game/meta";
-import { formatClock, formatSeconds } from "@/game/time";
+import { formatClock } from "@/game/time";
 import { HowToPlay } from "./HowToPlay";
 
 const ICON: Record<Format, string> = {
@@ -37,7 +37,7 @@ export function FormatCard({ format }: { format: Format }) {
           <Link href={`/play/${format}/daily`} className={`${MODE_BTN} bg-brand text-brand-ink`}>
             <span className="font-bold">Daily</span>
             <span className="text-xs font-medium opacity-90">
-              {daily === undefined ? " " : daily ? `✓ ${daily.correct}/${daily.total} · ${formatSeconds(daily.totalMs)}` : "Today's puzzle"}
+              {daily === undefined ? " " : daily ? `✓ ${daily.correct}/${daily.total} · ${formatClock(daily.totalMs)}` : "5 puzzles today"}
             </span>
           </Link>
           <Link href={`/play/${format}/rush`} className={`${MODE_BTN} border border-line bg-surface-2`}>

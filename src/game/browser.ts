@@ -11,6 +11,8 @@ import {
   type LocalResult,
   type Player,
 } from "./storage";
+import { readSettings, SETTINGS_KEY, type Settings } from "./settings";
+import { readStreak, DAYS_KEY } from "./today";
 
 const CHANGE_EVENT = "hexathlon:storage";
 
@@ -88,4 +90,32 @@ const subscribeNothing = () => () => undefined;
 /** False on the server and during hydration, true afterwards. */
 export function useHydrated(): boolean {
   return useSyncExternalStore(subscribeNothing, () => true, () => false);
+}
+
+/** Player settings (Relaxed mode); undefined until hydrated. */
+export function useSettings(): Settings | undefined {
+  const raw = useRaw(SETTINGS_KEY);
+  return useMemo(() => {
+    if (raw === undefined) return undefined;
+    return readSettings({ getItem: () => raw, setItem: () => undefined });
+  }, [raw]);
+}
+
+/** Days-at-sea streak for today; undefined until hydrated. */
+export function useStreak(today: string | null): number | undefined {
+  const raw = useRaw(DAYS_KEY);
+  return useMemo(() => {
+    if (raw === undefined || today === null) return undefined;
+    return readStreak({ getItem: () => raw, setItem: () => undefined }, today);
+  }, [raw, today]);
+}
+
+/** A short buzz on a right answer where the device supports it. */
+export function haptic(): void {
+  try {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    navigator.vibrate?.(18);
+  } catch {
+    // Not supported: the visual pulse is enough.
+  }
 }

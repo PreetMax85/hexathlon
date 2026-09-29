@@ -13,7 +13,7 @@ const STEPS: Record<Format, string[]> = {
   "pip-flash": [
     "Every number token shows dots (pips): 6 and 8 have 5, down to 2 and 12 with 1.",
     "A corner's score is the sum of pips on the hexes it touches.",
-    "Tap the lettered corner with the highest score before the bar runs out.",
+    "Tap the lettered corner with the highest score before the clock runs out.",
   ],
   "port-math": [
     "You can trade 4 of one card for 1 of another. A 3:1 port makes it 3, a matching 2:1 port makes it 2.",
@@ -23,7 +23,7 @@ const STEPS: Record<Format, string[]> = {
   "hand-tracker": [
     "You see Rival's starting hand for 3 seconds.",
     "Then the game log plays: rolls, builds, trades and steals. Keep a running count.",
-    "Tap the number of cards Rival holds of the resource asked.",
+    "Pick how many of the asked resource Rival holds, then confirm. Digit keys and Enter work too.",
   ],
 };
 

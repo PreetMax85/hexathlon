@@ -2,8 +2,8 @@
 
 import type { ApiResult, BoardEntry, ChallengeData, DailyBoardData } from "@/game/api";
 import { fetchChallenge, fetchDaily } from "@/game/api";
-import type { Format } from "@/engine";
-import { formatClock, formatSeconds } from "@/game/time";
+import { DAILY_TIERS, RUSH_LENGTH, type Format } from "@/engine";
+import { formatClock } from "@/game/time";
 import { Button } from "./ui";
 import { useFetched } from "./useFetched";
 
@@ -11,7 +11,7 @@ interface ViewProps {
   title: string;
   result: ApiResult<{ entries: BoardEntry[] }> | undefined;
   onRetry: () => void;
-  /** Puzzles per run, to format scores (1 for Daily, 13 for Rush). */
+  /** Puzzles per run, to format scores (5 for Daily, 13 for Rush). */
   total: number;
   limit?: number;
   empty: string;
@@ -54,7 +54,7 @@ function LeaderboardView({ title, result, onRetry, total, limit, empty }: ViewPr
                 {e.correct}/{total}
               </span>
               <span className="tabular w-14 text-right text-sm text-muted">
-                {total === 1 ? formatSeconds(e.totalMs) : formatClock(e.totalMs)}
+                {formatClock(e.totalMs)}
               </span>
             </li>
           ))}
@@ -72,7 +72,7 @@ export function DailyBoard({ format, playerId, refreshKey }: { format: Format; p
       title="Today's leaderboard"
       result={result as ApiResult<DailyBoardData> | undefined}
       onRetry={retry}
-      total={1}
+      total={DAILY_TIERS.length}
       limit={20}
       empty="No scores yet. Yours could be the first."
     />
@@ -97,7 +97,7 @@ export function ChallengeBoard({
       title="Challenge leaderboard"
       result={result as ApiResult<ChallengeData> | undefined}
       onRetry={retry}
-      total={13}
+      total={RUSH_LENGTH}
       limit={limit ?? 20}
       empty="Nobody has finished this challenge yet."
     />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import type { BestComparison } from "@/game/best";
 import { runItems, type Format, type Mode } from "@/engine";
 import { FORMAT_META, TIER_LABEL } from "@/game/meta";
 import { marksStrip, shareText } from "@/game/share";
@@ -13,8 +14,10 @@ interface Props {
   format: Format;
   mode: Mode;
   result: LocalResult;
-  /** New personal best for Rush. */
-  isBest?: boolean;
+  /** How a Rush compares to the best run stored before it. */
+  comparison?: BestComparison | null;
+  /** Nickname prompt shown before the first scored result is sent. */
+  nickname?: ReactNode;
   /** Daily was already played earlier today. */
   alreadyPlayed?: boolean;
   onPlayAgain?: () => void;
@@ -25,8 +28,20 @@ interface Props {
   children?: ReactNode;
 }
 
+function BestLine({ comparison: c }: { comparison: BestComparison }) {
+  if (c.kind === "first") return <p className="mt-3 font-bold">First Rush on this device. That&apos;s your best to beat.</p>;
+  if (c.kind === "equal") return <p className="mt-3 font-bold">Level with your best.</p>;
+  const time = `${c.ms < 0 ? "−" : "+"}${formatSeconds(Math.abs(c.ms))}`;
+  const detail = c.correct !== 0 ? `${c.correct > 0 ? "+" : "−"}${Math.abs(c.correct)} right` : time;
+  return (
+    <p className={`mt-3 font-bold ${c.kind === "better" ? "text-good" : "text-muted"}`}>
+      {c.kind === "better" ? `New personal best (${detail})` : `Best still stands (${detail} vs best)`}
+    </p>
+  );
+}
+
 /** Score, time, per-puzzle ✓/✗ strip and the share text. */
-export function Result({ format, mode, result, isBest, alreadyPlayed, onPlayAgain, sync, onRetrySync, children }: Props) {
+export function Result({ format, mode, result, comparison, nickname, alreadyPlayed, onPlayAgain, sync, onRetrySync, children }: Props) {
   const [copied, setCopied] = useState<"idle" | "copied" | "failed">("idle");
   const items = runItems(mode, result.seed);
   const text = shareText({
@@ -58,6 +73,7 @@ export function Result({ format, mode, result, isBest, alreadyPlayed, onPlayAgai
       <div className="rounded-3xl border border-line bg-surface p-5 text-center">
         <div className="text-sm font-bold uppercase tracking-wide text-muted">
           {FORMAT_META[format].name} · {mode === "rush" ? "Rush" : "Daily"}
+          {result.relaxed && " · Relaxed, unranked"}
         </div>
         {alreadyPlayed && (
           <p className="mt-1 text-sm font-semibold text-warn">
@@ -81,7 +97,7 @@ export function Result({ format, mode, result, isBest, alreadyPlayed, onPlayAgai
             <dd className="tabular text-2xl font-extrabold">{formatSeconds(result.totalMs / result.total)}</dd>
           </div>
         </dl>
-        {isBest && <p className="mt-3 font-bold text-good">New personal best!</p>}
+        {comparison && <BestLine comparison={comparison} />}
       </div>
 
       <section aria-label="Per-puzzle results" className="rounded-2xl border border-line bg-surface p-4">
@@ -105,6 +121,8 @@ export function Result({ format, mode, result, isBest, alreadyPlayed, onPlayAgai
           <p className="mt-3 text-xs text-muted">Easy 1–4 · Medium 5–9 · Hard 10–13</p>
         )}
       </section>
+
+      {nickname}
 
       {sync && syncLabel(sync) && (
         <div

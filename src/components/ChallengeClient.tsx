@@ -3,7 +3,6 @@
 import { fetchChallenge } from "@/game/api";
 import { usePlayer } from "@/game/browser";
 import { GameRun } from "./GameRun";
-import { NicknameDialog } from "./NicknameDialog";
 import { Button, ButtonLink } from "./ui";
 import { useFetched } from "./useFetched";
 
@@ -45,7 +44,6 @@ export function ChallengeClient({ id }: { id: string }) {
       </div>
     );
   }
-  if (player === null) return <NicknameDialog />;
 
   const c = result.data;
   return (

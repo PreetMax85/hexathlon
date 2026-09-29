@@ -1,6 +1,6 @@
 import { AppHeader } from "@/components/AppHeader";
 import { FormatCard } from "@/components/FormatCard";
-import { HomeNickname } from "@/components/HomeNickname";
+import { TodayStrip } from "@/components/TodayStrip";
 import { FORMATS } from "@/engine";
 
 export default function Home() {
@@ -16,6 +16,7 @@ export default function Home() {
             Short puzzle drills for hex-board trading games. A Daily puzzle for everyone, and Rush runs you can send to friends.
           </p>
         </section>
+        <TodayStrip />
         <ul className="flex flex-col gap-4 lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
           {FORMATS.map((f) => (
             <FormatCard key={f} format={f} />
@@ -25,7 +26,6 @@ export default function Home() {
           No login. Every puzzle is generated from a seed, so everyone sees the same board.
         </p>
       </main>
-      <HomeNickname />
     </>
   );
 }

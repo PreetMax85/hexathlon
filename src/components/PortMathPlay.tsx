@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   RESOURCES,
   targetCost,
@@ -22,6 +22,7 @@ import {
 } from "@/game/portMathState";
 import { tradeText } from "@/game/verdict";
 import { Button } from "./ui";
+import { useConfirm, usePuzzleClock } from "./useClock";
 
 interface Props {
   puzzle: PortMathPuzzle;
@@ -37,31 +38,29 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
   const [state, setState] = useState<TradeState>(initialTrades);
   const [give, setGive] = useState<Resource | null>(null);
   const [done, setDone] = useState(false);
-  const started = useRef<number | null>(null);
   const answered = useRef(false);
-  useEffect(() => {
-    started.current = performance.now();
-  }, []);
+  const { ready, clockMs } = usePuzzleClock(done);
+  const locked = done || ready;
 
   const hand = currentHand(puzzle, state);
   const need = targetCost(puzzle.target);
   const missing = shortfall(puzzle, state);
-  const ready = canBuild(puzzle, state);
   const trades = state.trades.length;
 
   const finish = (answer: PortMathAnswer | null) => {
     if (answered.current) return;
     answered.current = true;
     setDone(true);
-    onAnswer(answer, performance.now() - (started.current ?? performance.now()));
+    onAnswer(answer, clockMs());
   };
+  const skip = useConfirm(() => finish(null));
 
   const pickGive = (r: Resource) => {
-    if (done || !canGive(puzzle, state, r)) return;
+    if (locked || !canGive(puzzle, state, r)) return;
     setGive(give === r ? null : r);
   };
   const pickGet = (r: Resource) => {
-    if (done || !give || give === r) return;
+    if (locked || !give || give === r) return;
     setState(addTrade(puzzle, state, { give, get: r }));
     setGive(null);
   };
@@ -71,7 +70,7 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
       <div>
         <h2 className="text-xl font-bold leading-tight">Afford the build in the fewest trades.</h2>
         <p className="text-sm text-muted">
-          Trade cards with the bank, then press Build. Fewest trades wins; any best route counts.
+          Trade with the bank, then Build. Any fewest-trade route counts. No clock: time only breaks ties.
         </p>
       </div>
 
@@ -130,7 +129,7 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
                 {give === null ? (
                   <button
                     type="button"
-                    disabled={done || hand[r] < rate}
+                    disabled={locked || hand[r] < rate}
                     onClick={() => pickGive(r)}
                     aria-label={`Trade away ${rate} ${r}`}
                     className="min-h-11 w-[3.75rem] rounded-lg border border-line bg-surface-2 text-sm font-bold disabled:opacity-35 active:scale-95"
@@ -170,16 +169,23 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
           <Button
             variant="secondary"
             className="min-h-11 px-4"
-            disabled={done || trades === 0}
+            disabled={locked || trades === 0}
             onClick={() => {
               setState(undoTrade(state));
               setGive(null);
+              skip.disarm();
             }}
           >
             Undo
           </Button>
-          <Button variant="ghost" className="min-h-11 px-3" disabled={done} onClick={() => finish(null)}>
-            Skip
+          <Button
+            variant={skip.armed ? "secondary" : "ghost"}
+            className="min-h-11 px-3"
+            disabled={locked}
+            onClick={skip.press}
+            aria-live="polite"
+          >
+            {skip.armed ? "Skip? Tap again" : "Skip"}
           </Button>
         </div>
       </div>
@@ -194,7 +200,7 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
         </ol>
       )}
 
-      <Button className="w-full" disabled={done || !ready} onClick={() => finish(state.trades)}>
+      <Button className="w-full" disabled={locked || !canBuild(puzzle, state)} onClick={() => finish(state.trades)}>
         Build
       </Button>
     </div>

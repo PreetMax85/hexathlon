@@ -6,6 +6,8 @@ interface Props {
   /** Label of the continue button; omit to hide it (demo mode). */
   action?: string;
   onNext?: () => void;
+  /** Pause before the next puzzle; only offered between puzzles. */
+  onPause?: () => void;
   /** True while a correct answer is about to auto-advance. */
   autoAdvance?: boolean;
   /** Render as a card in the flow instead of a sticky bottom bar. */
@@ -13,7 +15,7 @@ interface Props {
 }
 
 /** Bottom bar after an answer: ✓/✗, the explanation and the next step. */
-export function Feedback({ verdict, action, onNext, autoAdvance, inline }: Props) {
+export function Feedback({ verdict, action, onNext, onPause, autoAdvance, inline }: Props) {
   const ok = verdict.correct;
   return (
     <div
@@ -36,6 +38,11 @@ export function Feedback({ verdict, action, onNext, autoAdvance, inline }: Props
           <div className={`font-extrabold ${ok ? "text-good" : "text-bad"}`}>{verdict.title}</div>
           <div className="text-sm leading-snug text-ink">{verdict.detail}</div>
         </div>
+        {onPause && (
+          <Button variant="secondary" onClick={onPause} className="shrink-0 px-3" aria-label="Pause before the next puzzle">
+            Pause
+          </Button>
+        )}
         {action && onNext && (
           <Button onClick={onNext} className="shrink-0 px-4">
             {action}
