@@ -19,7 +19,7 @@ export default async function Image() {
         title="Read the board. Trade lean. Count cards."
         note="Skill drills for hex trading games"
         detail="Today's island, from the Pip Flash Daily. Pip Flash · Port Math · Hand Tracker."
-        edition={`ED. ${chartDate(today)}`}
+        edition={`Ed. ${chartDate(today)}`}
       />
     ),
     { ...size, fonts: await ogFonts() },

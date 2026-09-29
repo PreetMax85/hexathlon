@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   PORT_MATH_CHOICES,
   RESOURCES,
@@ -30,12 +30,15 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
   const { ready, clockMs } = usePuzzleClock(done);
   const need = targetCost(puzzle.target);
 
-  const finish = (n: number) => {
-    if (answered.current || ready) return;
-    answered.current = true;
-    setPicked(n);
-    onAnswer(n, clockMs());
-  };
+  const finish = useCallback(
+    (n: number) => {
+      if (answered.current || ready) return;
+      answered.current = true;
+      setPicked(n);
+      onAnswer(n, clockMs());
+    },
+    [ready, onAnswer, clockMs],
+  );
 
   // 1–6 keys for laptops.
   useEffect(() => {
@@ -46,7 +49,7 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  });
+  }, [done, ready, finish]);
 
   return (
     <div className="flex flex-col gap-4">

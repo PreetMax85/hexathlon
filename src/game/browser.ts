@@ -157,7 +157,6 @@ export function useNowMinute(): number | null {
   return useSyncExternalStore(subscribeClock, readNowMinute, () => null);
 }
 
-/** Chosen chart palette; undefined until hydrated. */
 const DARK = "(prefers-color-scheme: dark)";
 const subscribeDark = (onChange: () => void) => {
   const mq = window.matchMedia(DARK);

@@ -7,6 +7,7 @@ import { useLocalResult, useNowMinute, useStreak, useTodayKey } from "@/game/bro
 import { FORMAT_META } from "@/game/meta";
 import { formatClock, formatCountdown, untilNextDaily } from "@/game/time";
 import { Board } from "./Board";
+import { BOARD_BLEED } from "./PipFlashPlay";
 import { Buoy } from "./glyphs";
 import { ButtonLink } from "./ui";
 
@@ -21,7 +22,7 @@ export function IslandPlate() {
   return (
     <figure className="flex flex-col gap-1.5">
       {board ? (
-        <Board board={board} className="-mx-4 block w-[calc(100%+2rem)] max-w-none sm:mx-0 sm:w-full sm:rounded-lg" label="Today's island: the first board of the Pip Flash Daily" />
+        <Board board={board} className={BOARD_BLEED} label="Today's island: the first board of the Pip Flash Daily" />
       ) : (
         <div className="hatch aspect-[1.05] w-full rounded-lg" aria-hidden />
       )}
