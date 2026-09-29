@@ -9,7 +9,7 @@ import {
   type PortMathAnswer,
   type PortMathPuzzle,
 } from "@/engine";
-import { BUILD_LABEL, RESOURCE_META } from "@/game/meta";
+import { BUILD_LABEL, PORT_MATH_PAR_MS, RESOURCE_META } from "@/game/meta";
 import { Glyph } from "./glyphs";
 import { usePuzzleClock } from "./useClock";
 
@@ -27,7 +27,9 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
   const [picked, setPicked] = useState<number | null>(null);
   const answered = useRef(false);
   const done = picked !== null;
-  const { ready, clockMs } = usePuzzleClock(done);
+  const { ready, elapsed, clockMs } = usePuzzleClock(done);
+  const par = PORT_MATH_PAR_MS[puzzle.tier];
+  const left = Math.max(0, 1 - elapsed / par);
   const need = targetCost(puzzle.target);
 
   const finish = useCallback(
@@ -76,11 +78,14 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
               <span className="pt-1 text-l font-extrabold leading-none" aria-label={`${meta.label}: have ${puzzle.hand[r]}`}>
                 {puzzle.hand[r]}
               </span>
+              {/* Words, not only colour: "short 1" or "need 1 ✓". */}
               <span className={`text-s ${need[r] === 0 ? "text-ink-2" : short ? "font-bold text-red" : "text-green"}`}>
-                {need[r] === 0 ? "–" : `need ${need[r]}`}
+                {need[r] === 0 ? "–" : short ? `short ${need[r] - puzzle.hand[r]}` : `need ${need[r]} ✓`}
               </span>
+              {/* Rates speak the board's language: a 2:1 port wears its resource's colours. */}
               <span
-                className={`mb-1.5 mt-1 rounded-sm px-1.5 text-s font-bold ${rate < 4 ? "bg-accent text-on-accent" : "text-ink-2"}`}
+                className={`mb-1.5 mt-1 rounded-sm px-1.5 text-s font-bold ${rate === 3 ? "ring-1 ring-inset ring-ink" : rate === 4 ? "text-ink-2" : ""}`}
+                style={rate === 2 ? { background: meta.fill, color: meta.glyph } : undefined}
                 aria-label={`trades ${rate} for 1`}
               >
                 {rate}:1
@@ -92,6 +97,13 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
 
       <section aria-label="Answer" className="flex flex-col gap-2">
         <h2 className="font-bold">Fewest trades to build it?</h2>
+        {/* A gentle pace, not a clock: the bar drains to par and then just waits. */}
+        <div className="flex items-center gap-3" aria-hidden>
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-hair">
+            <div className="h-full rounded-full bg-accent" style={{ width: `${(ready ? 1 : left) * 100}%` }} />
+          </div>
+          <span className="w-16 text-right text-s text-ink-2">{ready ? "Steady" : left > 0 ? `par ${par / 1000} s` : "over par"}</span>
+        </div>
         <div className="grid grid-cols-6 gap-2">
           {PORT_MATH_CHOICES.map((n) => {
             const right = done && n === puzzle.optimalTrades;
@@ -117,7 +129,7 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
             );
           })}
         </div>
-        <p className="text-s text-ink-2">No clock. Time only breaks ties.</p>
+        <p className="text-s text-ink-2">No time limit. Time only breaks ties.</p>
       </section>
     </div>
   );

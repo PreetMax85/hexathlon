@@ -109,7 +109,9 @@ describe("intro timing lines", () => {
   });
 
   it("explains why Port Math has no clock", () => {
-    expect(introTiming("port-math", false)).toBe("No time limit. Your total time only breaks ties.");
+    expect(introTiming("port-math", false)).toBe(
+      "No time limit. A par of 15 / 20 / 30 s sets the pace; going over only costs the tiebreak.",
+    );
   });
 
   it("gives Hand Tracker's preview and pace", () => {
