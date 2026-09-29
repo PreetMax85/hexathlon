@@ -1,7 +1,8 @@
 import { ImageResponse } from "next/og";
-import { dailyItems, dailySeed, generate, utcDateKey } from "@/engine";
+import { dailySeed, utcDateKey } from "@/engine";
 import { ChartSnippet, OG_SIZE, ogFonts } from "@/app/_og/ChartSnippet";
 import { chartDate } from "@/game/chart";
+import { coverBoard } from "@/game/today";
 
 export const alt = "Hexathlon: today's island as a chart, and skill drills for hex trading games";
 export const size = OG_SIZE;
@@ -11,14 +12,13 @@ export const revalidate = 3600;
 
 export default async function Image() {
   const today = utcDateKey(new Date());
-  const first = dailyItems(dailySeed("pip-flash", today))[0];
   return new ImageResponse(
     (
       <ChartSnippet
-        board={generate("pip-flash", first.tier, first.seed).board}
+        board={coverBoard(dailySeed("pip-flash", today))}
         title="Read the board. Trade lean. Count cards."
         note="Skill drills for hex trading games"
-        detail="Today's island, from the Pip Flash Daily. Pip Flash · Port Math · Hand Tracker."
+        detail="Three drills: Pip Flash, Port Math, Hand Tracker. A new Daily every day."
         edition={`Ed. ${chartDate(today)}`}
       />
     ),

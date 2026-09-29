@@ -1,3 +1,4 @@
+import { generateBoard, mixSeed, type Board } from "@/engine";
 import { FORMATS, type Format } from "@/engine";
 import { readResult, type KV, type LocalResult } from "./storage";
 
@@ -68,4 +69,12 @@ export function todayStatus(kv: KV, today: string): TodayStatus {
     allDone: !open,
     streak: readStreak(kv, today),
   };
+}
+
+/**
+ * A board to show before play (the home island, share cards): drawn from its
+ * own branch of the seed, so it is never a board anyone is timed on.
+ */
+export function coverBoard(seed: number): Board {
+  return generateBoard(mixSeed(seed, "cover"));
 }

@@ -2,31 +2,28 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { dailyItems, dailySeed, FORMATS, generate, type Format } from "@/engine";
+import { dailySeed, FORMATS, type Format } from "@/engine";
 import { useLocalResult, useNowMinute, useStreak, useTodayKey } from "@/game/browser";
 import { FORMAT_META } from "@/game/meta";
+import { coverBoard } from "@/game/today";
 import { formatClock, formatCountdown, untilNextDaily } from "@/game/time";
 import { Board } from "./Board";
 import { BOARD_BLEED } from "./PipFlashPlay";
 import { Buoy } from "./glyphs";
 import { ButtonLink } from "./ui";
 
-/** Today's island: the first board of today's Pip Flash Daily, printed as the chart's plate. */
+/** Today's island: a board of its own for the day, never one a Daily is scored on. */
 export function IslandPlate() {
   const today = useTodayKey();
-  const board = useMemo(() => {
-    if (!today) return null;
-    const first = dailyItems(dailySeed("pip-flash", today))[0];
-    return generate("pip-flash", first.tier, first.seed).board;
-  }, [today]);
+  const board = useMemo(() => (today ? coverBoard(dailySeed("pip-flash", today)) : null), [today]);
   return (
     <figure className="flex flex-col gap-1.5">
       {board ? (
-        <Board board={board} className={BOARD_BLEED} label="Today's island: the first board of the Pip Flash Daily" />
+        <Board board={board} className={BOARD_BLEED} label="Today's island" />
       ) : (
         <div className="hatch aspect-[1.05] w-full rounded-lg" aria-hidden />
       )}
-      <figcaption className="sea text-s text-ink-2">Today&apos;s island, from the Pip Flash Daily. Same board for every player.</figcaption>
+      <figcaption className="sea text-s text-ink-2">Today&apos;s island. Same board for every player.</figcaption>
     </figure>
   );
 }

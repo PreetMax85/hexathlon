@@ -3,7 +3,8 @@ import { compareToBest } from "./best";
 import { introTiming, tierRamp } from "./meta";
 import { readSettings, saveSettings } from "./settings";
 import { saveResult, type KV, type LocalResult } from "./storage";
-import { markDailyDay, readStreak, streakFrom, todayStatus } from "./today";
+import { coverBoard, markDailyDay, readStreak, streakFrom, todayStatus } from "./today";
+import { dailyItems, dailySeed, generate, runItems } from "@/engine";
 import { formatCountdown, untilNextDaily } from "./time";
 
 function fakeKV(): KV {
@@ -125,5 +126,21 @@ describe("tier ramp copy", () => {
   it("is derived from the run's own tiers", () => {
     expect(tierRamp("rush")).toBe("easy 1–4, medium 5–9, hard 10–13");
     expect(tierRamp("daily")).toBe("easy 1–2, medium 3–4, hard 5");
+  });
+});
+
+describe("cover board", () => {
+  it("is never a board the player will be scored on", () => {
+    for (const date of ["2026-09-29", "2026-09-30", "2027-01-01"]) {
+      const seed = dailySeed("pip-flash", date);
+      const cover = coverBoard(seed);
+      for (const it of dailyItems(seed)) expect(generate("pip-flash", it.tier, it.seed).board.hexes).not.toEqual(cover.hexes);
+      for (const it of runItems("rush", seed)) expect(generate("pip-flash", it.tier, it.seed).board.hexes).not.toEqual(cover.hexes);
+    }
+  });
+
+  it("is the same for everyone on the same seed", () => {
+    expect(coverBoard(42)).toEqual(coverBoard(42));
+    expect(coverBoard(43).hexes).not.toEqual(coverBoard(42).hexes);
   });
 });
