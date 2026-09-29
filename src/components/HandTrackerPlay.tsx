@@ -100,30 +100,33 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
         </p>
       </div>
 
-      {/* Screen readers hear one summary when the log ends, not every line live. */}
+      {/*
+        Timed playback: screen readers hear one summary when the log ends, not
+        lines talking over each other. Relaxed (tap-paced) playback reads each
+        line as the player steps to it, so the format stays playable by ear.
+      */}
       <p className="sr-only" aria-live="polite">
-        {asking && !finished ? logSummary(puzzle, qIndex) : ""}
+        {asking && !finished
+          ? logSummary(puzzle, qIndex)
+          : tapPaced && !ready && phase.kind === "events"
+            ? `Line ${phase.index + 1} of ${puzzle.events.length}: ${describeEvent(puzzle.events[phase.index])}`
+            : ""}
       </p>
 
-      {ready && (
-        <p className="sea py-12 text-center text-l text-ink-2" aria-hidden>
-          Steady…
-        </p>
-      )}
-
-      {!ready && phase.kind === "reveal" && (
+      {/* The hand shows during the steady beat too; its clock starts after. */}
+      {(ready || phase.kind === "reveal") && (
         <section aria-label="Rival's starting hand" className="anim-pop flex flex-col gap-3">
           <div className="flex items-baseline justify-between">
             <h3 className="sea">Rival&apos;s starting hand</h3>
             {!tapPaced && (
               <span className="text-s font-bold text-magenta">
-                {Math.max(0, Math.ceil((puzzle.revealMs - elapsed) / 1000))} s
+                {ready ? "Steady" : `${Math.max(0, Math.ceil((puzzle.revealMs - elapsed) / 1000))} s`}
               </span>
             )}
           </div>
           <HandTiles hand={puzzle.startHand} />
           {tapPaced ? (
-            <Button onClick={() => setStep(1)}>Start the log</Button>
+            <Button onClick={() => setStep(1)} disabled={ready}>Start the log</Button>
           ) : (
             <p className="text-center text-s text-ink-2">Remember these. They disappear.</p>
           )}

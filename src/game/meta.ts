@@ -70,7 +70,11 @@ export function introTiming(format: Format, relaxed: boolean): string {
       return `Time limit per board: ${TIERS.map((t) => `${(PIP_FLASH_RULES[t].timeLimitMs * k) / 1000} s ${t}`).join(" · ")}.`;
     case "port-math":
       return "No time limit. Your total time only breaks ties.";
-    case "hand-tracker":
-      return `${(REVEAL_MS * k) / 1000} s to memorise the hand, then ${TIERS.map((t) => HAND_TRACKER_RULES[t].events).join(" / ")} log lines, each shown about ${TIERS.map((t) => (HAND_TRACKER_PACE_S[t] * k).toFixed(1)).join(" / ")} s.`;
+    case "hand-tracker": {
+      const lines = TIERS.map((t) => HAND_TRACKER_RULES[t].events).join(" / ");
+      // Relaxed playback is tap-paced: the hand and each line wait for the player.
+      if (relaxed) return `Memorise the hand, then ${lines} log lines, one per tap. Take your time.`;
+      return `${REVEAL_MS / 1000} s to memorise the hand, then ${lines} log lines, each shown about ${TIERS.map((t) => HAND_TRACKER_PACE_S[t].toFixed(1)).join(" / ")} s.`;
+    }
   }
 }

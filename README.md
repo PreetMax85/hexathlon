@@ -69,7 +69,7 @@ the same seed gives an identical board and puzzle on every device.
 - **The server re-verifies every score.** The client submits only
   `{format, mode, seed, answers, times}`. The server regenerates the puzzles from
   the seed and recomputes correctness with the same engine; a claimed score is
-  never read. Daily seeds must match today's UTC seed, challenge runs must match
+  never read. Daily seeds must match today's UTC seed (or yesterday's for 15 minutes after midnight, so a run that straddles 00:00 still counts), challenge runs must match
   the challenge's seed, and Port Math answers are replayed trade by trade.
 - **Fair Dailies.** A partial unique index in Postgres allows one Daily result per
   player, format and daily seed.

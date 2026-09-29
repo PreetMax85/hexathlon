@@ -25,7 +25,7 @@ import { saveSettings } from "@/game/settings";
 import { saveResult, type LocalResult, type Player } from "@/game/storage";
 import { idleSync, type Sync } from "@/game/sync";
 import { verdict } from "@/game/verdict";
-import { shareText } from "@/game/share";
+import { marksStrip, shareText } from "@/game/share";
 import { ChallengeShare } from "./ChallengeShare";
 import { Feedback } from "./Feedback";
 import { HandTrackerPlay } from "./HandTrackerPlay";
@@ -296,7 +296,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
             seed={seed}
             saved={sync.kind === "saved"}
             challengeId={challengeId}
-            shareLine={shareText({ format, mode, correct: result.correct, total: result.total, totalMs: result.totalMs })}
+            shareLine={`${shareText({ format, mode, correct: result.correct, total: result.total, totalMs: result.totalMs, date: today })}\n${marksStrip(result.marks)}`}
           />
         )}
       </>
@@ -314,6 +314,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
         format={format}
         mode={mode}
         result={result}
+        date={dateKey ?? today}
         comparison={comparison}
         sync={sync}
         onRetrySync={player && body ? () => sendNow(player) : undefined}
@@ -332,6 +333,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
           format={format}
           mode="daily"
           result={dailyResult}
+          date={today}
           alreadyPlayed
           sync={sync}
           onRetrySync={

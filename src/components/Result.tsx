@@ -18,6 +18,8 @@ interface Props {
   format: Format;
   mode: Mode;
   result: LocalResult;
+  /** UTC date the run belongs to (a Daily's own date), printed as the stamp's edition. */
+  date?: string | null;
   /** How a Rush compares to the best run stored before it. */
   comparison?: BestComparison | null;
   /** Nickname prompt shown before the first scored result is sent. */
@@ -70,7 +72,7 @@ function PassageStamp({ result, format, mode, date }: { result: LocalResult; for
 }
 
 /** A finished run: stamp, comparison, buoy strip (tap to replay a puzzle), boards and sharing. */
-export function Result({ format, mode, result, comparison, nickname, alreadyPlayed, onPlayAgain, sync, onRetrySync, children }: Props) {
+export function Result({ format, mode, result, date, comparison, nickname, alreadyPlayed, onPlayAgain, sync, onRetrySync, children }: Props) {
   const [copied, setCopied] = useState<"idle" | "copied" | "failed">("idle");
   const [open, setOpen] = useState<number | null>(() => {
     // Open the first miss straight away: the review is the point of a miss.
@@ -78,9 +80,10 @@ export function Result({ format, mode, result, comparison, nickname, alreadyPlay
     return i >= 0 && !alreadyPlayed ? i : null;
   });
   const today = useTodayKey();
+  const edition = date ?? today;
   const now = useNowMinute();
   const items = runItems(mode, result.seed);
-  const text = shareText({ format, mode, correct: result.correct, total: result.total, totalMs: result.totalMs, date: today });
+  const text = shareText({ format, mode, correct: result.correct, total: result.total, totalMs: result.totalMs, date: edition });
   const canReplay = !!result.answers && !!result.times;
 
   const share = async () => {
@@ -104,7 +107,7 @@ export function Result({ format, mode, result, comparison, nickname, alreadyPlay
         <h1 className="sr-only">
           {FORMAT_META[format].name} {mode === "rush" ? "Rush" : "Daily"} result
         </h1>
-        <PassageStamp result={result} format={format} mode={mode} date={today} />
+        <PassageStamp result={result} format={format} mode={mode} date={edition} />
         <div className="flex flex-col gap-1">
           {result.relaxed && <p className="sea">Sailed in Relaxed mode: unranked, kept on this device.</p>}
           {comparison && <BestLine comparison={comparison} />}

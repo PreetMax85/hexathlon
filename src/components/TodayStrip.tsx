@@ -74,6 +74,11 @@ function DailyRow({ format, today }: { format: Format; today: string | null }) {
 export function TodayStrip() {
   const today = useTodayKey();
   const streak = useStreak(today);
+  const now = useNowMinute();
+  const r0 = useLocalResult("pip-flash", "daily", today);
+  const r1 = useLocalResult("port-math", "daily", today);
+  const r2 = useLocalResult("hand-tracker", "daily", today);
+  const anyDone = !!(r0 || r1 || r2);
   return (
     <section aria-labelledby="today-title" className="flex flex-col">
       <div className="flex items-baseline justify-between border-b border-ink pb-1.5">
@@ -87,6 +92,11 @@ export function TodayStrip() {
           <DailyRow key={f} format={f} today={today} />
         ))}
       </ul>
+      {anyDone && now !== null && (
+        <p className="pt-2 text-s text-ink-2">
+          New Dailies in <b className="text-ink">{formatCountdown(untilNextDaily(new Date(now)))}</b> (00:00 UTC).
+        </p>
+      )}
     </section>
   );
 }
