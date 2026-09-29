@@ -1,13 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { FORMATS } from "./formats/common";
 import { generate, RUSH_LENGTH, solve } from "./puzzles";
-import { runItems, scoreRun } from "./run";
+import { handTrackerPlaybackMs } from "./formats/handTracker";
+import { minPuzzleMs, runItems, scoreRun } from "./run";
 
 function perfect(format: (typeof FORMATS)[number], mode: "daily" | "rush", seed: number) {
   const items = runItems(mode, seed);
   return {
     answers: items.map((it) => solve(generate(format, it.tier, it.seed))) as unknown[],
-    times: items.map(() => 1000),
+    // A human-plausible time: 1 s on top of each puzzle's floor.
+    times: items.map((it) => minPuzzleMs(generate(format, it.tier, it.seed)) + 1000),
   };
 }
 
@@ -31,7 +33,7 @@ describe("scoreRun", () => {
       const { answers, times } = perfect(format, "rush", 42);
       const score = scoreRun(format, "rush", 42, answers, times);
       expect(score?.correct).toBe(RUSH_LENGTH);
-      expect(score?.totalMs).toBe(RUSH_LENGTH * 1000);
+      expect(score?.totalMs).toBe(times.reduce((a, b) => a + b, 0));
     });
 
     it(`${format}: a forged answer is marked wrong`, () => {
@@ -62,4 +64,36 @@ describe("scoreRun", () => {
     const slow = answers.map(() => 60_000);
     expect(scoreRun("pip-flash", "rush", 1, answers, slow)?.correct).toBe(0);
   });
+});
+
+describe("minimum-time floor", () => {
+  it("is 300 ms for Pip Flash and Port Math", () => {
+    expect(minPuzzleMs(generate("pip-flash", "hard", 3))).toBe(300);
+    expect(minPuzzleMs(generate("port-math", "easy", 3))).toBe(300);
+  });
+
+  it("is the preview plus playback for Hand Tracker", () => {
+    const p = generate("hand-tracker", "medium", 3);
+    expect(minPuzzleMs(p)).toBe(handTrackerPlaybackMs(p));
+    expect(minPuzzleMs(p)).toBeGreaterThan(3000 + 12 * 1500);
+  });
+
+  for (const format of FORMATS) {
+    it(`${format}: a scripted 0 ms run is rejected`, () => {
+      for (const mode of ["rush", "daily"] as const) {
+        const { answers } = perfect(format, mode, 77);
+        expect(scoreRun(format, mode, 77, answers, answers.map(() => 0))).toBeNull();
+      }
+    });
+
+    it(`${format}: one puzzle under its floor rejects the run`, () => {
+      const { answers, times } = perfect(format, "rush", 77);
+      const items = runItems("rush", 77);
+      const floor = minPuzzleMs(generate(format, items[5].tier, items[5].seed));
+      times[5] = floor - 1;
+      expect(scoreRun(format, "rush", 77, answers, times)).toBeNull();
+      times[5] = floor;
+      expect(scoreRun(format, "rush", 77, answers, times)?.correct).toBe(RUSH_LENGTH);
+    });
+  }
 });

@@ -192,12 +192,12 @@ describe("run state", () => {
     expect(marksSoFar("hand-tracker", "rush", seed, progress)).toEqual([]);
     items.slice(0, 3).forEach((it, i) => {
       const answer = i === 1 ? [99] : solve(generate("hand-tracker", it.tier, it.seed));
-      progress = record(progress, answer, 1500);
+      progress = record(progress, answer, 90_000);
     });
     expect(marksSoFar("hand-tracker", "rush", seed, progress)).toEqual([true, false, true]);
     expect(isFinished("rush", seed, progress)).toBe(false);
     items.slice(3).forEach((it) => {
-      progress = record(progress, solve(generate("hand-tracker", it.tier, it.seed)), 1500);
+      progress = record(progress, solve(generate("hand-tracker", it.tier, it.seed)), 90_000);
     });
     expect(isFinished("rush", seed, progress)).toBe(true);
     expect(finalScore("hand-tracker", "rush", seed, progress)?.correct).toBe(12);

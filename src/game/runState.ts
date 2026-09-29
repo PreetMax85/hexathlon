@@ -1,4 +1,4 @@
-import { runItems, scoreRun, type Format, type Mode, type RunScore } from "@/engine";
+import { generate, runItems, scoreRun, validate, type Format, type Mode, type RunScore } from "@/engine";
 
 /** Answers and times collected so far in a run. */
 export interface RunProgress {
@@ -23,16 +23,10 @@ export function marksSoFar(
   seed: number,
   progress: RunProgress,
 ): boolean[] {
-  const n = progress.answers.length;
   const items = runItems(mode, seed);
-  if (n === 0) return [];
-  // Score a padded run so partial progress can reuse the shared scorer.
-  const padded = [
-    ...progress.answers,
-    ...Array<unknown>(items.length - n).fill(null),
-  ];
-  const times = [...progress.times, ...Array<number>(items.length - n).fill(0)];
-  return scoreRun(format, mode, seed, padded, times)?.marks.slice(0, n) ?? [];
+  return progress.answers.slice(0, items.length).map((answer, i) =>
+    validate(generate(format, items[i].tier, items[i].seed), answer, progress.times[i]),
+  );
 }
 
 export function finalScore(

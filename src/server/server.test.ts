@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dailySeed, generate, runItems, solve, type Format, type Mode } from "@/engine";
+import { dailySeed, generate, minPuzzleMs, runItems, solve, type Format, type Mode } from "@/engine";
 import { bestPerPlayer, publicRows, rankRows, type BoardRow } from "./leaderboard";
 import { newChallengeId } from "./ids";
 import {
@@ -23,7 +23,7 @@ function perfectBody(format: Format, mode: Mode, seed: number, extra: Partial<Re
     mode,
     seed,
     answers: items.map((it) => solve(generate(format, it.tier, it.seed))),
-    times: items.map(() => 1500),
+    times: items.map((it) => minPuzzleMs(generate(format, it.tier, it.seed)) + 1500),
     challengeId: null,
     ...extra,
   };
@@ -70,6 +70,14 @@ describe("verifyResult (server recompute)", () => {
     const body = perfectBody("port-math", "rush", 99);
     const r = verifyResult(body, { dailyDates: [TODAY], challenge: null });
     expect(r.ok && r.value.correct).toBe(13);
+  });
+
+  it("rejects a scripted 0 ms run with 400", () => {
+    for (const format of ["pip-flash", "port-math", "hand-tracker"] as const) {
+      const body = perfectBody(format, "rush", 99);
+      const r = verifyResult({ ...body, times: body.times.map(() => 0) }, { dailyDates: [TODAY], challenge: null });
+      expect(!r.ok && r.status).toBe(400);
+    }
   });
 
   it("ignores any claimed score: a forged run is scored on its answers only", () => {

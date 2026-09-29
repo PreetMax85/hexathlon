@@ -1,5 +1,6 @@
 import type { Format } from "./formats/common";
-import { dailyItems, dailySeed, generate, rushSeeds, validate, type RushItem } from "./puzzles";
+import { handTrackerPlaybackMs } from "./formats/handTracker";
+import { dailyItems, dailySeed, generate, rushSeeds, validate, type Puzzle, type RushItem } from "./puzzles";
 
 export const MODES = ["daily", "rush"] as const;
 export type Mode = (typeof MODES)[number];
@@ -10,6 +11,17 @@ export function isMode(x: unknown): x is Mode {
 
 /** Longest a single puzzle may take before a submitted time is rejected. */
 export const MAX_PUZZLE_MS = 10 * 60 * 1000;
+
+/** Fastest plausible human answer for a board or trade puzzle. */
+export const MIN_ANSWER_MS = 300;
+
+/**
+ * Human floor for a puzzle's time. Anything faster is scripted: Hand Tracker
+ * can't be answered before its preview and log have played out.
+ */
+export function minPuzzleMs(puzzle: Puzzle): number {
+  return puzzle.format === "hand-tracker" ? handTrackerPlaybackMs(puzzle) : MIN_ANSWER_MS;
+}
 
 /** The (tier, seed) puzzles of a run: 5 for Daily, 13 for Rush. */
 export function runItems(mode: Mode, seed: number): RushItem[] {
@@ -30,7 +42,8 @@ export interface RunScore {
 
 /**
  * Recompute a run from its seed. Returns null if the submission is malformed
- * (wrong length, or a time that is not a sane non-negative number). Shared by
+ * (wrong length, or a time that is not a sane number) or any puzzle time is
+ * under its human floor (`minPuzzleMs`). Shared by
  * the client and by the server, which never trusts a reported score.
  */
 export function scoreRun(
@@ -48,6 +61,7 @@ export function scoreRun(
     const ms = times[i];
     if (typeof ms !== "number" || !Number.isFinite(ms) || ms < 0 || ms > MAX_PUZZLE_MS) return null;
     const puzzle = generate(format, items[i].tier, items[i].seed);
+    if (ms < minPuzzleMs(puzzle)) return null;
     marks.push(validate(puzzle, answers[i], ms));
     totalMs += Math.round(ms);
   }

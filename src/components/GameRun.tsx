@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   generate,
   dailyRunSeed,
+  minPuzzleMs,
   runItems,
   type Format,
   type HandTrackerAnswer,
@@ -185,8 +186,10 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
   };
 
   const onAnswer = (answer: unknown, ms: number) => {
-    if (!play || !player) return;
-    const progress = record(play.progress, answer, ms);
+    if (!play || !player || !puzzle) return;
+    // A real tap can't beat the human floor, but a fast Skip can land under
+    // it; round up so the server doesn't reject the whole run.
+    const progress = record(play.progress, answer, Math.max(Math.round(ms), minPuzzleMs(puzzle)));
     let final: Finished | null = null;
     if (progress.answers.length >= items.length) {
       const score = finalScore(format, mode, play.seed, progress);
