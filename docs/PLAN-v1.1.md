@@ -38,10 +38,32 @@ you have a reason; record the reason under "Decisions" in BUILD_LOG.
 
 ## V0: Setup
 - Check out `v1.1-chart-room`, `pnpm install`, `pnpm check` green.
-- Screenshots: try `pnpm dlx playwright@latest install chromium`. If the
-  network blocks the browser download, write `BLOCKED: playwright browser`
-  and use the impeccable detector plus careful source review instead of
-  screenshots in V3–V4.
+- Screenshots (cloud). Install the tooling **outside the repo** (for example
+  `/tmp/shots`) so `package.json` stays unchanged, as in v1. Try these in
+  order and stop at the first that launches headless:
+  1. A browser already on the VM (`~/.cache/ms-playwright`, `which chromium
+     google-chrome`).
+  2. `pnpm dlx playwright@latest install --with-deps chromium`. This is likely
+     to fail, because the Playwright CDN isn't on the Trusted allowlist.
+  3. Chrome for Testing from `storage.googleapis.com`, which is allowlisted.
+     Install `playwright-core` from npm, read the chromium
+     `browserVersion` from its `browsers.json`, and download
+     `https://storage.googleapis.com/chrome-for-testing-public/<version>/linux64/chrome-headless-shell-linux64.zip`
+     (use `chrome-linux64.zip` if the shell isn't published for that version).
+     Install the missing shared libraries with apt, and launch through
+     `playwright-core` with `executablePath`. Check the current Playwright
+     docs for the launch options first. `googlechromelabs.github.io` is not
+     allowlisted, so don't rely on its version JSON.
+  Record which route worked under "Decisions" in BUILD_LOG. If all three
+  fail, write `BLOCKED: screenshot browser` with the exact errors. V3 then
+  continues on the detector and source review, and V4's screenshot rounds are
+  left for the owner to run locally.
+- **Before screenshots:** capture the current v1 UI now, before V1 touches
+  anything, with `pnpm dev` on this branch. Take home, one play screen per
+  format, the Rush result and `/c/<unknown>`, each at 390 and 1440, into
+  `.impeccable/review/before/`. The production site isn't reachable from the
+  cloud, so this is the only chance to get them. Without `DATABASE_URL`,
+  leaderboards show their error state, which is fine for these.
 
 ## V1: Engine and server game rules *(test-first)*
 - Pip Flash `timeLimitMs` → 7000 / 8000 / 10000.
@@ -95,8 +117,17 @@ It must also include:
 Keep `src/engine/` untouched in this phase.
 
 ## V4: Inspect and finish (impeccable §7)
-- One batched screenshot round at 390 and 1440 into `.impeccable/review/`.
+- One batched screenshot round at 390 and 1440 into `.impeccable/review/`,
+  using the browser V0 set up. Use one script that visits every route and
+  state (the same set as the before screenshots, plus Relaxed mode and dark
+  mode). Name the lead play screen `mobile.png` / `desktop.png` per new-work
+  §7, and name the others `<route>-mobile.png` / `<route>-desktop.png`. Commit
+  the script to neither `src/` nor `package.json`.
 - Fix, then confirm with one more round. Two rounds at most.
+- If V0 logged `BLOCKED: screenshot browser`, skip the rounds. Pass the
+  finish reviewer the detector output and a note that it has no screenshots,
+  and carry on to V5. The owner re-runs this phase's screenshot rounds
+  locally.
 - Run `impeccable detect --json` on the changed targets once.
 - Spawn the `impeccable-finish-reviewer` agent with the packet described in
   new-work §7, act on its disposition, then spawn `impeccable-documenter` to
@@ -115,7 +146,8 @@ Keep `src/engine/` untouched in this phase.
   - add a short "Design" section (the Chart Room idea)
   - add a "Known limitations" section, for what remains of the client-time
     trust
-- Open a PR to `main` summarising V0–V5 with before and after screenshots.
+- Open a PR to `main` summarising V0–V5 with before (`.impeccable/review/before/`)
+  and after screenshots.
   **Don't merge. Don't deploy to production.**
 
 ## Rules that carry over
