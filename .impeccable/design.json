@@ -1,0 +1,714 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-29T16:20:34.299Z",
+  "title": "Design System: Hexathlon",
+  "extensions": {
+    "colorMeta": {
+      "chart-white": {
+        "role": "neutral",
+        "displayName": "Chart White",
+        "canonical": "#f3f7f7",
+        "oklch": "oklch(97.3% 0.004 197.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.004 197.1)",
+          "oklch(26.0% 0.004 197.1)",
+          "oklch(37.0% 0.004 197.1)",
+          "oklch(48.0% 0.004 197.1)",
+          "oklch(59.0% 0.004 197.1)",
+          "oklch(70.0% 0.004 197.1)",
+          "oklch(82.0% 0.004 197.1)",
+          "oklch(95.0% 0.004 197.1)"
+        ],
+        "cssVar": "--paper"
+      },
+      "deep-water": {
+        "role": "neutral",
+        "displayName": "Deep Water",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 89.9)",
+          "oklch(26.0% 0.000 89.9)",
+          "oklch(37.0% 0.000 89.9)",
+          "oklch(48.0% 0.000 89.9)",
+          "oklch(59.0% 0.000 89.9)",
+          "oklch(70.0% 0.000 89.9)",
+          "oklch(82.0% 0.000 89.9)",
+          "oklch(95.0% 0.000 89.9)"
+        ],
+        "cssVar": "--deep"
+      },
+      "shoal": {
+        "role": "neutral",
+        "displayName": "Shoal",
+        "canonical": "#9ed6df",
+        "oklch": "oklch(84.1% 0.059 208.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.040 208.4)",
+          "oklch(26.0% 0.050 208.4)",
+          "oklch(37.0% 0.059 208.4)",
+          "oklch(48.0% 0.059 208.4)",
+          "oklch(59.0% 0.059 208.4)",
+          "oklch(70.0% 0.059 208.4)",
+          "oklch(82.0% 0.052 208.4)",
+          "oklch(95.0% 0.040 208.4)"
+        ],
+        "cssVar": "--shoal"
+      },
+      "shoal-pale": {
+        "role": "neutral",
+        "displayName": "Shoal Pale",
+        "canonical": "#cfebef",
+        "oklch": "oklch(92.1% 0.030 207.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.030 207.1)",
+          "oklch(26.0% 0.030 207.1)",
+          "oklch(37.0% 0.030 207.1)",
+          "oklch(48.0% 0.030 207.1)",
+          "oklch(59.0% 0.030 207.1)",
+          "oklch(70.0% 0.030 207.1)",
+          "oklch(82.0% 0.030 207.1)",
+          "oklch(95.0% 0.030 207.1)"
+        ],
+        "cssVar": "--shoal-2"
+      },
+      "sounding-ink": {
+        "role": "primary",
+        "displayName": "Sounding Ink",
+        "canonical": "#1d2b36",
+        "oklch": "oklch(28.1% 0.028 242.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.028 242.6)",
+          "oklch(26.0% 0.028 242.6)",
+          "oklch(37.0% 0.028 242.6)",
+          "oklch(48.0% 0.028 242.6)",
+          "oklch(59.0% 0.028 242.6)",
+          "oklch(70.0% 0.028 242.6)",
+          "oklch(82.0% 0.028 242.6)",
+          "oklch(95.0% 0.028 242.6)"
+        ],
+        "cssVar": "--ink"
+      },
+      "sounding-ink-soft": {
+        "role": "neutral",
+        "displayName": "Sounding Ink Soft",
+        "canonical": "#475a68",
+        "oklch": "oklch(45.7% 0.033 240.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.031 240.3)",
+          "oklch(26.0% 0.033 240.3)",
+          "oklch(37.0% 0.033 240.3)",
+          "oklch(48.0% 0.033 240.3)",
+          "oklch(59.0% 0.033 240.3)",
+          "oklch(70.0% 0.033 240.3)",
+          "oklch(82.0% 0.033 240.3)",
+          "oklch(95.0% 0.031 240.3)"
+        ],
+        "cssVar": "--ink-2"
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#c3d1d6",
+        "oklch": "oklch(85.2% 0.017 221.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.017 221.1)",
+          "oklch(26.0% 0.017 221.1)",
+          "oklch(37.0% 0.017 221.1)",
+          "oklch(48.0% 0.017 221.1)",
+          "oklch(59.0% 0.017 221.1)",
+          "oklch(70.0% 0.017 221.1)",
+          "oklch(82.0% 0.017 221.1)",
+          "oklch(95.0% 0.017 221.1)"
+        ],
+        "cssVar": "--hair"
+      },
+      "chart-magenta": {
+        "role": "primary",
+        "displayName": "Chart Magenta",
+        "canonical": "#c2187a",
+        "oklch": "oklch(54.2% 0.212 352.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.091 352.8)",
+          "oklch(26.0% 0.129 352.8)",
+          "oklch(37.0% 0.168 352.8)",
+          "oklch(48.0% 0.207 352.8)",
+          "oklch(59.0% 0.212 352.8)",
+          "oklch(70.0% 0.179 352.8)",
+          "oklch(82.0% 0.137 352.8)",
+          "oklch(95.0% 0.091 352.8)"
+        ],
+        "cssVar": "--magenta"
+      },
+      "on-magenta": {
+        "role": "neutral",
+        "displayName": "On Magenta",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 89.9)",
+          "oklch(26.0% 0.000 89.9)",
+          "oklch(37.0% 0.000 89.9)",
+          "oklch(48.0% 0.000 89.9)",
+          "oklch(59.0% 0.000 89.9)",
+          "oklch(70.0% 0.000 89.9)",
+          "oklch(82.0% 0.000 89.9)",
+          "oklch(95.0% 0.000 89.9)"
+        ],
+        "cssVar": "--on-magenta"
+      },
+      "iala-green": {
+        "role": "secondary",
+        "displayName": "IALA Green",
+        "canonical": "#007a52",
+        "oklch": "oklch(51.2% 0.113 161.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.058 161.8)",
+          "oklch(26.0% 0.078 161.8)",
+          "oklch(37.0% 0.099 161.8)",
+          "oklch(48.0% 0.113 161.8)",
+          "oklch(59.0% 0.113 161.8)",
+          "oklch(70.0% 0.104 161.8)",
+          "oklch(82.0% 0.082 161.8)",
+          "oklch(95.0% 0.058 161.8)"
+        ],
+        "cssVar": "--green"
+      },
+      "buoy-green": {
+        "role": "secondary",
+        "displayName": "Buoy Green",
+        "canonical": "#00875a",
+        "oklch": "oklch(55.1% 0.122 161.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.061 161.2)",
+          "oklch(26.0% 0.083 161.2)",
+          "oklch(37.0% 0.106 161.2)",
+          "oklch(48.0% 0.122 161.2)",
+          "oklch(59.0% 0.122 161.2)",
+          "oklch(70.0% 0.112 161.2)",
+          "oklch(82.0% 0.087 161.2)",
+          "oklch(95.0% 0.061 161.2)"
+        ],
+        "cssVar": "--buoy-green"
+      },
+      "iala-red": {
+        "role": "secondary",
+        "displayName": "IALA Red",
+        "canonical": "#c8102e",
+        "oklch": "oklch(53.0% 0.207 22.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.089 22.3)",
+          "oklch(26.0% 0.127 22.3)",
+          "oklch(37.0% 0.165 22.3)",
+          "oklch(48.0% 0.203 22.3)",
+          "oklch(59.0% 0.207 22.3)",
+          "oklch(70.0% 0.176 22.3)",
+          "oklch(82.0% 0.134 22.3)",
+          "oklch(95.0% 0.089 22.3)"
+        ],
+        "cssVar": "--red"
+      },
+      "token-cream": {
+        "role": "tertiary",
+        "displayName": "Token Cream",
+        "canonical": "#fbf8ef",
+        "oklch": "oklch(97.9% 0.012 91.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.012 91.5)",
+          "oklch(26.0% 0.012 91.5)",
+          "oklch(37.0% 0.012 91.5)",
+          "oklch(48.0% 0.012 91.5)",
+          "oklch(59.0% 0.012 91.5)",
+          "oklch(70.0% 0.012 91.5)",
+          "oklch(82.0% 0.012 91.5)",
+          "oklch(95.0% 0.012 91.5)"
+        ],
+        "cssVar": "--token"
+      },
+      "token-red": {
+        "role": "tertiary",
+        "displayName": "Token Red",
+        "canonical": "#b3122b",
+        "oklch": "oklch(49.1% 0.189 21.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.083 21.8)",
+          "oklch(26.0% 0.118 21.8)",
+          "oklch(37.0% 0.152 21.8)",
+          "oklch(48.0% 0.187 21.8)",
+          "oklch(59.0% 0.189 21.8)",
+          "oklch(70.0% 0.162 21.8)",
+          "oklch(82.0% 0.124 21.8)",
+          "oklch(95.0% 0.083 21.8)"
+        ],
+        "cssVar": "--token-red"
+      },
+      "land-wood": {
+        "role": "tertiary",
+        "displayName": "Forest Land",
+        "canonical": "#2f6b45",
+        "oklch": "oklch(47.7% 0.088 153.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.049 153.6)",
+          "oklch(26.0% 0.065 153.6)",
+          "oklch(37.0% 0.082 153.6)",
+          "oklch(48.0% 0.088 153.6)",
+          "oklch(59.0% 0.088 153.6)",
+          "oklch(70.0% 0.086 153.6)",
+          "oklch(82.0% 0.068 153.6)",
+          "oklch(95.0% 0.049 153.6)"
+        ],
+        "source": "src/game/meta.ts RESOURCE_META (board only; dimmed by --land-filter)"
+      },
+      "land-brick": {
+        "role": "tertiary",
+        "displayName": "Brick Land",
+        "canonical": "#b5532f",
+        "oklch": "oklch(55.9% 0.137 40.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.066 40.0)",
+          "oklch(26.0% 0.091 40.0)",
+          "oklch(37.0% 0.116 40.0)",
+          "oklch(48.0% 0.137 40.0)",
+          "oklch(59.0% 0.137 40.0)",
+          "oklch(70.0% 0.123 40.0)",
+          "oklch(82.0% 0.095 40.0)",
+          "oklch(95.0% 0.066 40.0)"
+        ],
+        "source": "src/game/meta.ts RESOURCE_META (board only; dimmed by --land-filter)"
+      },
+      "land-sheep": {
+        "role": "tertiary",
+        "displayName": "Pasture Land",
+        "canonical": "#9fcb63",
+        "oklch": "oklch(78.8% 0.142 128.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.067 128.2)",
+          "oklch(26.0% 0.093 128.2)",
+          "oklch(37.0% 0.119 128.2)",
+          "oklch(48.0% 0.142 128.2)",
+          "oklch(59.0% 0.142 128.2)",
+          "oklch(70.0% 0.126 128.2)",
+          "oklch(82.0% 0.098 128.2)",
+          "oklch(95.0% 0.067 128.2)"
+        ],
+        "source": "src/game/meta.ts RESOURCE_META (board only; dimmed by --land-filter)"
+      },
+      "land-wheat": {
+        "role": "tertiary",
+        "displayName": "Wheat Land",
+        "canonical": "#e6be3c",
+        "oklch": "oklch(81.5% 0.148 91.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.069 91.1)",
+          "oklch(26.0% 0.096 91.1)",
+          "oklch(37.0% 0.123 91.1)",
+          "oklch(48.0% 0.148 91.1)",
+          "oklch(59.0% 0.148 91.1)",
+          "oklch(70.0% 0.131 91.1)",
+          "oklch(82.0% 0.101 91.1)",
+          "oklch(95.0% 0.069 91.1)"
+        ],
+        "source": "src/game/meta.ts RESOURCE_META (board only; dimmed by --land-filter)"
+      },
+      "land-ore": {
+        "role": "tertiary",
+        "displayName": "Ore Land",
+        "canonical": "#7d8798",
+        "oklch": "oklch(62.1% 0.028 261.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.028 261.1)",
+          "oklch(26.0% 0.028 261.1)",
+          "oklch(37.0% 0.028 261.1)",
+          "oklch(48.0% 0.028 261.1)",
+          "oklch(59.0% 0.028 261.1)",
+          "oklch(70.0% 0.028 261.1)",
+          "oklch(82.0% 0.028 261.1)",
+          "oklch(95.0% 0.028 261.1)"
+        ],
+        "source": "src/game/meta.ts RESOURCE_META (board only; dimmed by --land-filter)"
+      },
+      "land-desert": {
+        "role": "tertiary",
+        "displayName": "Desert Land",
+        "canonical": "#e3cf9c",
+        "oklch": "oklch(85.9% 0.070 89.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.043 89.1)",
+          "oklch(26.0% 0.056 89.1)",
+          "oklch(37.0% 0.069 89.1)",
+          "oklch(48.0% 0.070 89.1)",
+          "oklch(59.0% 0.070 89.1)",
+          "oklch(70.0% 0.070 89.1)",
+          "oklch(82.0% 0.059 89.1)",
+          "oklch(95.0% 0.043 89.1)"
+        ],
+        "source": "src/game/meta.ts RESOURCE_META (board only; dimmed by --land-filter)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Stamp Numeral",
+        "purpose": "Score inside the result stamp only; the one size outside the three-size ramp."
+      },
+      "headline": {
+        "displayName": "Wide Headline",
+        "purpose": "Screen titles and format names; uppercase, 118% width."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Row names, prompts, verdict titles; buttons at 600."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text; secondary lines at 0.8125rem in ink-soft."
+      },
+      "sea": {
+        "displayName": "Sea Italic",
+        "purpose": "Section headings, captions, water, soundings, port rates, nickname."
+      },
+      "label": {
+        "displayName": "Chart Label",
+        "purpose": "Edition date, readout captions, column heads, tier marks, stamp inscriptions. Never a kicker above a heading."
+      },
+      "numeral": {
+        "displayName": "Condensed Numeral",
+        "purpose": "Live readouts: seconds left, trades, hand counts, days at sea."
+      }
+    },
+    "fonts": [
+      {
+        "family": "Archivo",
+        "source": "src/app/fonts/archivo.woff2 + archivo-italic.woff2 via next/font/local, --font-archivo",
+        "axes": {
+          "wght": "100 900",
+          "wdth": "62% 125%"
+        },
+        "license": "OFL",
+        "widths": {
+          "wide": "118%",
+          "normal": "100%",
+          "label": "88%",
+          "condensed": "72%"
+        }
+      }
+    ],
+    "themes": {
+      "dusk": {
+        "selector": ":root[data-theme=\"dusk\"], and :root without data-theme under prefers-color-scheme: dark",
+        "values": {
+          "--paper": "#11191f",
+          "--deep": "#18232b",
+          "--shoal": "#1f4550",
+          "--shoal-2": "#173640",
+          "--ink": "#c8d3d8",
+          "--ink-2": "#8fa1ab",
+          "--hair": "#2c3b45",
+          "--magenta": "#d46aa6",
+          "--on-magenta": "#11191f",
+          "--green": "#3fae84",
+          "--buoy-green": "#3fae84",
+          "--red": "#e0606f",
+          "--land-filter": "saturate(0.72) brightness(0.78)",
+          "--token": "#d9d4c6",
+          "--token-ink": "#11191f",
+          "--token-red": "#8f1024"
+        }
+      },
+      "night": {
+        "selector": ":root[data-theme=\"night\"]",
+        "values": {
+          "--paper": "#05080a",
+          "--deep": "#0b1115",
+          "--shoal": "#10262c",
+          "--shoal-2": "#0c1c21",
+          "--ink": "#8fa0a8",
+          "--ink-2": "#74848c",
+          "--hair": "#1a252b",
+          "--magenta": "#ba6090",
+          "--on-magenta": "#05080a",
+          "--green": "#3a9474",
+          "--buoy-green": "#3a9474",
+          "--red": "#c85c68",
+          "--land-filter": "saturate(0.55) brightness(0.52)",
+          "--token": "#9a968c",
+          "--token-ink": "#05080a",
+          "--token-red": "#560812"
+        }
+      }
+    },
+    "shadows": [],
+    "borders": [
+      {
+        "name": "neatline",
+        "value": "border: 1.5px solid var(--ink); outline: 1px solid var(--ink); outline-offset: 5px",
+        "purpose": "Frames every screen inside an 8px (12px from 640px) body margin."
+      },
+      {
+        "name": "scale-bar",
+        "value": "height: 5px; background: repeating-linear-gradient(90deg, var(--ink) 0 12px, transparent 12px 24px); border-block: 1px solid var(--ink)",
+        "purpose": "Latitude scale under the neatline's top edge."
+      },
+      {
+        "name": "rule-major",
+        "value": "2px solid var(--ink)",
+        "purpose": "Cartouche, sticky bars, major section divisions."
+      },
+      {
+        "name": "rule-minor",
+        "value": "1px solid var(--ink)",
+        "purpose": "Under note headings, around tables."
+      },
+      {
+        "name": "hairline",
+        "value": "1px solid var(--hair)",
+        "purpose": "Between rows."
+      },
+      {
+        "name": "note-dashed",
+        "value": "1px dashed var(--ink-2)",
+        "purpose": "Set-apart notes: share text, untimed demo."
+      },
+      {
+        "name": "stamp",
+        "value": "3px double currentColor (magenta)",
+        "purpose": "Result stamp only."
+      },
+      {
+        "name": "focus",
+        "value": "outline: 3px solid var(--magenta); outline-offset: 2px",
+        "purpose": "Global focus ring; offset 0 on inputs; SVG waypoints draw their own magenta ring."
+      }
+    ],
+    "patterns": [
+      {
+        "name": "hatch",
+        "value": "repeating-linear-gradient(-45deg, color-mix(in srgb, var(--ink-2) 38%, transparent) 0 1.5px, transparent 1.5px 7px)",
+        "purpose": "Used, disabled and loading states. Never opacity."
+      },
+      {
+        "name": "scrim",
+        "value": "color-mix(in srgb, var(--ink) 45%, transparent)",
+        "purpose": "Behind the nickname dialog."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-chart",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The single easing for all entrances."
+      },
+      {
+        "name": "pop",
+        "value": "180ms scale 0.96→1 + fade",
+        "purpose": "View entrance."
+      },
+      {
+        "name": "slide-in",
+        "value": "220ms translateY 8px→0 + fade",
+        "purpose": "Feedback bar."
+      },
+      {
+        "name": "buoy-drop",
+        "value": "640ms drop and one bob",
+        "purpose": "Verdict buoy on the chosen corner."
+      },
+      {
+        "name": "pulse-ring",
+        "value": "520ms scale 0.6→1.8, fade",
+        "purpose": "Right-answer ring in buoy green."
+      },
+      {
+        "name": "flash",
+        "value": "360ms ease-in-out, opacity 1→0.2→1, repeated once per combo step (max 8)",
+        "purpose": "Combo light characteristic."
+      },
+      {
+        "name": "stamp",
+        "value": "520ms after 120ms, rotate(-4deg) scale 1.35→0.97→1 with blur 2px→0",
+        "purpose": "Passage stamp."
+      },
+      {
+        "name": "button",
+        "value": "150ms transform/background/color; active translateY(1px)",
+        "purpose": "Button feedback."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "all animations off; stamp keeps rotation; range ring steps each second",
+        "purpose": "prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ],
+    "layout": {
+      "column": "36rem (max-w-xl)",
+      "homeWide": "72rem (max-w-6xl) two-column grid from 1024px, 48px gap",
+      "gutter": "16px",
+      "minTarget": "44px",
+      "primaryAction": "48px"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one main action per view: sail a Daily, copy a challenge, sail again.",
+      "html": "<button class=\"ds-btn-primary\">Sail the Pip Flash Daily</button>",
+      "css": ".ds-btn-primary{font-family: var(--font-archivo), Archivo, system-ui, sans-serif;display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 20px;border:0;border-radius:0;background:var(--ink,#1d2b36);color:var(--paper,#f3f7f7);font-size:1rem;font-weight:600;letter-spacing:0.01em;cursor:pointer;transition:transform 150ms,background-color 150ms,color 150ms}.ds-btn-primary:hover{background:color-mix(in srgb,var(--ink,#1d2b36) 88%,var(--magenta,#c2187a))}.ds-btn-primary:focus-visible{outline:3px solid var(--magenta,#c2187a);outline-offset:2px}.ds-btn-primary:active{transform:translateY(1px)}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Companion actions: Home, Pause, Share result, Rush.",
+      "html": "<button class=\"ds-btn-secondary\">Home</button>",
+      "css": ".ds-btn-secondary{font-family: var(--font-archivo), Archivo, system-ui, sans-serif;display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 20px;border:0;border-radius:0;background:var(--deep,#ffffff);color:var(--ink,#1d2b36);box-shadow:inset 0 0 0 1px var(--ink,#1d2b36);font-size:1rem;font-weight:600;letter-spacing:0.01em;cursor:pointer;transition:transform 150ms,background-color 150ms}.ds-btn-secondary:hover{background:var(--shoal-2,#cfebef)}.ds-btn-secondary:focus-visible{outline:3px solid var(--magenta,#c2187a);outline-offset:2px}.ds-btn-secondary:active{transform:translateY(1px)}"
+    },
+    {
+      "name": "Ghost Button / Chart Link",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Magenta underlined text action: Skip, Retry, Rush links.",
+      "html": "<button class=\"ds-btn-ghost\">Rush · 13 puzzles</button>",
+      "css": ".ds-btn-ghost{font-family: var(--font-archivo), Archivo, system-ui, sans-serif;display:inline-flex;align-items:center;min-height:44px;padding:0 8px;border:0;background:transparent;color:var(--magenta,#c2187a);font-size:1rem;font-weight:700;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;cursor:pointer}.ds-btn-ghost:hover{text-decoration-thickness:2px}.ds-btn-ghost:focus-visible{outline:3px solid var(--magenta,#c2187a);outline-offset:2px}"
+    },
+    {
+      "name": "Disabled Button (hatched)",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Disabled and used states take restricted-area hatching, never opacity; the label sits on a paper plate.",
+      "html": "<button class=\"ds-btn-disabled\" disabled><span class=\"ds-btn-disabled__label\">Build</span></button>",
+      "css": ".ds-btn-disabled{font-family: var(--font-archivo), Archivo, system-ui, sans-serif;display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 20px;border:0;border-radius:0;background-color:var(--paper,#f3f7f7);background-image:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--ink-2,#475a68) 38%,transparent) 0 1.5px,transparent 1.5px 7px);color:var(--ink-2,#475a68);box-shadow:inset 0 0 0 1px var(--hair,#c3d1d6);font-size:1rem;font-weight:600;cursor:not-allowed}.ds-btn-disabled__label{background:var(--paper,#f3f7f7);padding:0.1em 0.4em}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-text",
+      "description": "Nickname field: paper, inset ink ring, magenta caret and focus.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field__label\">Nickname</span><input class=\"ds-input\" value=\"Chartwell\"></label>",
+      "css": ".ds-field{font-family: var(--font-archivo), Archivo, system-ui, sans-serif;display:flex;flex-direction:column;gap:4px;color:var(--ink-2,#475a68)}.ds-field__label{font-size:0.8125rem;font-weight:650;font-stretch:88%;letter-spacing:0.08em;text-transform:uppercase}.ds-input{font-family: var(--font-archivo), Archivo, system-ui, sans-serif;min-height:48px;padding:0 12px;border:0;border-radius:0;background:var(--paper,#f3f7f7);color:var(--ink,#1d2b36);box-shadow:inset 0 0 0 1px var(--ink,#1d2b36);font-size:1rem;caret-color:var(--magenta,#c2187a)}.ds-input:focus-visible{outline:3px solid var(--magenta,#c2187a);outline-offset:0}"
+    },
+    {
+      "name": "Cartouche Header",
+      "kind": "nav",
+      "refersTo": "",
+      "description": "The chart's cartouche: hex-and-light logo, wide wordmark, edition date, palette switch and nickname over a 2px ink rule.",
+      "html": "<header class=\"ds-cartouche\"><a class=\"ds-cartouche__home\" href=\"#\"><svg width=\"26\" height=\"26\" viewBox=\"-12 -12 24 24\"><polygon points=\"0,-9.5 8.2,-4.75 8.2,4.75 0,9.5 -8.2,4.75 -8.2,-4.75\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"round\"/><circle r=\"3\" fill=\"var(--magenta,#c2187a)\"/></svg><span class=\"ds-cartouche__text\"><span class=\"ds-cartouche__name\">Hexathlon</span><span class=\"ds-cartouche__date\">29 Sep 2026</span></span></a><button class=\"ds-cartouche__nick\">Chartwell</button></header>",
+      "css": ".ds-cartouche{font-family: var(--font-archivo), Archivo, system-ui, sans-serif;display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 16px;background:var(--paper,#f3f7f7);color:var(--ink,#1d2b36);border-bottom:2px solid var(--ink,#1d2b36)}.ds-cartouche__home{display:flex;align-items:center;gap:8px;min-height:44px;color:inherit;text-decoration:none}.ds-cartouche__text{display:flex;flex-direction:column;line-height:1}.ds-cartouche__name{font-size:1rem;font-weight:800;font-stretch:118%;letter-spacing:0.12em;text-transform:uppercase}.ds-cartouche__date{margin-top:4px;font-size:0.8125rem;font-weight:650;font-stretch:88%;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-2,#475a68)}.ds-cartouche__nick{font-family: var(--font-archivo), Archivo, system-ui, sans-serif;min-height:44px;padding:0 8px;border:0;background:transparent;color:var(--ink,#1d2b36);font-size:0.8125rem;font-weight:600;font-style:italic;text-decoration:underline;text-decoration-color:var(--hair,#c3d1d6);text-underline-offset:4px;cursor:pointer}.ds-cartouche__home:focus-visible,.ds-cartouche__nick:focus-visible{outline:3px solid var(--magenta,#c2187a);outline-offset:2px}"
+    },
+    {
+      "name": "Chart Note with Daily Rows",
+      "kind": "card",
+      "refersTo": "list-row",
+      "description": "Replaces cards: italic heading over a 1px ink rule, hairline-divided rows led by a buoy, Shoal Pale on hover.",
+      "html": "<section class=\"ds-note\"><div class=\"ds-note__head\"><h2 class=\"ds-note__title\">Today's Dailies</h2><span class=\"ds-note__meta\">Days at sea <b>4</b></span></div><a class=\"ds-row\" href=\"#\"><svg width=\"26\" height=\"26\" viewBox=\"0 0 24 24\"><path d=\"M5.5 17.4 12 1l6.5 16.4Z\" fill=\"var(--buoy-green,#00875a)\" stroke=\"var(--deep,#fff)\" stroke-width=\"1.5\"/><path d=\"M3.9 19.9h16.2\" stroke=\"var(--ink,#1d2b36)\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg><span class=\"ds-row__body\"><b>Pip Flash</b><span class=\"ds-row__sub\">Charted · 5/5 in 0:21</span></span></a><a class=\"ds-row\" href=\"#\"><svg width=\"26\" height=\"26\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"14\" r=\"5\" fill=\"var(--deep,#fff)\" stroke=\"var(--magenta,#c2187a)\" stroke-width=\"2.4\"/></svg><span class=\"ds-row__body\"><b>Port Math</b><span class=\"ds-row__sub\">Open · 5 puzzles</span></span></a></section>",
+      "css": ".ds-note{font-family: var(--font-archivo), Archivo, system-ui, sans-serif;display:flex;flex-direction:column;color:var(--ink,#1d2b36);font-variant-numeric:tabular-nums}.ds-note__head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--ink,#1d2b36);padding-bottom:6px}.ds-note__title{margin:0;font-size:1rem;font-weight:450;font-style:italic}.ds-note__meta{font-size:0.8125rem}.ds-note__meta b{font-size:1.625rem;font-stretch:72%}.ds-row{display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 0;border-bottom:1px solid var(--hair,#c3d1d6);color:inherit;text-decoration:none}.ds-row:hover{background:var(--shoal-2,#cfebef)}.ds-row:focus-visible{outline:3px solid var(--magenta,#c2187a);outline-offset:2px}.ds-row__body{display:flex;flex-direction:column}.ds-row__sub{font-size:0.8125rem;color:var(--ink-2,#475a68)}"
+    },
+    {
+      "name": "Buoy Feedback Bar",
+      "kind": "custom",
+      "refersTo": "feedback-bar",
+      "description": "After an answer: buoy shape, verdict title in IALA colour, one-line reason, next action. Sticky over a 2px ink rule on phones.",
+      "html": "<div class=\"ds-feedback\"><svg width=\"34\" height=\"34\" viewBox=\"0 0 24 24\"><path d=\"M5.5 17.4 12 1l6.5 16.4Z\" fill=\"var(--buoy-green,#00875a)\" stroke=\"var(--deep,#fff)\" stroke-width=\"1.5\"/><path d=\"M3.9 19.9h16.2\" stroke=\"var(--ink,#1d2b36)\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg><div class=\"ds-feedback__text\"><div class=\"ds-feedback__title\">Correct</div><div class=\"ds-feedback__detail\">C has 11 pips, next best 8.</div></div><button class=\"ds-feedback__next\">Next →</button></div>",
+      "css": ".ds-feedback{font-family: var(--font-archivo), Archivo, system-ui, sans-serif;display:flex;align-items:center;gap:12px;padding:12px 16px 14px;background:var(--deep,#fff);color:var(--ink,#1d2b36);border-top:2px solid var(--ink,#1d2b36);animation:ds-slide 220ms cubic-bezier(0.16,1,0.3,1) both}.ds-feedback__text{flex:1;min-width:0}.ds-feedback__title{font-weight:700;color:var(--green,#007a52)}.ds-feedback__detail{font-size:0.8125rem;line-height:1.35}.ds-feedback__next{font-family: var(--font-archivo), Archivo, system-ui, sans-serif;min-height:48px;padding:0 16px;border:0;border-radius:0;background:var(--ink,#1d2b36);color:var(--paper,#f3f7f7);font-size:1rem;font-weight:600;cursor:pointer}.ds-feedback__next:focus-visible{outline:3px solid var(--magenta,#c2187a);outline-offset:2px}@keyframes ds-slide{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}@media (prefers-reduced-motion:reduce){.ds-feedback{animation:none}}"
+    },
+    {
+      "name": "Passage Stamp",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "The result's chart stamp: magenta double border, rotated -4deg, pressed on over 520ms; score in the Display style.",
+      "html": "<div class=\"ds-stamp\"><span class=\"ds-stamp__label\">Pip Flash Rush</span><span class=\"ds-stamp__label\">Passage complete</span><span class=\"ds-stamp__score\">10<small>/13</small></span><span class=\"ds-stamp__label\">0:05 · 29 Sep 2026</span></div>",
+      "css": ".ds-stamp{font-family: var(--font-archivo), Archivo, system-ui, sans-serif;display:inline-flex;flex-direction:column;align-items:center;padding:12px 24px;color:var(--magenta,#c2187a);border:3px double currentColor;transform:rotate(-4deg);font-variant-numeric:tabular-nums;animation:ds-stamp 520ms cubic-bezier(0.16,1,0.3,1) 120ms both}.ds-stamp__label{font-size:0.8125rem;font-weight:650;font-stretch:88%;letter-spacing:0.08em;text-transform:uppercase}.ds-stamp__score{font-size:4.5rem;font-weight:800;font-stretch:72%;line-height:1}.ds-stamp__score small{font-size:1.625rem;font-weight:600}@keyframes ds-stamp{0%{transform:rotate(-4deg) scale(1.35);opacity:0;filter:blur(2px)}60%{transform:rotate(-4deg) scale(0.97);opacity:1;filter:blur(0)}100%{transform:rotate(-4deg) scale(1)}}@media (prefers-reduced-motion:reduce){.ds-stamp{animation:none}}"
+    },
+    {
+      "name": "Range Dial",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "Miniature range-ring timer: hairline track, magenta arc for time left, ink bearing line. The board draws the full-size ring.",
+      "html": "<svg class=\"ds-dial\" width=\"56\" height=\"56\" viewBox=\"-12 -12 24 24\" role=\"img\" aria-label=\"65% of time left\"><circle r=\"10\" fill=\"none\" stroke=\"var(--hair,#c3d1d6)\" stroke-width=\"1.4\"/><circle r=\"10\" fill=\"none\" stroke=\"var(--magenta,#c2187a)\" stroke-width=\"2.4\" stroke-dasharray=\"40.84 62.83\" transform=\"rotate(36)\"/><line x1=\"0\" y1=\"0\" x2=\"8.09\" y2=\"5.88\" stroke=\"var(--ink,#1d2b36)\" stroke-width=\"1.4\" stroke-linecap=\"round\"/><circle r=\"1.6\" fill=\"var(--ink,#1d2b36)\"/></svg>",
+      "css": ".ds-dial{display:block}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Chart Room",
+    "overview": "Every puzzle is a chart of one island. The board is the chart's plate: white deep water, cyan shoal bands that hug the coast, seed-derived italic soundings, magenta port lights on dashed leader lines, graticule ticks along its edge. Everything around it is the chart's margin, printed in ink on paper: a double neatline frames every screen, a latitude scale bar runs across its top, a cartouche carries the name and edition date, and notes sit under italic headings over a single ink rule. There are no cards, no rounded corners and no shadows. The surface is flat paper.\n\nThe world is calm in material and lively in behaviour. The game moments are chart instruments doing real work: the timer is a range ring whose bearing line sweeps once round the board, verdicts are IALA buoys (a green cone, a red can) that drop onto the chosen spot and bob once, the combo reads as a light characteristic (\"Fl(4)\") that flashes, and a finished run is pressed on as a magenta chart stamp. Day is a paper chart; dusk and night are dimmed ECDIS palettes (darker, desaturated, never glowing), selectable from the header and following the OS by default.\n\nThe system rejects the category default (dark slate cards, one green accent, a flame streak) and the tavern look (wood, parchment, brass).",
+    "keyCharacteristics": [
+      "Flat paper and ink chrome; the board is the only saturated surface.",
+      "Square corners everywhere; rules and hairlines instead of containers.",
+      "One variable grotesque (Archivo) with a width axis, used wide, normal and condensed.",
+      "Italic for water: section headings, captions and anything spoken by the sea.",
+      "Chart magenta for lights, notes, focus and time remaining.",
+      "Verdicts by buoy shape first, colour second.",
+      "Hatching, not transparency, for used and disabled states."
+    ],
+    "rules": [
+      {
+        "name": "The Board Owns Saturation Rule",
+        "body": "The land colours appear only on the board and in its share-card rendition. Chrome is paper, ink, the water tints, magenta and the verdict pair.",
+        "section": "colors"
+      },
+      {
+        "name": "The Magenta Is a Light Rule",
+        "body": "Magenta marks lights, notes, links, focus and time remaining. It is never a large fill in the chrome; the stamp is magenta ink on paper, not a magenta panel.",
+        "section": "colors"
+      },
+      {
+        "name": "The Shape Carries the Verdict Rule",
+        "body": "Right is a cone, wrong is a can. Green and red only confirm what the shape says. Tier difficulty is shown as one to three ink sounding bars, never in the verdict colours.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three Sizes Rule",
+        "body": "The chrome uses 0.8125rem, 1rem and 1.625rem only. Rank comes from weight, case, width and italic, not from more sizes. The stamp numeral is the single sanctioned exception.",
+        "section": "typography"
+      },
+      {
+        "name": "The Water Is Italic Rule",
+        "body": "Headings that name a region of the chart, captions, and anything the sea says are set in italic. Upright bold is for land: names of things you act on.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Numerals are tabular everywhere (set on body). Changing numbers use the condensed numeral style.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Paper Rule",
+        "body": "Nothing lifts off the chart. A layer is distinguished by fill tone and a rule, never a shadow, blur or glow.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Hatch, Don't Fade Rule",
+        "body": "Used, disabled and loading states take restricted-area hatching (a -45deg stripe of Sounding Ink Soft at 38%, 1.5px on a 7px pitch), never reduced opacity. A disabled button's label sits on its own paper plate so the hatching never crosses the text.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** frame every screen in the neatline with the scale bar under its top edge.",
+      "**Do** use the CSS custom properties (`--paper`, `--ink`, `--magenta`, ...) so day, dusk and night all follow.",
+      "**Do** separate regions with ink rules (2px major, 1px minor) and rows with hairlines.",
+      "**Do** set section headings, captions and water in italic, and live numbers in the condensed tabular numeral.",
+      "**Do** keep every target at least 44px and primary actions at 48px, sticky in the thumb zone on phones.",
+      "**Do** hatch used, disabled and loading states.",
+      "**Do** pair every resource colour with its authored glyph, and every verdict colour with a buoy shape."
+    ],
+    "donts": [
+      "**Don't** round corners or add shadows, blurs or glows, in any palette.",
+      "**Don't** use the land colours outside the board.",
+      "**Don't** use opacity to show disabled or used states.",
+      "**Don't** add a fourth chrome type size; change weight, case, width or italic instead.",
+      "**Don't** put an uppercase Label above a heading as a kicker; Labels caption readouts, columns, the edition date and the stamp.",
+      "**Don't** use green or red to show difficulty; tiers are ink sounding bars.",
+      "**Don't** reach for wood, parchment, brass, or dark slate cards with a green accent."
+    ]
+  }
+}

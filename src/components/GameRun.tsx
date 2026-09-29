@@ -15,17 +15,16 @@ import {
   type Tier,
 } from "@/engine";
 import { ensurePlayer, submitResult, type SubmitBody } from "@/game/api";
-import { compareToBest, type BestComparison } from "@/game/best";
 import { browserKV, haptic, useLocalResult, usePlayer, useSettings, useTodayKey } from "@/game/browser";
 import { comboOf, lightCharacter } from "@/game/combo";
 import { FORMAT_META, introTiming } from "@/game/meta";
 import { relaxPuzzle } from "@/game/relaxed";
 import { betweenPuzzles, initialBetween, type BetweenState } from "@/game/runFlow";
-import { emptyProgress, finalScore, marksSoFar, record, type RunProgress } from "@/game/runState";
+import { finishRun, type FinishedRun } from "@/game/finishRun";
+import { emptyProgress, marksSoFar, record, type RunProgress } from "@/game/runState";
 import { saveSettings } from "@/game/settings";
-import { readResult, saveResult, saveRushBest, type LocalResult, type Player } from "@/game/storage";
+import { saveResult, type LocalResult, type Player } from "@/game/storage";
 import { idleSync, type Sync } from "@/game/sync";
-import { markDailyDay } from "@/game/today";
 import { verdict } from "@/game/verdict";
 import { shareText } from "@/game/share";
 import { ChallengeShare } from "./ChallengeShare";
@@ -40,13 +39,6 @@ import { Buoy } from "./glyphs";
 import { Button, ButtonLink, Note, TierMark } from "./ui";
 import { useConfirm } from "./useClock";
 
-/** A finished run: the local result and the payload sent to the server. */
-interface Finished {
-  result: LocalResult;
-  comparison: BestComparison | null;
-  body: SubmitBody | null;
-  dateKey: string | null;
-}
 
 type Stage =
   | { kind: "intro" }
@@ -57,9 +49,9 @@ type Stage =
       relaxed: boolean;
       progress: RunProgress;
       between: BetweenState;
-      final: Finished | null;
+      final: FinishedRun | null;
     }
-  | { kind: "result"; seed: number; final: Finished };
+  | { kind: "result"; seed: number; final: FinishedRun };
 
 interface Props {
   format: Format;
@@ -254,46 +246,20 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
     // it; round up so the server doesn't reject the whole run.
     const progress = record(play.progress, answer, Math.max(Math.round(ms), minPuzzleMs(puzzle)));
     if (verdict(puzzle, answer, ms).correct) haptic();
-    let final: Finished | null = null;
-    if (progress.answers.length >= items.length) {
-      const score = finalScore(format, mode, play.seed, progress, { relaxed: play.relaxed });
-      if (score) {
-        const result: LocalResult = {
-          correct: score.correct,
-          total: items.length,
-          totalMs: score.totalMs,
-          marks: score.marks,
-          seed: play.seed,
-          answers: progress.answers,
-          times: progress.times,
-          synced: false,
-          ...(play.relaxed ? { relaxed: true } : {}),
-        };
-        let comparison: BestComparison | null = null;
-        if (mode === "daily" && play.dateKey) {
-          saveResult(browserKV, format, "daily", play.dateKey, result);
-          markDailyDay(browserKV, play.dateKey);
-        }
-        if (mode === "rush" && !play.relaxed) {
-          comparison = compareToBest(result, readResult(browserKV, format, "rush", "best"));
-          saveRushBest(browserKV, format, result);
-        }
-        // Relaxed runs are unranked: they never reach the server.
-        const body: SubmitBody | null = play.relaxed
-          ? null
-          : {
-              playerId: player?.id ?? "",
-              format,
-              mode,
-              seed: play.seed,
-              answers: progress.answers,
-              times: progress.times,
-              challengeId: challenge?.id ?? null,
-            };
-        final = { result, comparison, body, dateKey: play.dateKey };
-        if (body && player) void send(player, body, play.dateKey ? { dateKey: play.dateKey, result } : undefined);
-      }
-    }
+    const final =
+      progress.answers.length >= items.length
+        ? finishRun(browserKV, {
+            format,
+            mode,
+            seed: play.seed,
+            dateKey: play.dateKey,
+            relaxed: play.relaxed,
+            progress,
+            playerId: player?.id ?? "",
+            challengeId: challenge?.id ?? null,
+          })
+        : null;
+    if (final?.body && player) void send(player, final.body, final.dateKey ? { dateKey: final.dateKey, result: final.result } : undefined);
     setStage({ ...play, progress, between: betweenPuzzles(play.between, "answer"), final });
   };
 
