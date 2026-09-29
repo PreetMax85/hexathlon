@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { isRed, TOPOLOGY, toCartesian, type Board } from "@/engine";
 import { soundings } from "@/game/chart";
 import { RESOURCE_META } from "@/game/meta";
+import { glyphPath } from "./glyphs";
 
 /**
  * The share card as a chart snippet: the island plate on the left and a
@@ -46,7 +47,7 @@ function hexPoints(id: number, scale = 1) {
     .join(" ");
 }
 
-const nearLand = (x: number, y: number) => CENTERS.some((c) => Math.hypot(c.x - x, c.y - y) < 2.05);
+const portSpots = (board: Board) => portMarks(board).map((m) => m.p);
 
 function portMarks(board: Board) {
   return board.ports.map((port) => {
@@ -60,8 +61,12 @@ function portMarks(board: Board) {
 }
 
 function IslandPlate({ board }: { board: Board }) {
-  const spots = soundings(board.seed, { x: -HALF + 0.3, y: -HALF + 0.3, w: HALF * 2 - 0.6, h: HALF * 2 - 0.6 }, nearLand);
   const ports = portMarks(board);
+  const labels = portSpots(board);
+  // Soundings stay off the land, the shoal band and the port labels.
+  const clear = (x: number, y: number) =>
+    CENTERS.some((c) => Math.hypot(c.x - x, c.y - y) < 2.05) || labels.some((l) => Math.hypot(l.x - x, l.y - y) < 1.1);
+  const spots = soundings(board.seed, { x: -HALF + 0.3, y: -HALF + 0.3, w: HALF * 2 - 0.6, h: HALF * 2 - 0.6 }, clear);
   const ticks = Array.from({ length: Math.floor((HALF * 2) / 0.5) + 1 }, (_, i) => i * 0.5 * k);
   return (
     <div style={{ display: "flex", position: "relative", width: PLATE, height: PLATE, }}>
@@ -131,9 +136,10 @@ function IslandPlate({ board }: { board: Board }) {
           key={`q${port.edge}`}
           style={{
             position: "absolute",
-            left: px(p.x) - 22,
+            left: px(p.x) - (port.kind === "generic" ? 22 : 31),
             top: px(p.y) - 12,
-            width: 44,
+            width: port.kind === "generic" ? 44 : 62,
+            gap: 3,
             height: 24,
             display: "flex",
             alignItems: "center",
@@ -148,6 +154,11 @@ function IslandPlate({ board }: { board: Board }) {
           }}
         >
           {port.kind === "generic" ? "3:1" : "2:1"}
+          {port.kind !== "generic" && (
+            <svg width="16" height="16" viewBox="0 0 24 24">
+              <path d={glyphPath(port.kind)} fill="none" stroke={MAGENTA} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
         </div>
       ))}
       {TOPOLOGY.hexes.map((h) => {

@@ -21,6 +21,9 @@ const PATHS: Record<Resource | "desert" | "road" | "settlement" | "city" | "dev"
 
 export type GlyphName = keyof typeof PATHS;
 
+/** Raw 24-unit path, for renderers that can't use the components (share cards). */
+export const glyphPath = (name: GlyphName) => PATHS[name];
+
 export function Glyph({
   name,
   size = 20,

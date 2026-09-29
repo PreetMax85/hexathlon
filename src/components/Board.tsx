@@ -70,19 +70,18 @@ function HexLand({ hexId, board, busy }: { hexId: number; board: BoardData; busy
   const { terrain, token } = board.hexes[hexId];
   const meta = RESOURCE_META[terrain];
   const c = HEX_CENTERS[hexId];
-  // The glyph sits under the hex's top corner, or its bottom corner when a
-  // waypoint is on the top one, so a letter never covers it.
+  // The glyph sits under the hex's top corner; when a waypoint is on that
+  // corner it shrinks and drops toward the token, still inside its own hex.
   const verts = TOPOLOGY.hexes[hexId].vertices;
   const top = verts.reduce((a, v) => (VERTEX_POINTS[v].y < VERTEX_POINTS[a].y ? v : a));
-  const bottom = verts.reduce((a, v) => (VERTEX_POINTS[v].y > VERTEX_POINTS[a].y ? v : a));
-  const glyphY = !busy.has(top) ? c.y - 0.64 : !busy.has(bottom) ? c.y + 0.74 : null;
+  const crowded = busy.has(top);
   return (
     <g>
       <polygon points={hexPoints(hexId)} fill={meta.fill} stroke="var(--paper)" strokeWidth={0.06} strokeLinejoin="round" />
       {token === null ? (
         <BoardGlyph name="desert" x={c.x} y={c.y} s={0.9} color={meta.glyph} />
       ) : (
-        glyphY !== null && <BoardGlyph name={terrain as Resource} x={c.x} y={glyphY} s={glyphY > c.y ? 0.36 : 0.44} color={meta.glyph} />
+        <BoardGlyph name={terrain as Resource} x={c.x} y={crowded ? c.y - 0.51 : c.y - 0.64} s={crowded ? 0.3 : 0.44} color={meta.glyph} />
       )}
     </g>
   );
