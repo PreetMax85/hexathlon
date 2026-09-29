@@ -1,30 +1,27 @@
 import type { KV } from "./storage";
 
-/** Chart palettes: day paper, dimmed dusk and night (ECDIS-style), or follow the system. */
-export const THEMES = ["auto", "day", "dusk", "night"] as const;
+/** Two palettes: day paper and dusk. Until one is chosen, the system's light/dark setting picks. */
+export const THEMES = ["day", "dusk"] as const;
 export type Theme = (typeof THEMES)[number];
 
 export const THEME_KEY = "hexathlon:theme";
 
-export function readTheme(kv: KV): Theme {
+/** The palette in force: a stored choice wins, otherwise the system's. Retired "night" reads as dusk. */
+export function readTheme(kv: KV, systemDark: boolean): Theme {
+  let v: string | null = null;
   try {
-    const v = kv.getItem(THEME_KEY);
-    return (THEMES as readonly string[]).includes(v ?? "") ? (v as Theme) : "auto";
+    v = kv.getItem(THEME_KEY);
   } catch {
-    return "auto";
+    // Storage blocked: follow the system.
   }
+  if (v === "day") return "day";
+  if (v === "dusk" || v === "night") return "dusk";
+  return systemDark ? "dusk" : "day";
 }
 
-export function cycleTheme(t: Theme): Theme {
-  return THEMES[(THEMES.indexOf(t) + 1) % THEMES.length];
-}
+export const toggleTheme = (t: Theme): Theme => (t === "day" ? "dusk" : "day");
 
-export const THEME_LABEL: Record<Theme, string> = {
-  auto: "Auto",
-  day: "Day",
-  dusk: "Dusk",
-  night: "Night",
-};
+export const THEME_LABEL: Record<Theme, string> = { day: "Day", dusk: "Dusk" };
 
 /** Inline, pre-paint: sets `data-theme` from storage so a chosen palette never flashes. */
-export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});if(${JSON.stringify(THEMES.filter((t) => t !== "auto"))}.indexOf(t)>=0)document.documentElement.dataset.theme=t}catch(e){}`;
+export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});if(t==="night")t="dusk";if(t==="day"||t==="dusk")document.documentElement.dataset.theme=t}catch(e){}`;

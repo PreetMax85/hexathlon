@@ -85,7 +85,7 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
             <li className="sea text-ink-2">None: 4:1 with the bank</li>
           ) : (
             puzzle.ports.map((p) => (
-              <li key={p} className="sea inline-flex items-center gap-1 font-bold text-magenta">
+              <li key={p} className="sea inline-flex items-center gap-1 font-bold text-accent">
                 {p === "generic" ? (
                   "3:1 any"
                 ) : (
@@ -152,7 +152,7 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
                     type="button"
                     onClick={() => pickGet(r)}
                     aria-label={`Get 1 ${r}`}
-                    className="min-h-11 w-full bg-magenta text-s font-bold text-on-magenta"
+                    className="min-h-11 w-full bg-accent text-s font-bold text-on-accent"
                   >
                     get 1
                   </button>

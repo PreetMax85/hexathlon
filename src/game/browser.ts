@@ -158,14 +158,22 @@ export function useNowMinute(): number | null {
 }
 
 /** Chosen chart palette; undefined until hydrated. */
+const DARK = "(prefers-color-scheme: dark)";
+const subscribeDark = (onChange: () => void) => {
+  const mq = window.matchMedia(DARK);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+};
+
+/** The palette in force, or undefined before hydration. */
 export function useTheme(): Theme | undefined {
   const raw = useRaw(THEME_KEY);
-  return useMemo(() => (raw === undefined ? undefined : readTheme(snapshot(raw))), [raw]);
+  const dark = useSyncExternalStore(subscribeDark, () => window.matchMedia(DARK).matches, () => false);
+  return useMemo(() => (raw === undefined ? undefined : readTheme(snapshot(raw), dark)), [raw, dark]);
 }
 
-/** Store and apply a palette ("auto" follows the system). */
+/** Store and apply a palette. */
 export function applyTheme(theme: Theme): void {
   browserKV.setItem(THEME_KEY, theme);
-  if (theme === "auto") delete document.documentElement.dataset.theme;
-  else document.documentElement.dataset.theme = theme;
+  document.documentElement.dataset.theme = theme;
 }

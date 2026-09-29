@@ -21,9 +21,9 @@ export function IslandPlate() {
   return (
     <figure className="flex flex-col gap-1.5">
       {board ? (
-        <Board board={board} className="w-full" label="Today's island: the first board of the Pip Flash Daily" />
+        <Board board={board} className="-mx-4 block w-[calc(100%+2rem)] max-w-none sm:mx-0 sm:w-full sm:rounded-lg" label="Today's island: the first board of the Pip Flash Daily" />
       ) : (
-        <div className="hatch aspect-square w-full" aria-hidden />
+        <div className="hatch aspect-[1.05] w-full rounded-lg" aria-hidden />
       )}
       <figcaption className="sea text-s text-ink-2">Today&apos;s island, from the Pip Flash Daily. Same chart for every player.</figcaption>
     </figure>
@@ -81,11 +81,12 @@ export function TodayStrip() {
   const anyDone = !!(r0 || r1 || r2);
   return (
     <section aria-labelledby="today-title" className="flex flex-col">
-      <div className="flex items-baseline justify-between border-b border-ink pb-1.5">
-        <h2 id="today-title" className="sea">Today&apos;s Dailies</h2>
-        <span className="text-s">
-          Days at sea <b className="text-l condensed">{streak ?? "–"}</b>
-        </span>
+      <div className="flex items-end justify-between gap-4 border-b border-ink pb-2">
+        <h2 id="today-title" className="sea text-l">Today&apos;s Dailies</h2>
+        <div className="flex shrink-0 flex-col items-center rounded-md border border-hair bg-deep px-3 py-1.5" aria-label={`Days at sea: ${streak ?? 0}`}>
+          <b className="text-l leading-none condensed">{streak ?? "–"}</b>
+          <span className="mt-0.5 text-s text-ink-2">days at sea</span>
+        </div>
       </div>
       <ul>
         {FORMATS.map((f) => (
@@ -132,7 +133,7 @@ function NextDailyAction() {
 /** The primary action, held in the thumb zone on phones. */
 export function ThumbAction() {
   return (
-    <div className="sticky bottom-0 z-20 -mx-4 border-t-2 border-ink bg-paper px-4 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:static lg:mx-0 lg:border-t-0 lg:bg-transparent lg:p-0">
+    <div className="sticky bottom-0 z-20 -mx-4 border-t border-hair bg-paper px-4 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:static lg:mx-0 lg:border-t-0 lg:bg-transparent lg:p-0">
       <NextDailyAction />
     </div>
   );

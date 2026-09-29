@@ -9,7 +9,7 @@ import { useFetched } from "./useFetched";
 /** A dashed danger ring with "ED", the chart mark for a feature whose existence is doubtful. */
 function UnchartedMark() {
   return (
-    <svg width={88} height={88} viewBox="-44 -44 88 88" aria-hidden className="text-magenta">
+    <svg width={88} height={88} viewBox="-44 -44 88 88" aria-hidden className="text-accent">
       <circle r={34} fill="none" stroke="currentColor" strokeWidth={2} strokeDasharray="5 4" />
       <circle r={4} fill="currentColor" />
       <text y={24} textAnchor="middle" fontSize={15} fontStyle="italic" fontWeight={700} fill="currentColor">ED</text>
@@ -45,7 +45,7 @@ export function ChallengeClient({ id }: { id: string }) {
           <p className="sea text-ink-2">
             {missing ? (
               <>
-                <b className="not-italic text-magenta">ED</b>, existence doubtful: the link may be mistyped, or the challenge was never charted.
+                <b className="not-italic text-accent">ED</b>, existence doubtful: the link may be mistyped, or the challenge was never charted.
               </>
             ) : (
               result.error

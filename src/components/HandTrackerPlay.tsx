@@ -119,7 +119,7 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
           <div className="flex items-baseline justify-between">
             <h3 className="sea">Rival&apos;s starting hand</h3>
             {!tapPaced && (
-              <span className="text-s font-bold text-magenta">
+              <span className="text-s font-bold text-accent">
                 {ready ? "Steady" : `${Math.max(0, Math.ceil((puzzle.revealMs - elapsed) / 1000))} s`}
               </span>
             )}
@@ -178,7 +178,7 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
                   onClick={() => setPad(padTap(pad, n))}
                   aria-pressed={pad.value === n}
                   className={`min-h-12 w-full text-l font-semibold condensed ${
-                    pad.value === n ? "bg-magenta text-on-magenta" : "bg-deep ring-1 ring-inset ring-hair hover:ring-ink"
+                    pad.value === n ? "bg-accent text-on-accent" : "bg-deep ring-1 ring-inset ring-hair hover:ring-ink"
                   }`}
                 >
                   {n}

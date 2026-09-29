@@ -65,7 +65,7 @@ describe("time and share", () => {
     // The chart snippet: the date is the edition, buoys are shapes (cone ▲ right, can ■ wrong).
     expect(
       shareText({ format: "port-math", mode: "rush", correct: 11, total: 13, totalMs: 161_000, date: "2026-09-29" }),
-    ).toBe("Hexathlon Rush · Port Math 11/13 · 2:41 · Ed. 29 SEP 2026");
+    ).toBe("Hexathlon Rush · Port Math 11/13 · 2:41 · Ed. 29 Sep 2026");
     expect(marksStrip([true, false])).toBe("▲■");
   });
 
