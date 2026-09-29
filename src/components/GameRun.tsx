@@ -76,7 +76,8 @@ function randomSeed(): number {
  */
 function LightChar({ combo }: { combo: number }) {
   const text = lightCharacter(combo);
-  if (!text) return <span className="h-[18px]" aria-hidden />;
+  // Momentum reads as a plain count; the light characteristic is its caption.
+  if (!text || combo < 2) return <span className="h-[22px]" aria-hidden />;
   return (
     <span className="flex items-center gap-1.5" aria-label={`Combo ${combo}`}>
       <svg width={18} height={18} viewBox="-9 -9 18 18" aria-hidden>
@@ -87,7 +88,8 @@ function LightChar({ combo }: { combo: number }) {
           <circle r={3.4} fill="var(--magenta)" />
         </g>
       </svg>
-      <span className="sea text-s font-bold text-magenta">{text}</span>
+      <b key={`n${combo}`} className="anim-pop text-l leading-none text-magenta condensed">×{combo}</b>
+      <span className="sea text-s text-ink-2">{text}</span>
     </span>
   );
 }

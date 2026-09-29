@@ -44,7 +44,7 @@ const BASE =
   "inline-flex min-h-12 items-center justify-center gap-2 px-5 text-m font-semibold tracking-[0.01em] transition-[transform,background-color,color] duration-150 active:translate-y-px disabled:cursor-not-allowed";
 
 const VARIANTS = {
-  primary: "bg-action text-on-action ring-1 ring-inset ring-action hover:bg-[color-mix(in_srgb,var(--action)_88%,var(--magenta))] disabled:hatch disabled:bg-paper disabled:text-ink-2 disabled:ring-1 disabled:ring-inset disabled:ring-hair",
+  primary: "bg-action text-on-action ring-1 ring-inset ring-action [@media(hover:hover)]:hover:bg-[color-mix(in_srgb,var(--action)_88%,var(--magenta))] disabled:hatch disabled:bg-paper disabled:text-ink-2 disabled:ring-1 disabled:ring-inset disabled:ring-hair",
   secondary:
     "bg-deep text-ink ring-1 ring-inset ring-ink hover:bg-shoal-2 disabled:hatch disabled:text-ink-2 disabled:ring-hair",
   ghost: "text-magenta underline decoration-1 underline-offset-4 hover:decoration-2 disabled:text-ink-2 disabled:no-underline",

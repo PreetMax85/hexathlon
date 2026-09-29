@@ -42,10 +42,15 @@ export function verdict(puzzle: Puzzle, answer: unknown, ms: number): Verdict {
         return { correct, title: "Correct", detail: `${label} has ${totals[best]} pips, next best ${next}.` };
       }
       const timedOut = answer === null || ms > puzzle.timeLimitMs;
+      // Name the player's own read against the best: that gap is the lesson.
+      const picked = typeof answer === "number" && totals[answer] !== undefined ? answer : null;
       return {
         correct,
         title: timedOut ? "Time's up" : "Not quite",
-        detail: `${label} has the most: ${totals[best]} pips vs ${next}.`,
+        detail:
+          picked !== null && picked !== best
+            ? `You picked ${CANDIDATE_LABELS[picked]}: ${totals[picked]} pips. ${label} had ${totals[best]}.`
+            : `${label} has the most: ${totals[best]} pips vs ${next}.`,
       };
     }
     case "port-math": {
@@ -70,9 +75,13 @@ export function verdict(puzzle: Puzzle, answer: unknown, ms: number): Verdict {
       const truth = puzzle.questions
         .map((r) => `${final[r]} ${RESOURCE_META[r].label.toLowerCase()}`)
         .join(" and ");
-      return correct
-        ? { correct, title: "Correct", detail: `Rival held ${truth}.` }
-        : { correct, title: "Not quite", detail: `Rival held ${truth}.` };
+      if (correct) return { correct, title: "Correct", detail: `Rival held ${truth}.` };
+      const said = Array.isArray(answer) && answer.every((n) => typeof n === "number") ? (answer as number[]) : null;
+      return {
+        correct,
+        title: "Not quite",
+        detail: said ? `You said ${said.join(" and ")}. Rival held ${truth}.` : `Rival held ${truth}.`,
+      };
     }
   }
 }

@@ -30,6 +30,16 @@ export function IslandPlate() {
   );
 }
 
+/** A played Daily: an ink tick, neutral whatever the score (cones mean "right"). */
+function ChartedMark() {
+  return (
+    <svg width={26} height={26} viewBox="0 0 24 24" aria-hidden>
+      <circle cx={12} cy={13} r={8} fill="var(--ink)" />
+      <path d="M8.2 13.2l2.6 2.6 5-5.4" fill="none" stroke="var(--paper)" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function DailyRow({ format, today }: { format: Format; today: string | null }) {
   const result = useLocalResult(format, "daily", today);
   return (
@@ -38,7 +48,7 @@ function DailyRow({ format, today }: { format: Format; today: string | null }) {
         href={`/play/${format}/daily`}
         className="group flex min-h-14 items-center gap-3 border-b border-hair py-1.5 hover:bg-shoal-2"
       >
-        <Buoy kind={result ? "cone" : "current"} size={26} />
+        {result ? <ChartedMark /> : <Buoy kind="current" size={26} />}
         <span className="min-w-0 flex-1">
           <span className="block font-bold">{FORMAT_META[format].name}</span>
           <span className="block text-s text-ink-2">

@@ -54,7 +54,9 @@ function PassageStamp({ result, format, mode, date }: { result: LocalResult; for
       <span className="label">
         {FORMAT_META[format].name} {mode === "rush" ? "Rush" : "Daily"}
       </span>
-      <span className="label">{mode === "rush" ? "Passage complete" : "Daily charted"}</span>
+      <span className="label">
+        {result.correct >= result.total * 0.6 ? (mode === "rush" ? "Passage complete" : "Daily charted") : "Rough passage"}
+      </span>
       <span className="font-extrabold leading-none condensed" style={{ fontSize: "4.5rem" }}>
         {result.correct}
         <span className="text-l font-semibold">/{result.total}</span>

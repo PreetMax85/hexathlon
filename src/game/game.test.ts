@@ -9,6 +9,8 @@ import {
   covers,
   targetCost,
   runItems,
+  pipFlashRanking,
+  CANDIDATE_LABELS,
   type PortMathPuzzle,
 } from "@/engine";
 import { handPhaseAt } from "./handTrackerFlow";
@@ -220,6 +222,25 @@ describe("verdict", () => {
       expect(bad.correct).toBe(false);
       expect(bad.detail.length).toBeGreaterThan(5);
     }
+  });
+
+  it("names the player's own pick next to the best one", () => {
+    const puzzle = generate("pip-flash", "easy", 2);
+    const { totals, best } = pipFlashRanking(puzzle.board, puzzle.candidates);
+    const wrong = best === 0 ? 1 : 0;
+    const v = verdict(puzzle, wrong, 1000);
+    expect(v.detail).toBe(
+      `You picked ${CANDIDATE_LABELS[wrong]}: ${totals[wrong]} pips. ${CANDIDATE_LABELS[best]} had ${totals[best]}.`,
+    );
+  });
+
+  it("names the player's count next to the rival's real hand", () => {
+    const puzzle = generate("hand-tracker", "easy", 3);
+    const [truth] = solve(puzzle);
+    const said = truth === 0 ? 1 : truth - 1;
+    expect(verdict(puzzle, [said], 1000).detail).toBe(
+      `You said ${said}. Rival held ${truth} ${puzzle.questions[0]}.`,
+    );
   });
 
   it("flags a Pip Flash timeout", () => {
