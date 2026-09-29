@@ -58,7 +58,8 @@ export function PipFlashPlay({ puzzle, onAnswer, untimed = false }: Props) {
     : undefined;
   const labels = CANDIDATE_LABELS.slice(0, puzzle.candidates.length);
   const reduced = useReducedMotion();
-  const leftMs = done ? 0 : Math.max(0, limit - elapsed);
+  // The clock stops on an answer, so this freezes at the time that was left.
+  const leftMs = picked?.index === null ? 0 : Math.max(0, limit - elapsed);
   // Reduced motion: the arc steps down once a second instead of sweeping.
   const ring = untimed ? undefined : ready ? 1 : reduced ? Math.ceil(leftMs / 1000) / Math.ceil(limit / 1000) : leftMs / limit;
 

@@ -286,38 +286,37 @@ export function Board({ board, candidates, onPick, reveal, ring, className, labe
             {/* Invisible hit area: 44 px+ at 360 px wide. */}
             <circle cx={p.x} cy={p.y} r={0.85} fill="transparent" />
             <circle className="waypoint-focus" cx={p.x} cy={p.y} r={0.52} fill="none" stroke="var(--magenta)" strokeWidth={0.09} />
-            <circle
-              cx={p.x}
-              cy={p.y}
-              r={0.34}
-              fill={dim ? "var(--paper)" : "var(--deep)"}
-              stroke={dim ? "var(--ink-2)" : "var(--magenta)"}
-              strokeWidth={0.08}
-            />
-            <text
-              x={p.x}
-              y={p.y + 0.13}
-              fontSize={0.38}
-              fontWeight={800}
-              textAnchor="middle"
-              fill={dim ? "var(--ink-2)" : "var(--ink)"}
-            >
-              {CANDIDATE_LABELS[i]}
-            </text>
+            {reveal && (isBest || isPicked) ? (
+              <>
+                {/* The buoy drops onto the corner itself, so it never covers a token. */}
+                {isPicked && isBest && (
+                  <circle cx={p.x} cy={p.y} r={0.5} fill="none" stroke="var(--buoy-green)" strokeWidth={0.1} className="anim-pulse" />
+                )}
+                <g className="anim-buoy">
+                  <BuoyShape kind={isBest ? "cone" : "can"} x={p.x} y={p.y + 0.4} s={0.95} />
+                </g>
+              </>
+            ) : (
+              <>
+                <circle
+                  cx={p.x}
+                  cy={p.y}
+                  r={0.34}
+                  fill={dim ? "var(--paper)" : "var(--deep)"}
+                  stroke={dim ? "var(--ink-2)" : "var(--magenta)"}
+                  strokeWidth={0.08}
+                />
+                <text x={p.x} y={p.y + 0.13} fontSize={0.38} fontWeight={800} textAnchor="middle" fill={dim ? "var(--ink-2)" : "var(--ink)"}>
+                  {CANDIDATE_LABELS[i]}
+                </text>
+              </>
+            )}
             {reveal && (
               <g className="anim-pop">
-                <rect x={p.x + 0.3} y={p.y - 0.78} width={0.62} height={0.42} fill="var(--deep)" stroke="var(--ink)" strokeWidth={0.035} />
-                <text x={p.x + 0.61} y={p.y - 0.47} fontSize={0.3} fontWeight={800} textAnchor="middle" fill="var(--ink)">
-                  {reveal.totals[i]}
+                <rect x={p.x + 0.34} y={p.y - 0.24} width={0.92} height={0.46} fill="var(--deep)" stroke="var(--ink)" strokeWidth={0.035} />
+                <text x={p.x + 0.8} y={p.y + 0.08} fontSize={0.3} fontWeight={800} textAnchor="middle" fill="var(--ink)">
+                  {CANDIDATE_LABELS[i]} {reveal.totals[i]}
                 </text>
-              </g>
-            )}
-            {reveal && isPicked && isBest && (
-              <circle cx={p.x} cy={p.y} r={0.5} fill="none" stroke="var(--buoy-green)" strokeWidth={0.1} className="anim-pulse" />
-            )}
-            {reveal && (isBest || isPicked) && (
-              <g className="anim-buoy">
-                <BuoyShape kind={isBest ? "cone" : "can"} x={p.x} y={p.y - 0.3} s={1.02} />
               </g>
             )}
           </g>

@@ -250,10 +250,10 @@ a {
 @keyframes flash {
   0%,
   100% {
-    opacity: 0.25;
-  }
-  40% {
     opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
   }
 }
 
@@ -309,7 +309,7 @@ a {
 }
 
 .light-flash {
-  animation: flash 360ms ease-in-out both;
+  animation: flash 360ms ease-in-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
