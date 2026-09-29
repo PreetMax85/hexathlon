@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { generate, solve } from "@/engine";
-import { handPhaseAtStep, runningCounts } from "./handTrackerFlow";
+import { handPhaseAtStep, logWindow, runningCounts, trackedFromStart } from "./handTrackerFlow";
 import { advanceDelayMs, betweenPuzzles, initialBetween } from "./runFlow";
 
 describe("pause between puzzles only", () => {
@@ -31,6 +31,23 @@ describe("Relaxed Hand Tracker: next event on tap", () => {
     expect(handPhaseAtStep(p, 1)).toEqual({ kind: "events", index: 0 });
     expect(handPhaseAtStep(p, p.events.length)).toEqual({ kind: "events", index: p.events.length - 1 });
     expect(handPhaseAtStep(p, p.events.length + 1)).toEqual({ kind: "ask" });
+  });
+});
+
+describe("Hand Tracker help by tier", () => {
+  it("names the resource to track on easy and medium, and keeps it hidden on hard", () => {
+    const easy = generate("hand-tracker", "easy", 5);
+    const hard = generate("hand-tracker", "hard", 5);
+    expect(trackedFromStart(easy)).toEqual(easy.questions);
+    expect(trackedFromStart(generate("hand-tracker", "medium", 5))).toHaveLength(1);
+    expect(trackedFromStart(hard)).toEqual([]);
+  });
+
+  it("keeps the previous line in view below hard, only the current one on hard", () => {
+    const easy = generate("hand-tracker", "easy", 5);
+    expect(logWindow(easy, 0)).toEqual([0]);
+    expect(logWindow(easy, 3)).toEqual([2, 3]);
+    expect(logWindow(generate("hand-tracker", "hard", 5), 3)).toEqual([3]);
   });
 });
 

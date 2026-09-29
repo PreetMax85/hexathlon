@@ -13,7 +13,7 @@ const STEPS: Record<Format, string[]> = {
   ],
   "hand-tracker": [
     "You see Rival's starting hand for 3 seconds.",
-    "Then the game log plays: rolls, builds, trades and steals. Keep a running count.",
+    "Then the game log plays: rolls, builds, trades and steals. Easy and medium name the card to track; hard keeps it a surprise.",
     "Pick how many of the asked resource Rival holds, then confirm. Digit keys and Enter work too.",
   ],
 };
