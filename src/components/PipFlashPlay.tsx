@@ -10,6 +10,25 @@ import { usePuzzleClock } from "./useClock";
 /** The board runs to the screen's edges on a phone, and sits in the column on wider screens. */
 export const BOARD_BLEED = "-mx-4 block w-[calc(100%+2rem)] max-w-none sm:mx-auto sm:w-full sm:max-w-[34rem] sm:rounded-lg";
 
+/** Counts up from 0 to `to` once, so a reveal reads as pips being added; instant with reduced motion. */
+function CountUp({ to }: { to: number }) {
+  const reduced = useReducedMotion();
+  const [n, setN] = useState(reduced ? to : 0);
+  useEffect(() => {
+    if (reduced) return;
+    const start = performance.now();
+    let id = 0;
+    const tick = (t: number) => {
+      const k = Math.min(1, (t - start) / 520);
+      setN(Math.round(to * (1 - (1 - k) ** 3)));
+      if (k < 1) id = requestAnimationFrame(tick);
+    };
+    id = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(id);
+  }, [to, reduced]);
+  return <>{reduced ? to : n}</>;
+}
+
 /**
  * One big button per corner, in thumb reach. After the answer they turn into
  * the reveal: each corner's pip total, the best one green, a wrong pick red.
@@ -55,7 +74,11 @@ export function CornerButtons({
                 {wrong && <Buoy kind="can" size={18} />}
                 {CANDIDATE_LABELS[i]}
               </span>
-              {reveal && <span className="text-s font-semibold">{reveal.totals[i]} pips</span>}
+              {reveal && (
+                <span className="text-s font-semibold tabular-nums">
+                  <CountUp to={reveal.totals[i]} /> pips
+                </span>
+              )}
             </button>
           </li>
         );

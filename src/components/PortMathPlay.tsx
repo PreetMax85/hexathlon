@@ -86,11 +86,6 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
           );
         })}
       </section>
-      <p className="text-s text-ink-2">
-        {puzzle.ports.length === 0
-          ? "No ports: every trade is 4:1 with the bank."
-          : `Ports: ${puzzle.ports.map((p) => (p === "generic" ? "3:1 any" : `2:1 ${p}`)).join(", ")}.`}
-      </p>
 
       <section aria-label="Answer" className="flex flex-col gap-2">
         <h2 className="font-bold">Fewest trades to build it?</h2>

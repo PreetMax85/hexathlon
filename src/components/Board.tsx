@@ -197,6 +197,18 @@ export function Board({ board, candidates, onPick, reveal, className, label }: B
           <TerrainGlyph key={hex.id} hexId={hex.id} board={board} busy={busy} />
         ))}
       </g>
+      {/* The verdict: the hexes that fed the best corner light up; a wrong pick's hexes are ringed in red. */}
+      {reveal && candidates && (
+        <g fill="none" strokeLinejoin="round" className="anim-pop" aria-hidden>
+          {reveal.picked !== null && reveal.picked !== reveal.best &&
+            TOPOLOGY.vertices[candidates[reveal.picked]].hexes.map((id) => (
+              <polygon key={`p${id}`} points={hexPoints(id, 0.9)} stroke="var(--red)" strokeWidth={0.09} strokeDasharray="0.2 0.12" />
+            ))}
+          {TOPOLOGY.vertices[candidates[reveal.best]].hexes.map((id) => (
+            <polygon key={`b${id}`} points={hexPoints(id, 0.92)} stroke="var(--buoy-green)" strokeWidth={0.13} />
+          ))}
+        </g>
+      )}
       {TOPOLOGY.hexes.map((hex) => (
         <Token key={hex.id} hexId={hex.id} board={board} />
       ))}
