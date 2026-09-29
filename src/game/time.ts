@@ -10,3 +10,17 @@ export function formatClock(ms: number): string {
 export function formatSeconds(ms: number): string {
   return `${(Math.max(0, ms) / 1000).toFixed(1)}s`;
 }
+
+/** Time until the next Daily, which opens at 00:00 UTC. */
+export function untilNextDaily(now: Date): number {
+  const next = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+  return next - now.getTime();
+}
+
+/** Coarse countdown, rounded up to the minute: "5h 13m", "1m". */
+export function formatCountdown(ms: number): string {
+  const minutes = Math.max(0, Math.ceil(ms / 60_000));
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}

@@ -1,31 +1,34 @@
 import { AppHeader } from "@/components/AppHeader";
 import { FormatCard } from "@/components/FormatCard";
-import { HomeNickname } from "@/components/HomeNickname";
+import { IslandPlate, ThumbAction, TodayStrip } from "@/components/TodayStrip";
 import { FORMATS } from "@/engine";
 
 export default function Home() {
   return (
     <>
       <AppHeader wide />
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-5 px-4 pt-6 pb-10 lg:max-w-6xl lg:gap-8 lg:pt-12">
-        <section className="lg:max-w-2xl">
-          <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-            Sharpen your board&nbsp;sense.
-          </h1>
-          <p className="mt-2 text-base text-muted">
-            Short puzzle drills for hex-board trading games. A Daily puzzle for everyone, and Rush runs you can send to friends.
-          </p>
-        </section>
-        <ul className="flex flex-col gap-4 lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
-          {FORMATS.map((f) => (
-            <FormatCard key={f} format={f} />
-          ))}
-        </ul>
-        <p className="text-center text-xs text-muted">
-          No login. Every puzzle is generated from a seed, so everyone sees the same board.
-        </p>
+      <main className="mx-auto grid w-full max-w-xl flex-1 gap-6 px-4 pt-4 lg:max-w-6xl lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-x-12 lg:pt-8 lg:pb-10">
+        <div className="flex flex-col gap-5 lg:sticky lg:top-6 lg:self-start">
+          <h1 className="sr-only">Hexathlon: skill drills for hex trading games</h1>
+          <IslandPlate />
+        </div>
+        <div className="flex flex-col gap-7">
+          <TodayStrip />
+          <ThumbAction />
+          <section aria-labelledby="directions-title" className="flex flex-col">
+            <div className="border-b-2 border-ink pb-1.5">
+              <h2 id="directions-title" className="sea">Sailing Directions</h2>
+              <p className="text-s text-ink-2">Three drills, one skill each. Every puzzle comes from a seed, so everyone sees the same board.</p>
+            </div>
+            <ul>
+              {FORMATS.map((f) => (
+                <FormatCard key={f} format={f} />
+              ))}
+            </ul>
+          </section>
+          <p className="pb-6 text-s text-ink-2">No login. A nickname is asked only when you first put a score on a board.</p>
+        </div>
       </main>
-      <HomeNickname />
     </>
   );
 }

@@ -96,7 +96,19 @@ export function rushSeeds(seed: number): RushItem[] {
   }));
 }
 
-export const DAILY_TIER: Tier = "medium";
+/** Daily mini-run ramp: 2 easy, 2 medium, 1 hard. */
+export const DAILY_TIERS: readonly Tier[] = ["easy", "easy", "medium", "medium", "hard"];
+
+/** The 5 (tier, seed) pairs of a Daily run. */
+export function dailyItems(seed: number): RushItem[] {
+  return DAILY_TIERS.map((tier, i) => ({ tier, seed: mixSeed("daily-run", seed >>> 0, i) }));
+}
+
+/**
+ * Version tag in the Daily seed. v1's Daily was one medium puzzle hashed with
+ * "medium"; the new tag keeps v1.1 seeds from ever matching a stored v1 row.
+ */
+const DAILY_SEED_TAG = "mini-run-5";
 
 /** UTC calendar date as YYYY-MM-DD. The day rolls over at 00:00 UTC. */
 export function utcDateKey(date: Date): string {
@@ -105,9 +117,9 @@ export function utcDateKey(date: Date): string {
 
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
-/** Seed of the Daily puzzle: hash(format, tier medium, UTC date). */
+/** Seed of the Daily run: hash(format, version tag, UTC date). */
 export function dailySeed(format: Format, date: Date | string): number {
   const key = typeof date === "string" ? date : utcDateKey(date);
   if (!DATE_KEY.test(key)) throw new RangeError(`bad date key: ${key}`);
-  return mixSeed("daily", format, DAILY_TIER, key);
+  return mixSeed("daily", format, DAILY_SEED_TAG, key);
 }

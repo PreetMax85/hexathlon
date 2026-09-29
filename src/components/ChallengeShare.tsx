@@ -56,27 +56,29 @@ export function ChallengeShare({ playerId, format, seed, saved, challengeId, sha
   };
 
   return (
-    <section aria-label="Challenge a friend" className="flex flex-col gap-2 rounded-2xl border border-line bg-surface p-4">
-      <h3 className="text-lg font-extrabold">{challengeId ? "Send it on" : "Challenge a friend"}</h3>
-      <p className="text-sm text-muted">They play the exact same 13 puzzles and land on this leaderboard.</p>
+    <section aria-label="Challenge a friend" className="flex flex-col gap-2">
+      <div className="border-b border-ink pb-1.5">
+        <h2 className="sea">{challengeId ? "Send it on" : "Challenge a friend"}</h2>
+      </div>
+      <p className="text-s text-ink-2">They sail the exact same 13 puzzles and land on the same leaderboard.</p>
       <Button onClick={go} disabled={!saved || state.kind === "working"}>
         {state.kind === "working"
           ? "Creating link…"
           : state.kind === "ready"
             ? state.copied
-              ? "Link copied! Copy again"
+              ? "Link copied. Copy again"
               : "Share link again"
             : challengeId
               ? "Share challenge link"
               : "Copy challenge link"}
       </Button>
-      {!saved && <p className="text-xs text-muted">Waiting for your score to be saved first.</p>}
+      {!saved && <p className="text-s text-ink-2">The link unlocks once your score is saved.</p>}
       {state.kind === "ready" && (
-        <output className="block break-all rounded-lg border border-dashed border-line p-2 text-center text-sm font-semibold">
+        <output className="block break-all border border-dashed border-ink-2 bg-deep p-2 text-center text-s font-semibold">
           {state.url}
         </output>
       )}
-      {state.kind === "error" && <p className="text-sm text-bad">Couldn&apos;t create the link: {state.message}</p>}
+      {state.kind === "error" && <p className="text-s text-red">Couldn&apos;t create the link: {state.message}</p>}
     </section>
   );
 }

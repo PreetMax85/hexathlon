@@ -22,6 +22,8 @@ export interface LocalResult {
   times?: number[];
   /** True once the server has this result. */
   synced?: boolean;
+  /** Played in Relaxed mode: local only, never ranked or sent. */
+  relaxed?: boolean;
 }
 
 export const PLAYER_KEY = "hexathlon:player";

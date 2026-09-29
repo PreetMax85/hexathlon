@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { dailySeed, generate, runItems, solve, type Format, type Mode } from "@/engine";
+import { dailySeed, generate, minPuzzleMs, runItems, solve, type Format, type Mode } from "@/engine";
 import { bestPerPlayer, publicRows, rankRows, type BoardRow } from "./leaderboard";
 import { newChallengeId } from "./ids";
 import {
   parseChallengeBody,
   parsePlayerBody,
   parseResultBody,
+  dailyDatesAt,
   verifyResult,
   type ResultBody,
 } from "./verify";
@@ -22,7 +23,7 @@ function perfectBody(format: Format, mode: Mode, seed: number, extra: Partial<Re
     mode,
     seed,
     answers: items.map((it) => solve(generate(format, it.tier, it.seed))),
-    times: items.map(() => 1500),
+    times: items.map((it) => minPuzzleMs(generate(format, it.tier, it.seed)) + 1500),
     challengeId: null,
     ...extra,
   };
@@ -67,8 +68,16 @@ describe("parseResultBody", () => {
 describe("verifyResult (server recompute)", () => {
   it("scores reference answers as fully correct", () => {
     const body = perfectBody("port-math", "rush", 99);
-    const r = verifyResult(body, { today: TODAY, challenge: null });
+    const r = verifyResult(body, { dailyDates: [TODAY], challenge: null });
     expect(r.ok && r.value.correct).toBe(13);
+  });
+
+  it("rejects a scripted 0 ms run with 400", () => {
+    for (const format of ["pip-flash", "port-math", "hand-tracker"] as const) {
+      const body = perfectBody(format, "rush", 99);
+      const r = verifyResult({ ...body, times: body.times.map(() => 0) }, { dailyDates: [TODAY], challenge: null });
+      expect(!r.ok && r.status).toBe(400);
+    }
   });
 
   it("ignores any claimed score: a forged run is scored on its answers only", () => {
@@ -80,7 +89,7 @@ describe("verifyResult (server recompute)", () => {
       score: 13,
       totalMs: 1,
     } as ResultBody & { correct: number; score: number };
-    const r = verifyResult(forged, { today: TODAY, challenge: null });
+    const r = verifyResult(forged, { dailyDates: [TODAY], challenge: null });
     expect(r.ok && r.value.correct).toBeLessThan(13);
     // Parsing drops unknown fields, so a claimed score cannot reach the store.
     const parsed = parseResultBody(forged);
@@ -89,35 +98,54 @@ describe("verifyResult (server recompute)", () => {
 
   it("marks timeouts wrong and rejects impossible times", () => {
     const body = perfectBody("pip-flash", "rush", 7);
-    const slow = verifyResult({ ...body, times: body.times.map(() => 60_000) }, { today: TODAY, challenge: null });
+    const slow = verifyResult({ ...body, times: body.times.map(() => 60_000) }, { dailyDates: [TODAY], challenge: null });
     expect(slow.ok && slow.value.correct).toBe(0);
-    expect(verifyResult({ ...body, times: body.times.map(() => -5) }, { today: TODAY, challenge: null }).ok).toBe(false);
-    expect(verifyResult({ ...body, answers: body.answers.slice(1) }, { today: TODAY, challenge: null }).ok).toBe(false);
+    expect(verifyResult({ ...body, times: body.times.map(() => -5) }, { dailyDates: [TODAY], challenge: null }).ok).toBe(false);
+    expect(verifyResult({ ...body, answers: body.answers.slice(1) }, { dailyDates: [TODAY], challenge: null }).ok).toBe(false);
   });
 
   it("only accepts today's Daily seed", () => {
     const today = dailySeed("pip-flash", TODAY);
-    expect(verifyResult(perfectBody("pip-flash", "daily", today), { today: TODAY, challenge: null }).ok).toBe(true);
+    expect(verifyResult(perfectBody("pip-flash", "daily", today), { dailyDates: [TODAY], challenge: null }).ok).toBe(true);
     const wrongDay = perfectBody("pip-flash", "daily", dailySeed("pip-flash", "2026-09-28"));
-    const r = verifyResult(wrongDay, { today: TODAY, challenge: null });
+    const r = verifyResult(wrongDay, { dailyDates: [TODAY], challenge: null });
     expect(!r.ok && r.status).toBe(409);
-    const arbitrary = verifyResult(perfectBody("pip-flash", "daily", 1234), { today: TODAY, challenge: null });
+    const arbitrary = verifyResult(perfectBody("pip-flash", "daily", 1234), { dailyDates: [TODAY], challenge: null });
     expect(arbitrary.ok).toBe(false);
     // Another format's seed is not accepted either.
     const otherFormat = perfectBody("pip-flash", "daily", dailySeed("port-math", TODAY));
-    expect(verifyResult(otherFormat, { today: TODAY, challenge: null }).ok).toBe(false);
+    expect(verifyResult(otherFormat, { dailyDates: [TODAY], challenge: null }).ok).toBe(false);
   });
 
   it("ties a challenge run to the challenge's format and seed", () => {
     const challenge = { format: "port-math", seed: 4242 };
     const ok = perfectBody("port-math", "rush", 4242, { challengeId: "abcd2345" });
-    expect(verifyResult(ok, { today: TODAY, challenge }).ok).toBe(true);
+    expect(verifyResult(ok, { dailyDates: [TODAY], challenge }).ok).toBe(true);
     const wrongSeed = perfectBody("port-math", "rush", 4243, { challengeId: "abcd2345" });
-    expect(verifyResult(wrongSeed, { today: TODAY, challenge }).ok).toBe(false);
-    const missing = verifyResult(ok, { today: TODAY, challenge: null });
+    expect(verifyResult(wrongSeed, { dailyDates: [TODAY], challenge }).ok).toBe(false);
+    const missing = verifyResult(ok, { dailyDates: [TODAY], challenge: null });
     expect(!missing.ok && missing.status).toBe(404);
     const dailyInChallenge = perfectBody("port-math", "daily", dailySeed("port-math", TODAY), { challengeId: "abcd2345" });
-    expect(verifyResult(dailyInChallenge, { today: TODAY, challenge }).ok).toBe(false);
+    expect(verifyResult(dailyInChallenge, { dailyDates: [TODAY], challenge }).ok).toBe(false);
+  });
+});
+
+describe("dailyDatesAt", () => {
+  it("is just today for most of the day", () => {
+    expect(dailyDatesAt(new Date("2026-09-29T12:00:00Z"))).toEqual(["2026-09-29"]);
+    expect(dailyDatesAt(new Date("2026-09-29T00:15:00Z"))).toEqual(["2026-09-29"]);
+  });
+
+  it("still takes yesterday's Daily for 15 minutes after 00:00 UTC", () => {
+    // A 5-puzzle run started at 23:58 finishes after midnight.
+    expect(dailyDatesAt(new Date("2026-09-29T00:14:59Z"))).toEqual(["2026-09-29", "2026-09-28"]);
+    expect(dailyDatesAt(new Date("2026-03-01T00:01:00Z"))).toEqual(["2026-03-01", "2026-02-28"]);
+  });
+
+  it("accepts a run that straddled midnight", () => {
+    const yesterday = perfectBody("pip-flash", "daily", dailySeed("pip-flash", "2026-09-28"));
+    const ctx = { dailyDates: dailyDatesAt(new Date("2026-09-29T00:03:00Z")), challenge: null };
+    expect(verifyResult(yesterday, ctx).ok).toBe(true);
   });
 });
 

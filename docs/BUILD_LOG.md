@@ -122,3 +122,106 @@ sessions, and each commit links to its session.
 - What broke and how it was fixed: nothing new.
 - Tests: 102 passing (+2 DB integration tests, run separately)
 - Notes for next phase: v1 is complete per PLAN. v1.1+ ideas remain in PLAN. Not done on purpose: rate limiting, ratings, accounts.
+
+## V0 — Setup — done
+- What shipped: `pnpm install` + `pnpm check` green on `v1.1-chart-room`; screenshot browser ready; 12 "before" screenshots of v1 (home, one Rush play screen per format, Pip Flash Rush result, `/c/<unknown>`, each at 390 and 1440) in `.impeccable/review/before/`, with the script that took them (`shoot-before.mjs`).
+- Decisions (and why):
+  - **Screenshot route: step 1 (browser already on the VM).** The VM ships Playwright 1.56.1 globally with Chromium 141 in `/opt/pw-browsers` (`PLAYWRIGHT_BROWSERS_PATH`). It launched headless first try, so steps 2 and 3 weren't needed. The script loads the global `playwright` via `createRequire(npm root -g)`, so `package.json` is unchanged and nothing is installed in the repo.
+  - Before shots ran on `pnpm dev` without `DATABASE_URL` (as the plan allows), so the result screen shows "Score not saved: database not configured". A fake local player is seeded in `localStorage` to skip the nickname dialog. The Next dev indicator ("N") shows bottom-left; after shots use `next start` instead.
+- What broke and how it was fixed: nothing.
+- Tests: 102 passing (+2 DB tests skipped without `RUN_DB_TESTS=1`)
+- Notes for next phase: run shots with `NP=$(npm root -g) node <script>`; browser at `/opt/pw-browsers`.
+
+## V1 — Engine and server game rules — done
+- What shipped (all test-first):
+  - Pip Flash `timeLimitMs` 7000 / 8000 / 10000.
+  - Hand Tracker: `secondsPerEvent` replaced by `eventDurationsMs`, one per event, from `eventDurationMs(event, tier)` = words × 60000 / wpm (180 / 220 / 260) + update time (You-only roll 500, rival gain or steal 1000, trade 1500, build 2000). Hard has 20 events and 2 questions. `handTrackerPlaybackMs` = preview + all events. Measured averages over 200 seeds sit inside the brief's ~3.5 / 3.0 / 2.6 s per event (asserted as ranges).
+  - Daily = 5-puzzle mini-run (`dailyItems`: easy, easy, medium, medium, hard; seeds `mixSeed("daily-run", seed, i)`). `runItems`, `scoreRun` and server verification all go through it.
+  - Minimum-time floor: `minPuzzleMs(puzzle)` = Hand Tracker playback length (preview + events), 300 ms otherwise. `scoreRun` returns null for any time under it, so `POST /api/results` answers 400. Tests: a scripted 0 ms run is rejected in every format and mode; one puzzle 1 ms under its floor rejects the whole run; exactly the floor passes.
+  - Daily straddling midnight: `dailyDatesAt(now)` accepts yesterday's Daily seed for 15 minutes after 00:00 UTC (was: rejected).
+- Decisions (and why):
+  - **Hand Tracker time now runs from the preview to the last answer** (v1: from the question). The floor "≥ playback + preview" only makes sense on that clock. Everyone on the same seed gets the same playback, so rankings between them are unchanged.
+  - **Word count ignores "—" and "→"** (a word must contain a letter or digit). That matches the brief's "6 words on average, max 8" figure.
+  - **New Daily seed tag** (`"mini-run-5"` replaces the v1 `"medium"` in the hash). Production still holds v1 1-puzzle Daily rows keyed by seed; a fresh tag means a v1.1 Daily can never share a leaderboard, or the unique index, with a v1 row, including on deploy day. **No schema change or migration**: the partial unique index (player, format, seed WHERE mode = 'daily') is still exactly "one Daily per player per format per day", and `drizzle-kit generate` reports no changes, so nothing touches production's existing rows.
+  - Straddling runs: with 5 puzzles, a Daily started at 23:58 is likely to finish after midnight. A 15-minute grace is long enough for a real run and too short to replay a leaked seed meaningfully (the unique index still allows one attempt per seed).
+  - Client: `GameRun` rounds each recorded time up to `minPuzzleMs`, so a very quick Skip can't get an honest run rejected. It only adds time, so it never helps a score.
+  - `marksSoFar` validates each answered puzzle directly instead of scoring a zero-padded run (zero padding would now trip the floor).
+  - Relaxed mode: results stay local, so no server or schema change; the V2 client scores them against doubled limits.
+  - ESLint now ignores `.claude/**` and `.impeccable/**` (vendored skill scripts produced 94 warnings that weren't app code).
+- What broke and how it was fixed: `marksSoFar` returned `[]` once the floor landed (padded zeros → `scoreRun` null) → per-puzzle validation. Tests with fixed 1000–1500 ms times were below the Hand Tracker floor → they now use `minPuzzleMs + 1 s`.
+- DB: migrated the empty dev branch (`v1-1-dev`) with the existing migration; `RUN_DB_TESTS=1` → 2/2 pass. No new migration.
+- Tests: 124 passing (+2 DB tests, pass with `RUN_DB_TESTS=1`)
+- Notes for next phase: `HandTrackerPuzzle.eventDurationsMs` drives playback; Relaxed doubles durations and limits on the client only.
+
+## V2 — Game-feel flows — done
+- What shipped (logic in `src/game/`, each module with Vitest tests; components only wire it):
+  - `beat.ts`: 600 ms ready beat. `usePuzzleClock` shows the puzzle, ignores taps and keys during the beat, and measures answer time from clock start, not mount.
+  - Intro screens: `introTiming(format, relaxed)` states each tier's clock before play ("7 s easy · 8 s medium · 10 s hard"; Port Math "No time limit. Your total time only breaks ties."; Hand Tracker preview + events + pace). Daily intro says "5 puzzles: 2 easy, 2 medium, 1 hard".
+  - `runFlow.ts`: between-puzzle reducer (`puzzle → verdict → paused`). Pause exists only on the verdict and stops the auto-advance; resuming starts the next puzzle behind its ready beat. Leaving the tab doesn't stop a running clock (it's `performance.now()`-based).
+  - `confirm.ts` + `useConfirm`: Skip (Port Math) and Quit ✕ arm on the first tap ("Skip? Tap again" / "Quit?") and fire on a second within 3 s; no modal.
+  - `numberPad.ts`: Hand Tracker pad is select → Confirm. Digit keys select (two quick digits make 10–19, "2 then 5" is 5), Enter confirms, Backspace clears.
+  - Hand Tracker shows only the current log line. Screen readers get one `logSummary` when playback ends ("Log finished: 8 events. How many wood does Rival hold? Choose 0 to 19, then confirm."), not every line live.
+  - `combo.ts`: combo in the run header written as a light characteristic (`Fl`, `Fl(4)`); display only, resets on a wrong answer. Right answers also get `navigator.vibrate` (skipped under reduced motion).
+  - `today.ts`: streak ("Days at sea") = consecutive UTC days with a finished Daily, stored locally (`hexathlon:days`), alive until today ends. `todayStatus` feeds a Today strip at the top of home (three Dailies, done/open with score and time, streak). `untilNextDaily` + `formatCountdown` for the "next Daily in" line.
+  - `best.ts`: Rush result compares to the previous local best (first / better / equal / worse, with deltas).
+  - Nickname: no modal on arrival or on `/c/<id>`. Anyone can play; the first scored result shows an inline "Put your score on the board" form, then sends. An unsent Daily is still resent on revisit.
+  - `relaxed.ts` + `settings.ts`: Relaxed mode toggle on every intro, remembered per player. Doubles Pip Flash limits and Hand Tracker preview and event durations; Hand Tracker playback advances on tap ("Start the log", "Next line", Space/Enter). Results are labelled "Relaxed, unranked", never sent, never set the Rush best; scored locally with `finalScore(..., { relaxed: true })` (times halved onto the ranked clock, so the shared scorer and floor still apply).
+- Decisions (and why):
+  - **Hand Tracker pace copy uses measured numbers.** Over 500 seeds per tier the engine averages 3.0 / 2.7 / 2.5 s per event, a bit under the brief's rough 3.5 / 3.0 / 2.6. The intro states the measured values; V1's formula is the brief's own, so I kept it rather than padding it.
+  - **Relaxed Hand Tracker is tap-paced only** (not "doubled or tap"). The brief says both; tap-only is the one that actually meets WCAG 2.2.1 for players who need it, and doubled durations still define the local floor.
+  - **A Relaxed Daily uses today's Daily slot and counts for the streak.** The player has seen today's puzzles, so a scored attempt afterwards wouldn't be fair; the streak rewards coming back, which Relaxed players do too.
+  - Pausing ends at the next puzzle's ready beat, not back on the old verdict: the verdict was already read.
+  - The Rush result's "tap a missed puzzle to replay its reveal" is part of the result screen build in V3.
+- What broke and how it was fixed: nothing notable; `HomeNickname` removed with the arrival modal.
+- Checked in headless Chromium at 390 px on the dev DB: no modal on home; a key press during the ready beat is ignored; pause shows only on the verdict; nickname asked at the result, then "Score saved"; Hand Tracker shows one log line, announces the summary, "1","2" → "Confirm 12", Enter submits; Quit arms then navigates home; Today strip shows "Done · 4/5" and "Days at sea: 1". No console errors.
+- Tests: 155 passing (+2 DB tests)
+- Notes for next phase: V3 restyles all of this; behaviour lives in `src/game/` and the hooks in `useClock.ts`.
+
+## V3 — Chart Room build — done
+- What shipped (direction contract in `.impeccable/surfaces/src-app.md`, code-led):
+  - **World**: chart-white paper, sounding ink, shallow-water cyan fading to white deep water, chart magenta for lights, notes and focus, IALA green/red for verdicts only. Tokens in `globals.css`; **day, dusk and night** palettes (dusk follows `prefers-color-scheme: dark`; a header switch cycles Auto → Day → Dusk → Night, stored locally and applied pre-paint by a tiny inline script). Dusk and night dim the land layer with a CSS filter, never the tokens.
+  - **Type**: Archivo (OFL), self-hosted via `next/font/local` with its width axis (62–125%) and true italic. Chrome uses three sizes (`text-s`/`m`/`l`); rank comes from weight, case, width and italic (water and section names are italic, as on a chart).
+  - **Frame**: a neatline (double rule plus latitude scale bar) around every screen; the header is the cartouche ("HEXATHLON · 29 SEP 2026").
+  - **Board plate**: shoal bands that follow the coast, seeded depth soundings (`game/chart.ts`, deterministic per board), graticule ticks on the plate's border, ports as magenta harbour notes, authored terrain glyphs on each hex.
+  - **Critique board fixes**: pips at r 0.058 units (~3 px dots at 360 px) on bigger tokens; lettered waypoints sit on the corners with a clear gap to every token; waypoint focus draws a magenta ring (SVG groups ignore `outline`); verdicts by **shape** (cone right, can wrong) as well as colour; 44 px hit areas that never overlap.
+  - **Required play moments**: (1) range-ring sweep timer around the Pip Flash board (magenta remaining arc, bearing line sweeping clockwise from north; reduced motion steps once a second); (2) buoy verdicts drop onto the chosen corner and bob once, with a pulse on a right answer (no bob under reduced motion); (3) combo as a light characteristic "Fl(4)" whose lamp flashes once per step; (4) "Passage complete" stamp (score, time, edition date) that presses onto the result, then the buoy strip where **tapping any puzzle replays its reveal** (the first miss opens automatically); (5) share cards: `opengraph-image` and a per-challenge `/c/[id]/opengraph-image` render a chart snippet (island, the score to beat stamped in the cartouche, edition date); the share text reads "Hexathlon Rush · Port Math 11/13 · 2:41 · Ed. 29 SEP 2026" with a ▲/■ buoy strip.
+  - **Routes and states**: home (island plate from today's Pip Flash Daily, Today's Dailies with buoys and days at sea, primary action "Sail the … Daily" pinned in the thumb zone, then Sailing Directions), play for all three formats, paused, Rush and Daily results, already-played Daily with the countdown, `/c/[id]` loading and a proper not-found ("ED, existence doubtful"), nickname form, 404 ("Off the chart"), error, loading, empty and error leaderboards. Disabled controls use restricted-area hatching, never opacity.
+  - No emoji anywhere in the UI: authored 24-unit SVG glyphs for the five resources, desert and the four builds, drawn icons for quit, theme and chevrons.
+- Decisions (and why):
+  - **Face: Archivo.** The contract asked for a workhorse grotesque with a width axis and tabular figures, not on the default list. Archivo has both, plus a true italic for sea labels; condensed widths set the big numerals, expanded widths the cartouche.
+  - **Waypoints, not light characters, for Pip Flash markers**: a circled letter reads at 360 px; a light characteristic label would need two lines per corner.
+  - Tiers are depth marks (1–3 bars, ink) so they never borrow the verdict colours.
+  - The Hand Tracker log progress uses a small range dial rather than a second full ring; the full ring stays Pip Flash's signature.
+  - OG cards use static Archivo TTFs (Satori reads TTF/OTF only); ~350 KB of fonts in the image bundle, under the 500 KB limit. The challenge card falls back to a generic card without a database.
+  - Contrast checked numerically for every text pairing in all three palettes (≥ 4.5:1; e.g. ink-2 on paper 6.6, magenta 5.3, night ink-2 5.2, night red token 4.9).
+- What broke and how it was fixed: Satori picked the italic face for everything when both shared a family name → separate family names. The challenge not-found buttons wrapped at 390 px → stacked on phones.
+- Engine untouched in this phase.
+- Tests: 161 passing (+2 DB tests)
+- Notes for next phase: `/tmp/shots/peek.mjs` was only a smoke check; V4 runs the batched round.
+
+## V4 — Inspect and finish — done
+- What shipped: `.impeccable/review/shoot.mjs` (one batched capture of every route and state at 390 and 1440 on `next start`: home first visit / returning / after a Daily / dusk / night / thumb-zone viewport, intros incl. Relaxed, the lead play screen `mobile.png`/`desktop.png`, Pip Flash verdict, run header mid-combo, Port Math and its skip confirm, Hand Tracker log / pad / Relaxed, paused, reduced motion, Rush result, Daily result with the nickname prompt, already-played Daily, challenge not found, 404, and both share cards). No page errors and no horizontal scroll in any capture. `DESIGN.md` and `.impeccable/design.json` written by the documenter from the built world.
+- Rounds: round 1 found the timer reading 0.0 after an answer, buoys covering tokens and the combo lamp stuck dim → fixed; round 2 confirmed. Detector (`impeccable detect --json src/app src/components`) returned no findings.
+- Finish review (`impeccable-finish-reviewer`): disposition **fix** with 8 material fixes (combo not evidenced, verdict plates on tokens, share card not a chart plate / undated, kicker lines, thumb-zone action unverified, result spacing, hatching through labels, bearing drawn as a rim tick only). All applied in one batch. Verdict pass: **7 resolved, 1 partial** (share card lacked port icons) plus 2 regressions (displaced terrain glyphs on shared corners, soundings under port labels). That was the two-round budget for an unattended run, so those three were fixed without a third review and are **not reviewer-verified**; the recapture shows them fixed.
+- Documenter drift notes acted on: the night primary button was the brightest plate on screen → new `--action`/`--on-action` tokens (dim plate at night, 4.95:1); share-card port labels squared.
+- Critique re-run (dual isolated agents): **30/40**, up from v1's **26/40** (0 P0, 2 P1). Snapshot `.impeccable/critique/2026-09-29T16-38-00Z__src-app.md`. Acted on after scoring (not re-scored): verdicts now name the player's own pick or count ("You picked A: 6 pips. B had 9."), the combo leads with "×N" from 2 captioned "Fl(N)", a played Daily shows a neutral ink tick (cones mean "right"), scores under 60 % stamp "Rough passage", the primary hover only applies on hover-capable devices, the palette switch is 44 px wide.
+- Decisions (and why):
+  - The review's replay covers every puzzle, not only misses (the first miss opens automatically): reviewing a lucky right answer is also practice, and the strip stays one control.
+  - The share card's OG route regenerates hourly (`revalidate = 3600`) so its island and edition date follow the day.
+  - `outputFileTracingIncludes` ships the share-card TTFs with the OG functions.
+- What broke and how it was fixed: Satori rejects `border-style: double` → two nested rules; the capture's answer-learning pass broke when the verdict copy changed → regex updated; an old `next start` kept serving a stale build after a rebuild → restart by PID.
+- Left for the owner (critique P2s, not done): keep Pause reachable after a right answer (the 1.2 s auto-advance) and focus Next after keyboard answers; bring Hand Tracker / Paused / intro actions down into the thumb zone; a "Challenge a friend" path from the Daily result; the timer's low-time red reuses the "wrong" colour.
+- Tests: 172 passing (+2 DB tests)
+
+## V5 — Architecture, review and PR — done
+- Architecture (`improve-codebase-architecture` on `src/components` + `src/game`, applied without the interactive grilling loop since the run is unattended):
+  - Applied: **`finishRun`** (`src/game/finishRun.ts`, tested) now owns end-of-run bookkeeping (score, Daily slot + streak, Rush best comparison, submission body), which lived inline in `GameRun`; **`dailyResubmission`** replaces two hand-built copies of the resend body; **`recordedTime`** (floor rounding, tested) moved out of `GameRun`; **`tierRamp`** derives "easy 1–4, medium 5–9, hard 10–13" / "easy 1–2, medium 3–4, hard 5" from `runItems` instead of hard-coded copy; the `handPlaybackMs` pass-through was deleted in favour of the engine's `handTrackerPlaybackMs`; `browser.ts` shares one snapshot KV and one reduced-motion query.
+  - Not applied (listed for later): one plate-geometry module shared by `Board.tsx` and the share card (`hexPoints`, port offsets, sounding exclusions are near-copies); a `useRunSync` module for the submit / retry / conflict flow still in `GameRun`; a generic `useStored(key, read)` hook for the five storage hooks; one "first board of a run" helper (home plate and challenge card both derive it); a per-format strategy map to replace the `switch (puzzle.format)` repeated in `relaxed.ts`, `introTiming`, `minPuzzleMs` and the render.
+- Code review (`code-review` from `origin/main`, two isolated axes):
+  - Standards: no hard violations (engine purity, server re-verification, no secrets or new deps, IP rule clean). Fixed: **a real bug**: in Relaxed Pip Flash a tap under 600 ms was rounded to the 300 ms floor then halved to 150 ms by relaxed scoring, so `finishRun` rejected the whole run; the floor now doubles in Relaxed (`recordedTime`, test added). Also fixed the duplicated submission body, hard-coded tier copy, the magic soundings salt (now `mixSeed(seed, "soundings")`), two components both named `IslandPlate`, the share-card renderer living in `src/components` while reading from disk (moved to `src/app/_og/`), the hand-written theme list in the boot script, and a stale pace note in an engine test.
+  - Spec: fixed challenge share text missing the edition date and buoy strip; the stamp now uses the run's own date (a Daily finished in the midnight grace window keeps its day); the Today strip shows the next-Daily countdown as soon as one Daily is played; Hand Tracker shows the hand during the ready beat (not a "Steady…" placeholder); Relaxed Hand Tracker intro copy now says "one per tap"; README states the Daily grace window. **Screen readers and Hand Tracker**: timed playback still announces one summary (the brief), but the log lines were fully hidden from assistive tech, so the format wasn't playable by ear; Relaxed (tap-paced) playback now announces each line as the player steps to it.
+  - Recorded as deliberate (no change): replay offered for every puzzle; the palette switch; the 15-minute Daily grace; Relaxed Daily uses the day's slot.
+- README: formats with per-tier clocks, Daily mini-run, game feel and Relaxed mode, a "Design: the Chart Room" section, the time floor, and "Known limitations" (client-reported times inside the floors, predictable Daily seeds, no rate limiting, Relaxed results local only).
+- Dev database: the review scripts wrote throwaway `review-…`, `critique-b-…` and `Chartwell` rows (and one challenge) to the `v1-1-dev` branch only; production was never touched.
+- Tests: 172 passing (+2 DB tests pass with `RUN_DB_TESTS=1`)
+- Notes: PR to `main` opened with before/after screenshots. Not merged, not deployed.

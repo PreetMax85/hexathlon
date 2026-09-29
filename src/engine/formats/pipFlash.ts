@@ -12,9 +12,9 @@ export interface PipFlashTierRules {
 }
 
 export const PIP_FLASH_RULES: Record<Tier, PipFlashTierRules> = {
-  easy: { k: 3, minGap: 2, timeLimitMs: 6000 },
-  medium: { k: 4, minGap: 1, timeLimitMs: 5000 },
-  hard: { k: 6, minGap: 1, timeLimitMs: 4000 },
+  easy: { k: 3, minGap: 2, timeLimitMs: 7000 },
+  medium: { k: 4, minGap: 1, timeLimitMs: 8000 },
+  hard: { k: 6, minGap: 1, timeLimitMs: 10000 },
 };
 
 export const CANDIDATE_LABELS = ["A", "B", "C", "D", "E", "F"] as const;

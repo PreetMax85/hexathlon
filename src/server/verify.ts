@@ -3,6 +3,7 @@ import {
   isFormat,
   isMode,
   scoreRun,
+  utcDateKey,
   type Format,
   type Mode,
   type RunScore,
@@ -74,9 +75,23 @@ export function parseResultBody(body: unknown): Parsed<ResultBody> {
   };
 }
 
+/** How long after 00:00 UTC yesterday's Daily is still accepted. */
+export const DAILY_GRACE_MS = 15 * 60 * 1000;
+
+/**
+ * UTC dates whose Daily may be submitted at `now`: today, plus yesterday for
+ * a short grace window so a mini-run that straddles midnight still counts.
+ */
+export function dailyDatesAt(now: Date): string[] {
+  const today = utcDateKey(now);
+  const sinceMidnight = now.getTime() - Date.parse(`${today}T00:00:00Z`);
+  if (sinceMidnight >= DAILY_GRACE_MS) return [today];
+  return [today, utcDateKey(new Date(now.getTime() - DAILY_GRACE_MS))];
+}
+
 export interface VerifyContext {
-  /** Current UTC date, YYYY-MM-DD. */
-  today: string;
+  /** UTC dates (YYYY-MM-DD) whose Daily is accepted now, from `dailyDatesAt`. */
+  dailyDates: readonly string[];
   /** The challenge named by the body, if the server found it. */
   challenge: { format: string; seed: number } | null;
 }
@@ -88,7 +103,7 @@ export interface VerifyContext {
 export function verifyResult(body: ResultBody, ctx: VerifyContext): Parsed<RunScore> {
   if (body.mode === "daily") {
     if (body.challengeId) return bad("a Daily cannot belong to a challenge");
-    if (body.seed !== dailySeed(body.format, ctx.today)) {
+    if (!ctx.dailyDates.some((d) => body.seed === dailySeed(body.format, d))) {
       return bad("not today's Daily puzzle", 409);
     }
   } else if (body.challengeId) {

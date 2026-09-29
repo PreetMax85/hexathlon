@@ -13,7 +13,7 @@ const STEPS: Record<Format, string[]> = {
   "pip-flash": [
     "Every number token shows dots (pips): 6 and 8 have 5, down to 2 and 12 with 1.",
     "A corner's score is the sum of pips on the hexes it touches.",
-    "Tap the lettered corner with the highest score before the bar runs out.",
+    "Tap the lettered corner with the highest score before the clock runs out.",
   ],
   "port-math": [
     "You can trade 4 of one card for 1 of another. A 3:1 port makes it 3, a matching 2:1 port makes it 2.",
@@ -21,9 +21,9 @@ const STEPS: Record<Format, string[]> = {
     "Cover the Build with the fewest trades, then press Build.",
   ],
   "hand-tracker": [
-    "You see Rival's starting hand for 3 seconds.",
+    "You see Rival's starting hand for 3 seconds (in this demo, until you tap).",
     "Then the game log plays: rolls, builds, trades and steals. Keep a running count.",
-    "Tap the number of cards Rival holds of the resource asked.",
+    "Pick how many of the asked resource Rival holds, then confirm. Digit keys and Enter work too.",
   ],
 };
 
@@ -37,20 +37,20 @@ function Demo({ format }: { format: Format }) {
   const puzzle = useMemo(() => {
     if (format === "pip-flash") return generate("pip-flash", "easy", seed);
     if (format === "port-math") return generate("port-math", "easy", seed);
-    // Shorter and slower than the real thing, so it is a friendly first try.
+    // Shorter than the real thing, so it is a friendly first try.
     const base = generate("hand-tracker", "easy", seed) as HandTrackerPuzzle;
-    return { ...base, events: base.events.slice(0, 4), secondsPerEvent: 2 };
+    return { ...base, events: base.events.slice(0, 4), eventDurationsMs: base.eventDurationsMs.slice(0, 4) };
   }, [format, seed]);
 
   const answer = (a: unknown, ms: number) => setResult(verdict(puzzle, a, format === "pip-flash" ? 0 : ms));
 
   return (
-    <div className="-mx-2 mt-4 flex flex-col gap-3 rounded-2xl border border-dashed border-line bg-bg p-2 sm:mx-0 sm:p-3">
-      <div className="text-xs font-bold uppercase tracking-wide text-brand">Try it</div>
+    <div className="-mx-2 mt-4 flex flex-col gap-3 border border-dashed border-ink-2 bg-paper p-2 sm:mx-0 sm:p-3">
+      <div className="sea text-s font-semibold text-magenta">Try one, untimed</div>
       <div key={`${format}-${round}`}>
         {puzzle.format === "pip-flash" && <PipFlashPlay puzzle={puzzle} onAnswer={answer} untimed />}
         {puzzle.format === "port-math" && <PortMathPlay puzzle={puzzle} onAnswer={answer} />}
-        {puzzle.format === "hand-tracker" && <HandTrackerPlay puzzle={puzzle} onAnswer={answer} />}
+        {puzzle.format === "hand-tracker" && <HandTrackerPlay puzzle={puzzle} onAnswer={answer} tapPaced />}
       </div>
       {result && (
         <>
@@ -75,15 +75,17 @@ export function HowToPlay({ format }: { format: Format }) {
   const [open, setOpen] = useState(false);
   return (
     <details
-      className="group rounded-xl border border-line bg-bg"
+      className="group"
       onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
     >
-      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 font-semibold">
+      <summary className="flex min-h-11 w-fit cursor-pointer list-none items-center gap-2 font-semibold">
+        <svg width={12} height={12} viewBox="0 0 12 12" aria-hidden className="transition-transform group-open:rotate-90">
+          <path d="M3 1.5 8 6l-5 4.5" fill="none" stroke="currentColor" strokeWidth={1.8} />
+        </svg>
         How to play
-        <span aria-hidden className="text-muted transition-transform group-open:rotate-180">▾</span>
       </summary>
-      <div className="px-3 pb-3 sm:px-4 sm:pb-4">
-        <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-sm">
+      <div className="pb-2">
+        <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-s">
           {STEPS[format].map((s) => (
             <li key={s}>{s}</li>
           ))}

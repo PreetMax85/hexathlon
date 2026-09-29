@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { mixSeed } from "./rng";
 import { FORMATS, TIERS } from "./formats/common";
 import {
   dailySeed,
@@ -30,8 +31,8 @@ describe("generate / validate / solve", () => {
 
   it("pip flash enforces its time limit via elapsedMs", () => {
     const p = generate("pip-flash", "easy", 1);
-    expect(validate(p, solve(p), 5999)).toBe(true);
-    expect(validate(p, solve(p), 6001)).toBe(false);
+    expect(validate(p, solve(p), 6999)).toBe(true);
+    expect(validate(p, solve(p), 7001)).toBe(false);
   });
 
   it("normalises seeds to uint32", () => {
@@ -72,5 +73,11 @@ describe("dailySeed", () => {
 
   it("rejects malformed date keys", () => {
     expect(() => dailySeed("pip-flash", "2026-1-1")).toThrow(RangeError);
+  });
+
+  it("never reuses a v1 (1-puzzle) Daily seed, so old rows can't mix into v1.1 boards", () => {
+    for (const f of FORMATS) {
+      expect(dailySeed(f, "2026-09-29")).not.toBe(mixSeed("daily", f, "medium", "2026-09-29"));
+    }
   });
 });

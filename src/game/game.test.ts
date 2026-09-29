@@ -4,13 +4,16 @@ import {
   generatePortMath,
   solve,
   generateHandTracker,
+  handTrackerPlaybackMs,
   replayTrades,
   covers,
   targetCost,
   runItems,
+  pipFlashRanking,
+  CANDIDATE_LABELS,
   type PortMathPuzzle,
 } from "@/engine";
-import { handPhaseAt, handPlaybackMs } from "./handTrackerFlow";
+import { handPhaseAt } from "./handTrackerFlow";
 import { PAD_VALUES } from "./numberPad";
 import {
   addTrade,
@@ -59,7 +62,11 @@ describe("time and share", () => {
     expect(
       shareText({ format: "port-math", mode: "rush", correct: 11, total: 13, totalMs: 161_000 }),
     ).toBe("Hexathlon Rush · Port Math 11/13 · 2:41");
-    expect(marksStrip([true, false])).toBe("✅❌");
+    // The chart snippet: the date is the edition, buoys are shapes (cone ▲ right, can ■ wrong).
+    expect(
+      shareText({ format: "port-math", mode: "rush", correct: 11, total: 13, totalMs: 161_000, date: "2026-09-29" }),
+    ).toBe("Hexathlon Rush · Port Math 11/13 · 2:41 · Ed. 29 SEP 2026");
+    expect(marksStrip([true, false])).toBe("▲■");
   });
 
   it("never mentions the protected words", () => {
@@ -166,15 +173,15 @@ describe("hand tracker flow", () => {
     expect(handPhaseAt(p, 0)).toEqual({ kind: "reveal" });
     expect(handPhaseAt(p, p.revealMs - 1)).toEqual({ kind: "reveal" });
     expect(handPhaseAt(p, p.revealMs)).toEqual({ kind: "events", index: 0 });
-    expect(handPhaseAt(p, p.revealMs + p.secondsPerEvent * 1000)).toEqual({
+    expect(handPhaseAt(p, p.revealMs + p.eventDurationsMs[0])).toEqual({
       kind: "events",
       index: 1,
     });
-    expect(handPhaseAt(p, handPlaybackMs(p) - 1)).toEqual({
+    expect(handPhaseAt(p, handTrackerPlaybackMs(p) - 1)).toEqual({
       kind: "events",
       index: p.events.length - 1,
     });
-    expect(handPhaseAt(p, handPlaybackMs(p))).toEqual({ kind: "ask" });
+    expect(handPhaseAt(p, handTrackerPlaybackMs(p))).toEqual({ kind: "ask" });
   });
 
   it("number pad covers 0..19", () => {
@@ -192,12 +199,12 @@ describe("run state", () => {
     expect(marksSoFar("hand-tracker", "rush", seed, progress)).toEqual([]);
     items.slice(0, 3).forEach((it, i) => {
       const answer = i === 1 ? [99] : solve(generate("hand-tracker", it.tier, it.seed));
-      progress = record(progress, answer, 1500);
+      progress = record(progress, answer, 90_000);
     });
     expect(marksSoFar("hand-tracker", "rush", seed, progress)).toEqual([true, false, true]);
     expect(isFinished("rush", seed, progress)).toBe(false);
     items.slice(3).forEach((it) => {
-      progress = record(progress, solve(generate("hand-tracker", it.tier, it.seed)), 1500);
+      progress = record(progress, solve(generate("hand-tracker", it.tier, it.seed)), 90_000);
     });
     expect(isFinished("rush", seed, progress)).toBe(true);
     expect(finalScore("hand-tracker", "rush", seed, progress)?.correct).toBe(12);
@@ -215,6 +222,25 @@ describe("verdict", () => {
       expect(bad.correct).toBe(false);
       expect(bad.detail.length).toBeGreaterThan(5);
     }
+  });
+
+  it("names the player's own pick next to the best one", () => {
+    const puzzle = generate("pip-flash", "easy", 2);
+    const { totals, best } = pipFlashRanking(puzzle.board, puzzle.candidates);
+    const wrong = best === 0 ? 1 : 0;
+    const v = verdict(puzzle, wrong, 1000);
+    expect(v.detail).toBe(
+      `You picked ${CANDIDATE_LABELS[wrong]}: ${totals[wrong]} pips. ${CANDIDATE_LABELS[best]} had ${totals[best]}.`,
+    );
+  });
+
+  it("names the player's count next to the rival's real hand", () => {
+    const puzzle = generate("hand-tracker", "easy", 3);
+    const [truth] = solve(puzzle);
+    const said = truth === 0 ? 1 : truth - 1;
+    expect(verdict(puzzle, [said], 1000).detail).toBe(
+      `You said ${said}. Rival held ${truth} ${puzzle.questions[0]}.`,
+    );
   });
 
   it("flags a Pip Flash timeout", () => {

@@ -4,7 +4,9 @@ import { TIERS } from "./common";
 import {
   applyEvent,
   describeEvent,
+  eventDurationMs,
   generateHandTracker,
+  handTrackerPlaybackMs,
   HAND_TRACKER_RULES,
   MAX_COUNT,
   replayHand,
@@ -22,7 +24,7 @@ describe.each(TIERS)("hand tracker (%s)", (tier) => {
     for (const seed of SEEDS) {
       const p = generateHandTracker(tier, seed);
       expect(p.events).toHaveLength(rules.events);
-      expect(p.secondsPerEvent).toBe(rules.secondsPerEvent);
+      expect(p.eventDurationsMs).toEqual(p.events.map((e) => eventDurationMs(e, tier)));
       expect(p.revealMs).toBe(3000);
       expect(p.questions).toHaveLength(rules.questions);
       expect(new Set(p.questions).size).toBe(rules.questions);
@@ -110,5 +112,70 @@ describe("hand tracker events", () => {
     for (const bad of [undefined, 3, "3", [-1], [1.5], [20], [null], {}]) {
       expect(validateHandTracker(p, bad)).toBe(false);
     }
+  });
+});
+
+describe("hand tracker event timing (v1.1 game-feel brief)", () => {
+  // durationMs = words × 60000 / wpm + update time; wpm 180 / 220 / 260.
+  it("gives a rival build reading time plus 2 s to recall the cost", () => {
+    // "Rival built a city": 4 words.
+    expect(eventDurationMs({ type: "build", build: "city" }, "easy")).toBe(3333);
+    expect(eventDurationMs({ type: "build", build: "city" }, "hard")).toBe(2923);
+  });
+
+  it("gives a You-only roll (a distractor) 0.5 s", () => {
+    // "Rolled 8 — You +1 ore": 5 words, the dash is not a word.
+    const e = { type: "roll", roll: 8, rival: null, you: { resource: "ore", count: 1 } } as const;
+    expect(eventDurationMs(e, "medium")).toBe(1864);
+  });
+
+  it("gives a roll where the rival collects 1 s", () => {
+    // "Rolled 8 — Rival +2 wheat, You +1 ore": 8 words.
+    const e = {
+      type: "roll",
+      roll: 8,
+      rival: { resource: "wheat", count: 2 },
+      you: { resource: "ore", count: 1 },
+    } as const;
+    expect(eventDurationMs(e, "easy")).toBe(3667);
+  });
+
+  it("gives a rival trade 1.5 s and a steal 1 s", () => {
+    // "Rival traded 4 wood → 1 ore": 6 words.
+    expect(eventDurationMs({ type: "trade", give: "wood", giveCount: 4, get: "ore" }, "medium")).toBe(3136);
+    // "You stole 1 sheep from Rival": 6 words, and the rival loses a card.
+    expect(eventDurationMs({ type: "you-steal", resource: "sheep" }, "hard")).toBe(2385);
+  });
+
+  it("hard gets 20 events and 2 questions, not more speed", () => {
+    expect(HAND_TRACKER_RULES.hard.events).toBe(20);
+    expect(HAND_TRACKER_RULES.hard.questions).toBe(2);
+  });
+
+  // The brief estimated ~3.5 / 3.0 / 2.6 s; its own formula measures 3.0 / 2.7 / 2.5
+  // over 500 seeds (the intro copy uses the measured values).
+  it("averages about 3 s per event on easy and faster on harder tiers", () => {
+    const avg = (tier: (typeof TIERS)[number]) => {
+      let sum = 0;
+      let n = 0;
+      for (const seed of SEEDS.slice(0, 200)) {
+        const p = generateHandTracker(tier, seed);
+        sum += p.eventDurationsMs.reduce((a, b) => a + b, 0);
+        n += p.events.length;
+      }
+      return sum / n;
+    };
+    expect(avg("easy")).toBeGreaterThan(3000);
+    expect(avg("easy")).toBeLessThan(4000);
+    expect(avg("medium")).toBeGreaterThan(2600);
+    expect(avg("medium")).toBeLessThan(3400);
+    expect(avg("hard")).toBeGreaterThan(2200);
+    expect(avg("hard")).toBeLessThan(3000);
+  });
+
+  it("playback is the preview plus every event", () => {
+    const p = generateHandTracker("medium", 7);
+    const events = p.eventDurationsMs.reduce((a, b) => a + b, 0);
+    expect(handTrackerPlaybackMs(p)).toBe(3000 + events);
   });
 });

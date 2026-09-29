@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   describeEvent,
-  MAX_COUNT,
+  handTrackerPlaybackMs,
   RESOURCES,
   replayHand,
   type HandTrackerAnswer,
@@ -11,153 +11,193 @@ import {
   type Resource,
   type ResourceCounts,
 } from "@/engine";
-import { handPhaseAt, handPlaybackMs } from "@/game/handTrackerFlow";
+import { handPhaseAt, handPhaseAtStep, logSummary } from "@/game/handTrackerFlow";
 import { RESOURCE_META } from "@/game/meta";
-import { PAD_VALUES } from "@/game/numberPad";
-import { now, useElapsed } from "./useClock";
+import { emptyPad, PAD_VALUES, padKey, padTap, type PadState } from "@/game/numberPad";
+import { Glyph } from "./glyphs";
+import { Button, RangeDial } from "./ui";
+import { now, usePuzzleClock } from "./useClock";
 
 interface Props {
   puzzle: HandTrackerPuzzle;
-  /** Fired once after the last question, with the counts and answering time. */
+  /** Fired once after the last question, with the counts and clock ms. */
   onAnswer: (answer: HandTrackerAnswer, ms: number) => void;
+  /** Relaxed mode: the hand and each event stay until the player taps on. */
+  tapPaced?: boolean;
 }
 
 function HandTiles({ hand, highlight }: { hand: ResourceCounts; highlight?: readonly Resource[] }) {
   return (
-    <ul className="grid grid-cols-5 gap-2">
+    <ul className="grid grid-cols-5 border-y border-ink">
       {RESOURCES.map((r) => (
         <li
           key={r}
-          className={`flex flex-col items-center rounded-xl border py-2 ${
-            highlight?.includes(r) ? "border-brand bg-brand/10" : "border-line bg-surface"
+          className={`flex flex-col items-center gap-0.5 border-r border-hair py-2 last:border-r-0 ${
+            highlight?.includes(r) ? "bg-shoal-2" : ""
           }`}
         >
-          <span aria-hidden className="text-2xl">{RESOURCE_META[r].emoji}</span>
-          <span className="tabular text-2xl font-extrabold">{hand[r]}</span>
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-            {RESOURCE_META[r].label}
-          </span>
+          <Glyph name={r} size={22} className="text-ink-2" />
+          <span className="text-l font-bold condensed">{hand[r]}</span>
+          <span className="label text-ink-2">{RESOURCE_META[r].label}</span>
         </li>
       ))}
     </ul>
   );
 }
 
-export function HandTrackerPlay({ puzzle, onAnswer }: Props) {
+export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
   const [answers, setAnswers] = useState<number[]>([]);
+  const [pad, setPad] = useState<PadState>(emptyPad);
+  const [step, setStep] = useState(0);
   const finished = answers.length >= puzzle.questions.length;
-  const playbackMs = handPlaybackMs(puzzle);
-  const elapsed = useElapsed(!finished);
-  const phase = handPhaseAt(puzzle, elapsed);
-  const asking = phase.kind === "ask";
+  const { ready, elapsed, clockMs } = usePuzzleClock(finished);
+  const playbackMs = handTrackerPlaybackMs(puzzle);
+  const phase = tapPaced ? handPhaseAtStep(puzzle, step) : handPhaseAt(puzzle, elapsed);
+  const asking = !ready && phase.kind === "ask";
+  const qIndex = Math.min(answers.length, puzzle.questions.length - 1);
+  const question = puzzle.questions[qIndex];
 
-  // Answering time starts when the question appears.
-  const askedAt = useRef<number | null>(null);
-  useEffect(() => {
-    if (asking && askedAt.current === null) askedAt.current = now();
-  }, [asking]);
-
-  const pick = (n: number) => {
-    if (!asking || finished) return;
-    const next = [...answers, n];
+  const confirm = (value: number | null) => {
+    if (!asking || finished || value === null) return;
+    const next = [...answers, value];
     setAnswers(next);
-    if (next.length === puzzle.questions.length) {
-      onAnswer(next, now() - (askedAt.current ?? now()));
-    }
+    setPad(emptyPad);
+    if (next.length === puzzle.questions.length) onAnswer(next, clockMs());
   };
+
+  // Digit keys select, Enter confirms, Backspace clears. Space steps Relaxed playback.
+  // Re-subscribes each render so the handler sees the current selection.
+  useEffect(() => {
+    if (ready || finished) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLElement && e.target.closest("button, input, a")) {
+        if (e.key === "Enter" || e.key === " ") return;
+      }
+      if (!asking) {
+        if (tapPaced && (e.key === " " || e.key === "Enter")) {
+          e.preventDefault();
+          setStep((s) => s + 1);
+        }
+        return;
+      }
+      const r = padKey(pad, e.key, now());
+      setPad(r.state);
+      if (r.submit) confirm(r.state.value);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   const hands = replayHand(puzzle);
   const finalHand = hands ? hands[hands.length - 1] : puzzle.startHand;
-  const question = puzzle.questions[Math.min(answers.length, puzzle.questions.length - 1)];
 
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h2 className="text-xl font-bold leading-tight">Count your rival&apos;s cards.</h2>
-        <p className="text-sm text-muted">
-          Memorise the starting hand, follow every log line, then answer.
+        <h2 className="font-bold">Count your rival&apos;s cards.</h2>
+        <p className="text-s text-ink-2">
+          Memorise the starting hand, keep a running count, then answer.
         </p>
       </div>
 
-      {phase.kind === "reveal" && (
+      {/*
+        Timed playback: screen readers hear one summary when the log ends, not
+        lines talking over each other. Relaxed (tap-paced) playback reads each
+        line as the player steps to it, so the format stays playable by ear.
+      */}
+      <p className="sr-only" aria-live="polite">
+        {asking && !finished
+          ? logSummary(puzzle, qIndex)
+          : tapPaced && !ready && phase.kind === "events"
+            ? `Line ${phase.index + 1} of ${puzzle.events.length}: ${describeEvent(puzzle.events[phase.index])}`
+            : ""}
+      </p>
+
+      {/* The hand shows during the steady beat too; its clock starts after. */}
+      {(ready || phase.kind === "reveal") && (
         <section aria-label="Rival's starting hand" className="anim-pop flex flex-col gap-3">
           <div className="flex items-baseline justify-between">
-            <h3 className="font-bold">Rival&apos;s starting hand</h3>
-            <span className="tabular text-sm font-bold text-brand">
-              {Math.max(0, Math.ceil((puzzle.revealMs - elapsed) / 1000))}s
-            </span>
+            <h3 className="sea">Rival&apos;s starting hand</h3>
+            {!tapPaced && (
+              <span className="text-s font-bold text-magenta">
+                {ready ? "Steady" : `${Math.max(0, Math.ceil((puzzle.revealMs - elapsed) / 1000))} s`}
+              </span>
+            )}
           </div>
           <HandTiles hand={puzzle.startHand} />
-          <p className="text-center text-sm text-muted">Remember these — they disappear.</p>
+          {tapPaced ? (
+            <Button onClick={() => setStep(1)} disabled={ready}>Start the log</Button>
+          ) : (
+            <p className="text-center text-s text-ink-2">Remember these. They disappear.</p>
+          )}
         </section>
       )}
 
-      {phase.kind === "events" && (
+      {!ready && phase.kind === "events" && (
         <section aria-label="Game log" className="flex flex-col gap-3">
-          <div className="flex items-baseline justify-between">
-            <h3 className="font-bold">Game log</h3>
-            <span className="tabular text-sm font-bold text-brand">
+          <div className="flex items-center justify-between">
+            <h3 className="sea">Log</h3>
+            <span className="flex items-center gap-2 text-s font-bold">
               {phase.index + 1} / {puzzle.events.length}
+              {!tapPaced && (
+                <RangeDial
+                  fraction={1 - (Math.min(elapsed, playbackMs) - puzzle.revealMs) / (playbackMs - puzzle.revealMs)}
+                  label="Log remaining"
+                />
+              )}
             </span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-surface-2">
-            <div
-              className="h-full bg-brand"
-              style={{ width: `${(Math.min(elapsed - puzzle.revealMs, playbackMs) / (playbackMs - puzzle.revealMs)) * 100}%` }}
-            />
-          </div>
-          <ol className="flex flex-col gap-2" aria-live="polite">
-            {[phase.index, phase.index - 1, phase.index - 2, phase.index - 3]
-              .filter((i) => i >= 0)
-              .map((i, rank) => (
-                <li
-                  key={i}
-                  className={`rounded-xl border px-4 py-3 ${
-                    rank === 0
-                      ? "anim-slide border-brand bg-surface text-lg font-bold"
-                      : "border-line bg-surface-2 text-sm text-muted"
-                  }`}
-                  style={rank > 0 ? { opacity: 1 - rank * 0.22 } : undefined}
-                >
-                  {describeEvent(puzzle.events[i])}
-                </li>
-              ))}
-          </ol>
+          {/* Only the current line: the format trains a running count, not re-reading. */}
+          <p
+            key={phase.index}
+            aria-hidden
+            className="anim-slide border-y-2 border-ink bg-deep px-4 py-5 text-l font-semibold leading-snug"
+          >
+            {describeEvent(puzzle.events[phase.index])}
+          </p>
+          {tapPaced && <Button onClick={() => setStep((s) => s + 1)}>Next line</Button>}
         </section>
       )}
 
       {asking && !finished && (
         <section aria-label="Question" className="anim-pop flex flex-col gap-3">
           {puzzle.questions.length > 1 && (
-            <div className="text-xs font-bold uppercase tracking-wide text-muted">
+            <div className="label text-ink-2">
               Question {answers.length + 1} of {puzzle.questions.length}
             </div>
           )}
-          <h3 className="text-2xl font-extrabold leading-tight">
-            How many <span className="whitespace-nowrap">{RESOURCE_META[question].emoji} {question}</span> does Rival hold?
+          <h3 className="flex items-center gap-2 text-l font-bold leading-tight">
+            <Glyph name={question} size={26} className="shrink-0 text-ink-2" />
+            <span>How many {RESOURCE_META[question].label.toLowerCase()} does Rival hold?</span>
           </h3>
-          <ul className="grid grid-cols-5 gap-2" aria-label="Number pad">
+          <ul className="grid grid-cols-5 gap-1.5" aria-label="Number pad">
             {PAD_VALUES.map((n) => (
               <li key={n}>
                 <button
                   type="button"
-                  onClick={() => pick(n)}
-                  className="tabular min-h-14 w-full rounded-xl border border-line bg-surface text-xl font-bold active:scale-95 active:bg-brand active:text-brand-ink"
+                  onClick={() => setPad(padTap(pad, n))}
+                  aria-pressed={pad.value === n}
+                  className={`min-h-12 w-full text-l font-semibold condensed ${
+                    pad.value === n ? "bg-magenta text-on-magenta" : "bg-deep ring-1 ring-inset ring-hair hover:ring-ink"
+                  }`}
                 >
                   {n}
                 </button>
               </li>
             ))}
           </ul>
-          <p className="text-center text-xs text-muted">Tap a number to lock in your answer (0–{MAX_COUNT}).</p>
+          <Button disabled={pad.value === null} onClick={() => confirm(pad.value)}>
+            {pad.value === null ? "Pick a count" : `Confirm ${pad.value}`}
+          </Button>
+          <p className="text-center text-s text-ink-2">Tap or type 0–19, then confirm (Enter).</p>
         </section>
       )}
 
       {finished && (
         <section aria-label="Rival's final hand" className="anim-pop flex flex-col gap-3">
-          <h3 className="font-bold">Rival&apos;s final hand</h3>
+          <h3 className="sea">Rival&apos;s final hand</h3>
           <HandTiles hand={finalHand} highlight={puzzle.questions} />
-          <p className="text-sm text-muted">
+          <p className="text-s text-ink-2">
             You answered {answers.map((a, i) => `${a} ${puzzle.questions[i]}`).join(" and ")}.
           </p>
         </section>
