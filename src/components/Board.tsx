@@ -157,6 +157,12 @@ function PortMarker({ port }: { port: Port }) {
   );
 }
 
+/** What a corner touches, read out as the tokens a sighted player sees: "6, 9 and desert". */
+function touching(board: BoardData, vertex: number): string {
+  const names = TOPOLOGY.vertices[vertex].hexes.map((id) => board.hexes[id].token ?? "desert").map(String);
+  return names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0];
+}
+
 /**
  * The island: sea with a shore band, ports, hexes, tokens with pips, lettered
  * corners and, once answered, the buoy verdicts.
@@ -224,7 +230,7 @@ export function Board({ board, candidates, onPick, reveal, className, label }: B
             className="waypoint"
             role={interactive ? "button" : undefined}
             tabIndex={interactive ? 0 : undefined}
-            aria-label={`Corner ${CANDIDATE_LABELS[i]}${reveal ? `, ${reveal.totals[i]} pips${isBest ? ", the most" : ""}${isPicked ? ", your pick" : ""}` : ""}`}
+            aria-label={`Corner ${CANDIDATE_LABELS[i]}, touching ${touching(board, vertex)}${reveal ? `, ${reveal.totals[i]} pips${isBest ? ", the most" : ""}${isPicked ? ", your pick" : ""}` : ""}`}
             style={{ cursor: interactive ? "pointer" : "default", outline: "none" }}
             onClick={interactive ? () => onPick(i) : undefined}
             onKeyDown={
