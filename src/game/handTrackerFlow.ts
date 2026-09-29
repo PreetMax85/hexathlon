@@ -1,4 +1,4 @@
-import type { HandTrackerPuzzle } from "@/engine";
+import { describeEvent, replayHand, type HandTrackerPuzzle } from "@/engine";
 
 export type HandPhase =
   | { kind: "reveal" }
@@ -34,4 +34,30 @@ export function logSummary(puzzle: HandTrackerPuzzle, questionIndex: number): st
 export function handPhaseAtStep(puzzle: HandTrackerPuzzle, step: number): HandPhase {
   if (step <= 0) return { kind: "reveal" };
   return step <= puzzle.events.length ? { kind: "events", index: step - 1 } : { kind: "ask" };
+}
+
+export interface CountRow {
+  /** The log line, or null for the starting hand. */
+  line: string | null;
+  /** Rival's count of each asked resource after this line. */
+  counts: number[];
+  /** Which asked counts this line moved. */
+  changed: boolean[];
+}
+
+/**
+ * The miss review: the starting hand, then every log line with the asked
+ * counts after it, so a player can see exactly where they lost track.
+ */
+export function runningCounts(puzzle: HandTrackerPuzzle): CountRow[] {
+  const hands = replayHand(puzzle) ?? [puzzle.startHand];
+  return hands.map((hand, i) => {
+    const counts = puzzle.questions.map((r) => hand[r]);
+    const before = i === 0 ? counts : puzzle.questions.map((r) => hands[i - 1][r]);
+    return {
+      line: i === 0 ? null : describeEvent(puzzle.events[i - 1]),
+      counts,
+      changed: counts.map((c, q) => c !== before[q]),
+    };
+  });
 }

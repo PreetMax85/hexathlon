@@ -2,7 +2,6 @@
 
 import {
   CANDIDATE_LABELS,
-  describeEvent,
   generate,
   pipFlashRanking,
   portMathRoute,
@@ -16,6 +15,7 @@ import { relaxPuzzle } from "@/game/relaxed";
 import { tradeText, verdict } from "@/game/verdict";
 import { Board } from "./Board";
 import { BOARD_BLEED, CornerButtons } from "./PipFlashPlay";
+import { CountLog } from "./CountLog";
 import { Buoy, Glyph } from "./glyphs";
 
 interface Props {
@@ -84,13 +84,9 @@ export function PuzzleReveal({ format, item, index, answer, ms, relaxed }: Props
                 </li>
               ))}
             </ul>
-            <details>
-              <summary className="min-h-11 cursor-pointer py-2 text-s font-semibold text-accent">Read the whole log</summary>
-              <ol className="flex list-decimal flex-col gap-1 pl-6 text-s">
-                {puzzle.events.map((e, i) => (
-                  <li key={i}>{describeEvent(e)}</li>
-                ))}
-              </ol>
+            <details open={!v.correct}>
+              <summary className="min-h-11 cursor-pointer py-2 text-s font-semibold text-accent">Where the count moved</summary>
+              <CountLog puzzle={puzzle} />
             </details>
           </>
         );

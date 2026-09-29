@@ -14,6 +14,7 @@ import {
 import { handPhaseAt, handPhaseAtStep, logSummary } from "@/game/handTrackerFlow";
 import { RESOURCE_META } from "@/game/meta";
 import { emptyPad, PAD_VALUES, padKey, padTap, type PadState } from "@/game/numberPad";
+import { CountLog } from "./CountLog";
 import { Glyph } from "./glyphs";
 import { Button, RangeDial } from "./ui";
 import { now, usePuzzleClock } from "./useClock";
@@ -200,6 +201,8 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
           <p className="text-s text-ink-2">
             You answered {answers.map((a, i) => `${a} ${puzzle.questions[i]}`).join(" and ")}.
           </p>
+          {/* A miss shows where the count moved, line by line: that's where it slipped. */}
+          {answers.some((a, i) => a !== finalHand[puzzle.questions[i]]) && <CountLog puzzle={puzzle} />}
         </section>
       )}
     </div>

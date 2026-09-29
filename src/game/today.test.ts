@@ -113,10 +113,10 @@ describe("intro timing lines", () => {
 
   it("gives Hand Tracker's preview and pace", () => {
     expect(introTiming("hand-tracker", false)).toBe(
-      "3 s to memorise the hand, then 8 / 12 / 20 log lines, each shown about 3.0 / 2.7 / 2.5 s.",
+      "3 s to memorise the hand, then 5 / 9 / 14 log lines, each shown about 3.0 / 2.7 / 2.5 s.",
     );
     expect(introTiming("hand-tracker", true)).toBe(
-      "Memorise the hand, then 8 / 12 / 20 log lines, one per tap. Take your time.",
+      "Memorise the hand, then 5 / 9 / 14 log lines, one per tap. Take your time.",
     );
   });
 });

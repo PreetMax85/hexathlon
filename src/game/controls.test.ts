@@ -60,11 +60,11 @@ describe("Hand Tracker screen-reader summary", () => {
   it("announces once after playback, not every event", () => {
     const p = generate("hand-tracker", "hard", 2);
     expect(logSummary(p, 0)).toBe(
-      `Log finished: 20 events. Question 1 of 2: how many ${p.questions[0]} does Rival hold? Choose 0 to 19, then confirm.`,
+      `Log finished: 14 events. Question 1 of 2: how many ${p.questions[0]} does Rival hold? Choose 0 to 19, then confirm.`,
     );
     const easy = generate("hand-tracker", "easy", 2);
     expect(logSummary(easy, 0)).toBe(
-      `Log finished: 8 events. How many ${easy.questions[0]} does Rival hold? Choose 0 to 19, then confirm.`,
+      `Log finished: 5 events. How many ${easy.questions[0]} does Rival hold? Choose 0 to 19, then confirm.`,
     );
   });
 });

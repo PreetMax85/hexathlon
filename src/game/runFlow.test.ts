@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { generate } from "@/engine";
-import { handPhaseAtStep } from "./handTrackerFlow";
+import { generate, solve } from "@/engine";
+import { handPhaseAtStep, runningCounts } from "./handTrackerFlow";
 import { advanceDelayMs, betweenPuzzles, initialBetween } from "./runFlow";
 
 describe("pause between puzzles only", () => {
@@ -31,6 +31,22 @@ describe("Relaxed Hand Tracker: next event on tap", () => {
     expect(handPhaseAtStep(p, 1)).toEqual({ kind: "events", index: 0 });
     expect(handPhaseAtStep(p, p.events.length)).toEqual({ kind: "events", index: p.events.length - 1 });
     expect(handPhaseAtStep(p, p.events.length + 1)).toEqual({ kind: "ask" });
+  });
+});
+
+describe("Hand Tracker miss review", () => {
+  it("shows the asked counts after every log line, ending on the true hand", () => {
+    const p = generate("hand-tracker", "hard", 3);
+    const rows = runningCounts(p);
+    expect(rows).toHaveLength(p.events.length + 1);
+    expect(rows[0].counts).toEqual(p.questions.map((r) => p.startHand[r]));
+    expect(rows[0].changed.every((c) => !c)).toBe(true);
+    const last = rows[rows.length - 1];
+    expect(last.counts).toEqual(solve(p));
+    // A line is marked changed exactly when an asked count moved on it.
+    for (let i = 1; i < rows.length; i++) {
+      rows[i].changed.forEach((c, q) => expect(c).toBe(rows[i].counts[q] !== rows[i - 1].counts[q]));
+    }
   });
 });
 
