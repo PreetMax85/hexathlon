@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { isRed, TOPOLOGY, toCartesian, type Board } from "@/engine";
 import { soundings } from "@/game/chart";
 import { RESOURCE_META } from "@/game/meta";
-import { glyphPath } from "./glyphs";
+import { glyphPath } from "@/components/glyphs";
 
 /**
  * The share card as a chart snippet: the island plate on the left and a
@@ -28,6 +28,8 @@ export async function ogFonts() {
   ];
 }
 
+// Satori renders without the page's CSS, so the day palette is repeated here
+// as literals; keep it in step with the tokens in globals.css.
 const PAPER = "#f3f7f7";
 const INK = "#1d2b36";
 const INK2 = "#475a68";
@@ -60,7 +62,7 @@ function portMarks(board: Board) {
   });
 }
 
-function IslandPlate({ board }: { board: Board }) {
+function SnippetPlate({ board }: { board: Board }) {
   const ports = portMarks(board);
   const labels = portSpots(board);
   // Soundings stay off the land, the shoal band and the port labels.
@@ -225,7 +227,7 @@ export function ChartSnippet({
           outline: `1px solid ${INK}`,
         }}
       >
-        <IslandPlate board={board} />
+        <SnippetPlate board={board} />
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 18, color: INK }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <svg width="44" height="44" viewBox="-12 -12 24 24">

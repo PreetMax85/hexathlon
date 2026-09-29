@@ -152,7 +152,9 @@ describe("hand tracker event timing (v1.1 game-feel brief)", () => {
     expect(HAND_TRACKER_RULES.hard.questions).toBe(2);
   });
 
-  it("averages roughly 3.5 / 3.0 / 2.6 s per event on easy / medium / hard", () => {
+  // The brief estimated ~3.5 / 3.0 / 2.6 s; its own formula measures 3.0 / 2.7 / 2.5
+  // over 500 seeds (the intro copy uses the measured values).
+  it("averages about 3 s per event on easy and faster on harder tiers", () => {
     const avg = (tier: (typeof TIERS)[number]) => {
       let sum = 0;
       let n = 0;

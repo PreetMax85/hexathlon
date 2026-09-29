@@ -27,4 +27,4 @@ export const THEME_LABEL: Record<Theme, string> = {
 };
 
 /** Inline, pre-paint: sets `data-theme` from storage so a chosen palette never flashes. */
-export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem("${THEME_KEY}");if(t==="day"||t==="dusk"||t==="night")document.documentElement.dataset.theme=t}catch(e){}`;
+export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});if(${JSON.stringify(THEMES.filter((t) => t !== "auto"))}.indexOf(t)>=0)document.documentElement.dataset.theme=t}catch(e){}`;

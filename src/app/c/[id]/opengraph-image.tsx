@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { generate, generateBoard, isFormat, runItems } from "@/engine";
-import { ChartSnippet, OG_SIZE, ogFonts } from "@/components/ChartSnippet";
+import { ChartSnippet, OG_SIZE, ogFonts } from "@/app/_og/ChartSnippet";
 import { getDb } from "@/db/client";
 import { FORMAT_META } from "@/game/meta";
 import { chartDate } from "@/game/chart";

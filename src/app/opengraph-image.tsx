@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { dailyItems, dailySeed, generate, utcDateKey } from "@/engine";
-import { ChartSnippet, OG_SIZE, ogFonts } from "@/components/ChartSnippet";
+import { ChartSnippet, OG_SIZE, ogFonts } from "@/app/_og/ChartSnippet";
 import { chartDate } from "@/game/chart";
 
 export const alt = "Hexathlon: today's island as a chart, and skill drills for hex trading games";

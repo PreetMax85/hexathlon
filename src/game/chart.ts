@@ -1,4 +1,4 @@
-import { createRng } from "@/engine";
+import { createRng, mixSeed } from "@/engine";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
@@ -25,7 +25,7 @@ export function soundings(
   isLand: (x: number, y: number) => boolean,
   count = 26,
 ): Sounding[] {
-  const rng = createRng(seed ^ 0x5c79c1b3);
+  const rng = createRng(mixSeed(seed, "soundings"));
   const out: Sounding[] = [];
   const cx = box.x + box.w / 2;
   const cy = box.y + box.h / 2;

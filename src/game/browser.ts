@@ -15,6 +15,10 @@ import { readSettings, SETTINGS_KEY, type Settings } from "./settings";
 import { readStreak, DAYS_KEY } from "./today";
 import { readTheme, THEME_KEY, type Theme } from "./theme";
 
+/** A read-only KV holding one already-read value, for the pure readers. */
+const snapshot = (raw: string | null): KV => ({ getItem: () => raw, setItem: () => undefined });
+
+const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 const CHANGE_EVENT = "hexathlon:storage";
 
 /** localStorage that never throws and tells this tab's hooks when it changes. */
@@ -59,7 +63,7 @@ export function usePlayer(): Player | null | undefined {
   const raw = useRaw(PLAYER_KEY);
   return useMemo(() => {
     if (raw === undefined) return undefined;
-    return readPlayer({ getItem: () => raw, setItem: () => undefined });
+    return readPlayer(snapshot(raw));
   }, [raw]);
 }
 
@@ -68,7 +72,7 @@ export function useLocalResult(format: Format, mode: Mode, tag: string | null): 
   const raw = useRaw(tag === null ? "hexathlon:none" : resultKey(format, mode, tag));
   return useMemo(() => {
     if (raw === undefined || tag === null) return undefined;
-    return readResult({ getItem: () => raw, setItem: () => undefined }, format, mode, tag);
+    return readResult(snapshot(raw), format, mode, tag);
   }, [raw, format, mode, tag]);
 }
 
@@ -98,7 +102,7 @@ export function useSettings(): Settings | undefined {
   const raw = useRaw(SETTINGS_KEY);
   return useMemo(() => {
     if (raw === undefined) return undefined;
-    return readSettings({ getItem: () => raw, setItem: () => undefined });
+    return readSettings(snapshot(raw));
   }, [raw]);
 }
 
@@ -107,14 +111,14 @@ export function useStreak(today: string | null): number | undefined {
   const raw = useRaw(DAYS_KEY);
   return useMemo(() => {
     if (raw === undefined || today === null) return undefined;
-    return readStreak({ getItem: () => raw, setItem: () => undefined }, today);
+    return readStreak(snapshot(raw), today);
   }, [raw, today]);
 }
 
 /** A short buzz on a right answer where the device supports it. */
 export function haptic(): void {
   try {
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (matchMedia(REDUCED_MOTION).matches) return;
     navigator.vibrate?.(18);
   } catch {
     // Not supported: the visual pulse is enough.
@@ -131,7 +135,7 @@ const subscribeMotion = (onChange: () => void) => {
 export function useReducedMotion(): boolean {
   return useSyncExternalStore(
     subscribeMotion,
-    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => window.matchMedia(REDUCED_MOTION).matches,
     () => false,
   );
 }
@@ -156,7 +160,7 @@ export function useNowMinute(): number | null {
 /** Chosen chart palette; undefined until hydrated. */
 export function useTheme(): Theme | undefined {
   const raw = useRaw(THEME_KEY);
-  return useMemo(() => (raw === undefined ? undefined : readTheme({ getItem: () => raw, setItem: () => undefined })), [raw]);
+  return useMemo(() => (raw === undefined ? undefined : readTheme(snapshot(raw))), [raw]);
 }
 
 /** Store and apply a palette ("auto" follows the system). */
