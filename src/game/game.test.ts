@@ -1,0 +1,200 @@
+import { describe, expect, it } from "vitest";
+import {
+  generate,
+  generatePortMath,
+  solve,
+  generateHandTracker,
+  runItems,
+  type PortMathPuzzle,
+} from "@/engine";
+import { handPhaseAt, handPlaybackMs } from "./handTrackerFlow";
+import { PAD_VALUES } from "./numberPad";
+import {
+  addTrade,
+  canBuild,
+  canGive,
+  currentHand,
+  initialTrades,
+  shortfall,
+  undoTrade,
+} from "./portMathState";
+import { emptyProgress, finalScore, isFinished, marksSoFar, record } from "./runState";
+import { marksStrip, shareText } from "./share";
+import {
+  cleanNickname,
+  isBetter,
+  readPlayer,
+  readResult,
+  saveResult,
+  saveRushBest,
+  savePlayer,
+  type KV,
+  type LocalResult,
+} from "./storage";
+import { formatClock, formatSeconds } from "./time";
+
+function fakeKV(): KV & { data: Map<string, string> } {
+  const data = new Map<string, string>();
+  return {
+    data,
+    getItem: (k) => data.get(k) ?? null,
+    setItem: (k, v) => void data.set(k, v),
+  };
+}
+
+describe("time and share", () => {
+  it("formats clocks and seconds", () => {
+    expect(formatClock(161_000)).toBe("2:41");
+    expect(formatClock(5_400)).toBe("0:05");
+    expect(formatClock(-5)).toBe("0:00");
+    expect(formatSeconds(2340)).toBe("2.3s");
+  });
+
+  it("builds the SPEC share text", () => {
+    expect(
+      shareText({ format: "port-math", mode: "rush", correct: 11, total: 13, totalMs: 161_000 }),
+    ).toBe("Hexathlon Rush · Port Math 11/13 · 2:41");
+    expect(marksStrip([true, false])).toBe("✅❌");
+  });
+
+  it("never mentions the protected words", () => {
+    const text = shareText({ format: "pip-flash", mode: "daily", correct: 1, total: 1, totalMs: 1 });
+    expect(text).not.toMatch(/catan|settlers/i);
+  });
+});
+
+describe("storage", () => {
+  it("cleans nicknames", () => {
+    expect(cleanNickname("  a   b  ")).toBe("a b");
+    expect(cleanNickname("x".repeat(50))).toHaveLength(20);
+  });
+
+  it("saves a player once and keeps the id when renaming", () => {
+    const kv = fakeKV();
+    expect(readPlayer(kv)).toBeNull();
+    expect(savePlayer(kv, "   ")).toBeNull();
+    const a = savePlayer(kv, "Ada");
+    const b = savePlayer(kv, "Grace");
+    expect(readPlayer(kv)).toEqual(b);
+    expect(b?.id).toBe(a?.id);
+  });
+
+  it("survives corrupt or throwing storage", () => {
+    const kv = fakeKV();
+    kv.data.set("hexathlon:player", "{oops");
+    expect(readPlayer(kv)).toBeNull();
+    const throwing: KV = {
+      getItem: () => {
+        throw new Error("blocked");
+      },
+      setItem: () => {
+        throw new Error("blocked");
+      },
+    };
+    expect(readPlayer(throwing)).toBeNull();
+    expect(savePlayer(throwing, "Ada")?.nickname).toBe("Ada");
+  });
+
+  it("keeps the better rush run", () => {
+    const kv = fakeKV();
+    const r = (correct: number, totalMs: number): LocalResult => ({
+      correct,
+      total: 13,
+      totalMs,
+      marks: [],
+      seed: 1,
+    });
+    expect(isBetter(r(5, 1), null)).toBe(true);
+    expect(saveRushBest(kv, "pip-flash", r(8, 50_000))).toBe(true);
+    expect(saveRushBest(kv, "pip-flash", r(7, 10_000))).toBe(false);
+    expect(saveRushBest(kv, "pip-flash", r(8, 40_000))).toBe(true);
+    expect(saveRushBest(kv, "pip-flash", r(8, 45_000))).toBe(false);
+    expect(readResult(kv, "pip-flash", "rush", "best")?.totalMs).toBe(40_000);
+    saveResult(kv, "pip-flash", "daily", "2026-01-01", r(1, 1));
+    expect(readResult(kv, "pip-flash", "daily", "2026-01-01")?.correct).toBe(1);
+    expect(readResult(kv, "pip-flash", "daily", "2026-01-02")).toBeNull();
+  });
+});
+
+describe("port math trade state", () => {
+  function puzzleWithTrades(): PortMathPuzzle {
+    for (let seed = 0; seed < 200; seed++) {
+      const p = generatePortMath("medium", seed);
+      if (p.optimalTrades === 3) return p;
+    }
+    throw new Error("none");
+  }
+
+  it("replays the reference solution to a buildable hand", () => {
+    const puzzle = puzzleWithTrades();
+    let state = initialTrades;
+    expect(canBuild(puzzle, state)).toBe(false);
+    for (const t of solve(puzzle)) {
+      expect(canGive(puzzle, state, t.give)).toBe(true);
+      state = addTrade(puzzle, state, t);
+    }
+    expect(state.trades).toHaveLength(puzzle.optimalTrades);
+    expect(canBuild(puzzle, state)).toBe(true);
+    expect(Object.values(shortfall(puzzle, state)).every((n) => n === 0)).toBe(true);
+  });
+
+  it("ignores illegal trades and supports undo", () => {
+    const puzzle = puzzleWithTrades();
+    const broke = (["wood", "brick", "sheep", "wheat", "ore"] as const).find(
+      (r) => !canGive(puzzle, initialTrades, r),
+    );
+    if (broke) {
+      const other = broke === "wood" ? "brick" : "wood";
+      expect(addTrade(puzzle, initialTrades, { give: broke, get: other })).toBe(initialTrades);
+    }
+    const first = solve(puzzle)[0];
+    const s1 = addTrade(puzzle, initialTrades, first);
+    expect(s1.trades).toHaveLength(1);
+    expect(currentHand(puzzle, undoTrade(s1))).toEqual(puzzle.hand);
+    expect(undoTrade(initialTrades).trades).toEqual([]);
+  });
+});
+
+describe("hand tracker flow", () => {
+  it("walks reveal → events → ask on time", () => {
+    const p = generateHandTracker("easy", 3);
+    expect(handPhaseAt(p, 0)).toEqual({ kind: "reveal" });
+    expect(handPhaseAt(p, p.revealMs - 1)).toEqual({ kind: "reveal" });
+    expect(handPhaseAt(p, p.revealMs)).toEqual({ kind: "events", index: 0 });
+    expect(handPhaseAt(p, p.revealMs + p.secondsPerEvent * 1000)).toEqual({
+      kind: "events",
+      index: 1,
+    });
+    expect(handPhaseAt(p, handPlaybackMs(p) - 1)).toEqual({
+      kind: "events",
+      index: p.events.length - 1,
+    });
+    expect(handPhaseAt(p, handPlaybackMs(p))).toEqual({ kind: "ask" });
+  });
+
+  it("number pad covers 0..19", () => {
+    expect(PAD_VALUES[0]).toBe(0);
+    expect(PAD_VALUES.at(-1)).toBe(19);
+    expect(PAD_VALUES).toHaveLength(20);
+  });
+});
+
+describe("run state", () => {
+  it("tracks progress and scores it with the shared scorer", () => {
+    const seed = 77;
+    const items = runItems("rush", seed);
+    let progress = emptyProgress;
+    expect(marksSoFar("hand-tracker", "rush", seed, progress)).toEqual([]);
+    items.slice(0, 3).forEach((it, i) => {
+      const answer = i === 1 ? [99] : solve(generate("hand-tracker", it.tier, it.seed));
+      progress = record(progress, answer, 1500);
+    });
+    expect(marksSoFar("hand-tracker", "rush", seed, progress)).toEqual([true, false, true]);
+    expect(isFinished("rush", seed, progress)).toBe(false);
+    items.slice(3).forEach((it) => {
+      progress = record(progress, solve(generate("hand-tracker", it.tier, it.seed)), 1500);
+    });
+    expect(isFinished("rush", seed, progress)).toBe(true);
+    expect(finalScore("hand-tracker", "rush", seed, progress)?.correct).toBe(12);
+  });
+});
