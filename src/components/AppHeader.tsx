@@ -45,7 +45,7 @@ export function AppHeader({ wide = false }: { wide?: boolean }) {
           <button
             type="button"
             onClick={() => applyTheme(next)}
-            className="flex min-h-11 items-center gap-1.5 px-2 text-s font-semibold"
+            className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-2 text-s font-semibold"
             aria-label={`Chart palette: ${THEME_LABEL[theme ?? "auto"]}. Switch to ${THEME_LABEL[next]}`}
           >
             <ThemeIcon theme={theme ?? "auto"} />
