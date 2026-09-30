@@ -4,7 +4,6 @@ import {
   CANDIDATE_LABELS,
   generate,
   pipFlashRanking,
-  portMathRoute,
   replayHand,
   RESOURCES,
   type Format,
@@ -12,7 +11,7 @@ import {
 } from "@/engine";
 import { RESOURCE_META } from "@/game/meta";
 import { relaxPuzzle } from "@/game/relaxed";
-import { tradeText, verdict } from "@/game/verdict";
+import { verdict } from "@/game/verdict";
 import { Board } from "./Board";
 import { BOARD_BLEED, CornerButtons } from "./PipFlashPlay";
 import { CountLog } from "./CountLog";
@@ -61,15 +60,6 @@ export function PuzzleReveal({ format, item, index, answer, ms, relaxed }: Props
           </>
         );
       })()}
-      {puzzle.format === "port-math" && (
-        <ol className="sea flex flex-col gap-1 text-s">
-          {portMathRoute(puzzle).map((t, i) => (
-            <li key={i}>
-              {i + 1}. {tradeText(puzzle, t)}
-            </li>
-          ))}
-        </ol>
-      )}
       {puzzle.format === "hand-tracker" && (() => {
         const hands = replayHand(puzzle);
         const final = hands ? hands[hands.length - 1] : puzzle.startHand;

@@ -1,4 +1,4 @@
-import { describeEvent, replayHand, type HandTrackerPuzzle } from "@/engine";
+import { describeEvent, replayHand, type HandTrackerPuzzle, type Resource } from "@/engine";
 
 export type HandPhase =
   | { kind: "reveal" }
@@ -60,4 +60,14 @@ export function runningCounts(puzzle: HandTrackerPuzzle): CountRow[] {
       changed: counts.map((c, q) => c !== before[q]),
     };
   });
+}
+
+/** Easy and medium name the resource to track from the start; hard keeps it a surprise. */
+export function trackedFromStart(puzzle: HandTrackerPuzzle): Resource[] {
+  return puzzle.tier === "hard" ? [] : [...puzzle.questions];
+}
+
+/** Log lines on screen at `index`: the one before stays in view, faded, except on hard. */
+export function logWindow(puzzle: HandTrackerPuzzle, index: number): number[] {
+  return puzzle.tier === "hard" || index === 0 ? [index] : [index - 1, index];
 }

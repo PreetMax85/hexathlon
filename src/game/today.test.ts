@@ -3,7 +3,8 @@ import { compareToBest } from "./best";
 import { introTiming, tierRamp } from "./meta";
 import { readSettings, saveSettings } from "./settings";
 import { saveResult, type KV, type LocalResult } from "./storage";
-import { markDailyDay, readStreak, streakFrom, todayStatus } from "./today";
+import { coverBoard, isMilestone, markDailyDay, stampLine, readStreak, streakFrom, todayStatus } from "./today";
+import { dailyItems, dailySeed, generate, runItems } from "@/engine";
 import { formatCountdown, untilNextDaily } from "./time";
 
 function fakeKV(): KV {
@@ -108,7 +109,9 @@ describe("intro timing lines", () => {
   });
 
   it("explains why Port Math has no clock", () => {
-    expect(introTiming("port-math", false)).toBe("No time limit. Your total time only breaks ties.");
+    expect(introTiming("port-math", false)).toBe(
+      "No time limit. A par of 15 / 20 / 30 s sets the pace; going over only costs the tiebreak.",
+    );
   });
 
   it("gives Hand Tracker's preview and pace", () => {
@@ -125,5 +128,35 @@ describe("tier ramp copy", () => {
   it("is derived from the run's own tiers", () => {
     expect(tierRamp("rush")).toBe("easy 1–4, medium 5–9, hard 10–13");
     expect(tierRamp("daily")).toBe("easy 1–2, medium 3–4, hard 5");
+  });
+});
+
+describe("cover board", () => {
+  it("is never a board the player will be scored on", () => {
+    for (const date of ["2026-09-29", "2026-09-30", "2027-01-01"]) {
+      const seed = dailySeed("pip-flash", date);
+      const cover = coverBoard(seed);
+      for (const it of dailyItems(seed)) expect(generate("pip-flash", it.tier, it.seed).board.hexes).not.toEqual(cover.hexes);
+      for (const it of runItems("rush", seed)) expect(generate("pip-flash", it.tier, it.seed).board.hexes).not.toEqual(cover.hexes);
+    }
+  });
+
+  it("is the same for everyone on the same seed", () => {
+    expect(coverBoard(42)).toEqual(coverBoard(42));
+    expect(coverBoard(43).hexes).not.toEqual(coverBoard(42).hexes);
+  });
+});
+
+describe("result stamp and milestones", () => {
+  it("names a clean run, a completed one and a rough one", () => {
+    expect(stampLine(13, 13, "rush")).toBe("Clean passage");
+    expect(stampLine(5, 5, "daily")).toBe("Clean passage");
+    expect(stampLine(9, 13, "rush")).toBe("Passage complete");
+    expect(stampLine(3, 5, "daily")).toBe("Daily done");
+    expect(stampLine(2, 5, "daily")).toBe("Rough passage");
+  });
+
+  it("marks every fifth right answer in a row", () => {
+    expect([1, 4, 5, 6, 10].map(isMilestone)).toEqual([false, false, true, false, true]);
   });
 });

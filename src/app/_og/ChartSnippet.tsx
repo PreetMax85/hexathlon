@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { isRed, TOPOLOGY, toCartesian, type Board } from "@/engine";
+import { isRed, pips, TOPOLOGY, toCartesian, type Board, type Resource } from "@/engine";
 import { RESOURCE_META } from "@/game/meta";
 import { portMark } from "@/components/Board";
 import { glyphPath } from "@/components/glyphs";
@@ -116,6 +116,30 @@ function SnippetPlate({ board }: { board: Board }) {
           )}
         </div>
       ))}
+      {/* Terrain glyphs, so no resource is told apart by colour alone. */}
+      {TOPOLOGY.hexes.map((h) => {
+        const { terrain, token } = board.hexes[h.id];
+        const g = token === null ? 0.8 * k : 0.36 * k;
+        const cy = token === null ? CENTERS[h.id].y : CENTERS[h.id].y - 0.62;
+        return (
+          <svg
+            key={`g${h.id}`}
+            width={g}
+            height={g}
+            viewBox="0 0 24 24"
+            style={{ position: "absolute", left: px(CENTERS[h.id].x) - g / 2, top: px(cy) - g / 2 }}
+          >
+            <path
+              d={glyphPath(token === null ? "desert" : (terrain as Resource))}
+              fill="none"
+              stroke={RESOURCE_META[terrain].glyph}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        );
+      })}
       {TOPOLOGY.hexes.map((h) => {
         const token = board.hexes[h.id].token;
         if (token === null) return null;
@@ -130,14 +154,22 @@ function SnippetPlate({ board }: { board: Board }) {
               width: size,
               height: size,
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
               fontFamily: "Archivo",
-              fontSize: 20,
+              fontSize: 19,
+              lineHeight: 1,
               color: isRed(token) ? "#b3122b" : INK,
             }}
           >
             {token}
+            {/* Pips under the number, as on the board. */}
+            <div style={{ display: "flex", gap: 1.5, marginTop: 2 }}>
+              {Array.from({ length: pips(token) }, (_, i) => (
+                <div key={i} style={{ width: 3.5, height: 3.5, borderRadius: 2, background: isRed(token) ? "#b3122b" : INK }} />
+              ))}
+            </div>
           </div>
         );
       })}

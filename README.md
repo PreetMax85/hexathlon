@@ -8,8 +8,8 @@ Mobile-first, no AI at runtime.
 | Format | Skill | You do | Clock (easy / medium / hard) |
 |---|---|---|---|
 | **Pip Flash** | Reading the board | Tap the corner touching the most pips | 7 / 8 / 10 s per board |
-| **Port Math** | Trade efficiency | See the hand, the build and the trade rates; tap the fewest trades it takes | None; time only breaks ties |
-| **Hand Tracker** | Card counting | Follow a game log, then count your rival's cards | 3 s preview, then 5 / 9 / 14 log lines paced for reading (≈3.0 / 2.7 / 2.5 s each) |
+| **Port Math** | Trade efficiency | See the hand, the build and the trade rates; tap the fewest trades it takes | None; a par of 15 / 20 / 30 s sets the pace, and time only breaks ties |
+| **Hand Tracker** | Card counting | Follow a game log, then count your rival's cards (easy and medium name the card to track) | 3 s preview, then 5 / 9 / 14 log lines paced for reading (≈3.0 / 2.7 / 2.5 s each) |
 
 Modes: **Daily** (5 puzzles per format per UTC day: 2 easy, 2 medium, 1 hard;
 the same for everyone; one scored attempt), **Rush** (13 puzzles, easy → hard),

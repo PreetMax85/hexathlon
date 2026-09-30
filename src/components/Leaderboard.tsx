@@ -21,7 +21,7 @@ function LeaderboardView({ title, result, onRetry, total, limit, empty }: ViewPr
   return (
     <section aria-label={title} className="flex flex-col">
       <div className="border-b border-ink pb-1.5">
-        <h2 className="sea">{title}</h2>
+        <h2 className="sea text-l">{title}</h2>
       </div>
       {result === undefined ? (
         <ul className="flex flex-col" aria-busy="true" aria-label="Loading leaderboard">

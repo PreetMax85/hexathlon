@@ -26,6 +26,9 @@ export const FORMAT_META: Record<Format, FormatMeta> = {
   },
 };
 
+/** Port Math's pace bar: a par per tier to aim at. Never a cutoff; time only breaks ties. */
+export const PORT_MATH_PAR_MS: Record<Tier, number> = { easy: 15_000, medium: 20_000, hard: 30_000 };
+
 export interface ResourceMeta {
   label: string;
   /** Hex fill on the board: the board owns the saturated colours. */
@@ -69,7 +72,7 @@ export function introTiming(format: Format, relaxed: boolean): string {
     case "pip-flash":
       return `Time limit per board: ${TIERS.map((t) => `${(PIP_FLASH_RULES[t].timeLimitMs * k) / 1000} s ${t}`).join(" · ")}.`;
     case "port-math":
-      return "No time limit. Your total time only breaks ties.";
+      return `No time limit. A par of ${TIERS.map((t) => PORT_MATH_PAR_MS[t] / 1000).join(" / ")} s sets the pace; going over only costs the tiebreak.`;
     case "hand-tracker": {
       const lines = TIERS.map((t) => HAND_TRACKER_RULES[t].events).join(" / ");
       // Relaxed playback is tap-paced: the hand and each line wait for the player.

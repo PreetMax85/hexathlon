@@ -1,10 +1,11 @@
 import { ImageResponse } from "next/og";
-import { generate, generateBoard, isFormat, runItems } from "@/engine";
+import { isFormat } from "@/engine";
 import { ChartSnippet, OG_SIZE, ogFonts } from "@/app/_og/ChartSnippet";
 import { getDb } from "@/db/client";
 import { FORMAT_META } from "@/game/meta";
 import { chartDate } from "@/game/chart";
 import { formatClock } from "@/game/time";
+import { coverBoard } from "@/game/today";
 import { CHALLENGE_ID } from "@/server/verify";
 import { challengeLeaderboard, getChallenge } from "@/server/store";
 
@@ -12,14 +13,6 @@ export const alt = "A Hexathlon Rush challenge: the island, the score to beat an
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
-/** The challenge's own island: the first board of its Rush when it has one. */
-function islandFor(format: string, seed: number) {
-  if (format === "pip-flash") {
-    const first = runItems("rush", seed)[0];
-    return generate("pip-flash", first.tier, first.seed).board;
-  }
-  return generateBoard(seed);
-}
 
 async function load(id: string) {
   if (!CHALLENGE_ID.test(id)) return null;
@@ -43,7 +36,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     return new ImageResponse(
       (
         <ChartSnippet
-          board={generateBoard(20260929)}
+          board={coverBoard(20260929)}
           title="Rush challenge"
           note="Thirteen puzzles, the same for both of you"
           detail="Open the link to sail it."
@@ -58,7 +51,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   return new ImageResponse(
     (
       <ChartSnippet
-        board={islandFor(c.format, c.seed)}
+        board={coverBoard(c.seed)}
         title={`${name} Rush`}
         note={`${c.createdBy} challenges you`}
         score={c.top ? `${c.top.correct}/13` : undefined}

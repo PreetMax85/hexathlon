@@ -11,7 +11,7 @@ import {
   type Resource,
   type ResourceCounts,
 } from "@/engine";
-import { handPhaseAt, handPhaseAtStep, logSummary } from "@/game/handTrackerFlow";
+import { handPhaseAt, handPhaseAtStep, logSummary, logWindow, trackedFromStart } from "@/game/handTrackerFlow";
 import { RESOURCE_META } from "@/game/meta";
 import { emptyPad, PAD_VALUES, padKey, padTap, type PadState } from "@/game/numberPad";
 import { CountLog } from "./CountLog";
@@ -57,6 +57,7 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
   const asking = !ready && phase.kind === "ask";
   const qIndex = Math.min(answers.length, puzzle.questions.length - 1);
   const question = puzzle.questions[qIndex];
+  const tracked = trackedFromStart(puzzle);
 
   const confirm = (value: number | null) => {
     if (!asking || finished || value === null) return;
@@ -96,11 +97,21 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h2 className="font-bold">Count your rival&apos;s cards.</h2>
-        <p className="text-s text-ink-2">
-          Memorise the starting hand, keep a running count, then answer.
-        </p>
+        {tracked.length > 0 ? (
+          <span className="flex items-center gap-1.5 rounded-md bg-shoal-2 px-2 py-1 text-s font-bold">
+            Tracking
+            {tracked.map((r) => (
+              <span key={r} className="inline-flex items-center gap-1">
+                <Glyph name={r} size={16} />
+                {RESOURCE_META[r].label.toLowerCase()}
+              </span>
+            ))}
+          </span>
+        ) : (
+          <span className="text-s text-ink-2">Track every card: the question is a surprise.</span>
+        )}
       </div>
 
       {/*
@@ -150,14 +161,20 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
               )}
             </span>
           </div>
-          {/* Only the current line: the format trains a running count, not re-reading. */}
-          <p
-            key={phase.index}
-            aria-hidden
-            className="anim-slide border-y-2 border-ink bg-deep px-4 py-5 text-l font-semibold leading-snug"
-          >
-            {describeEvent(puzzle.events[phase.index])}
-          </p>
+          {/* The current line, with the one before faded above it (hard shows only the current). */}
+          <div aria-hidden className="flex flex-col">
+            {logWindow(puzzle, phase.index).map((i) =>
+              i === phase.index ? (
+                <p key={i} className="anim-slide border-y-2 border-ink bg-deep px-4 py-5 text-l font-semibold leading-snug">
+                  {describeEvent(puzzle.events[i])}
+                </p>
+              ) : (
+                <p key={i} className="px-4 pb-2 text-s text-ink-2">
+                  {describeEvent(puzzle.events[i])}
+                </p>
+              ),
+            )}
+          </div>
           {tapPaced && <Button onClick={() => setStep((s) => s + 1)}>Next line</Button>}
         </section>
       )}
