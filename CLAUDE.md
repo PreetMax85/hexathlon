@@ -1,6 +1,6 @@
 # Hexathlon: rules for agents
 
-At the start of every session, read `PRODUCT.md`, `docs/PLAN-v1.1.md` and `docs/BUILD_LOG.md`.
+At the start of every session, read `PRODUCT.md`, `docs/PLAN-v1.1.md`, `docs/BUILD_LOG.md` and the current plan, `docs/PLAN-v1.4.md`.
 Continue from the first phase that BUILD_LOG doesn't mark as done. v1 (P0–P5, `docs/PLAN.md`) is done.
 
 ## Working rules
