@@ -271,3 +271,10 @@ sessions, and each commit links to its session.
 - Tests: 182 passing (+2 DB tests, skipped without a database)
 - Screenshots: `docs/screenshots/v1.3/`; the capture reports no page errors and no horizontal scroll.
 - Notes for next phase: v1.4 is the endgame mode ("Last Turn": can you win this turn?); agree its rules with the owner before building.
+
+## 2026-10-30 — Readability and homepage rankings — done
+- What shipped: dedicated Day/Dusk marker colors; larger instructions, explanations, token numbers and port labels; wider desktop play layout; pointer cursors for enabled buttons; mobile verdict actions on a separate row; a top-five homepage Daily leaderboard with format tabs and three-minute visible polling.
+- Decisions: reuse existing Daily APIs and leaderboard rows; refresh on focus/visibility and UTC day change; retain last good scores when refresh fails. Keep phone layout and scoring intact. Add a documented 18px desktop reading role instead of enlarging metadata globally. No dependencies or schema changes.
+- What broke and how it was fixed: spec review caught remaining 13px Hand Tracker guidance, now promoted. Browser fixtures use explicit waiting on rendered rows; developer Strict Mode can issue two initial requests, while the production build issues one.
+- Validation: `pnpm check` (182 pass, two DB tests skipped), `pnpm build`, two-axis source review, and WSL Chromium flow/layout/polling checks. See `docs/READABILITY_REVIEW.md` and its labelled screenshots for evidence and limits.
+- Notes: prepared on `fix/readability-and-home-leaderboard`; not merged to main in this pass. The separate Last Turn planning branch is untouched.

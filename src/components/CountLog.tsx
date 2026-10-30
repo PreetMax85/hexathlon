@@ -7,7 +7,7 @@ import { Glyph } from "./glyphs";
 export function CountLog({ puzzle }: { puzzle: HandTrackerPuzzle }) {
   const rows = runningCounts(puzzle);
   return (
-    <table className="w-full text-s">
+    <table className="w-full text-m leading-relaxed">
       <thead>
         <tr className="border-b border-ink text-left text-ink-2">
           <th className="py-1 font-semibold">Log</th>

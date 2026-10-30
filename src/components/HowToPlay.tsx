@@ -29,12 +29,12 @@ export function HowToPlay({ format }: { format: Format }) {
         How to play
       </summary>
       <div className="pb-2">
-        <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-s">
+        <ol className="reading-copy flex list-decimal flex-col gap-2 pl-5">
           {STEPS[format].map((s) => (
             <li key={s}>{s}</li>
           ))}
         </ol>
-        <p className="mt-2 text-s text-ink-2">New to it? Warm up with a Rush before the Daily.</p>
+        <p className="reading-copy mt-3 text-ink-2">New to it? Warm up with a Rush before the Daily.</p>
       </div>
     </details>
   );

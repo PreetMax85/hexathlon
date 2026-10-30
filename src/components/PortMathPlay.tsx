@@ -96,7 +96,7 @@ export function PortMathPlay({ puzzle, onAnswer }: Props) {
       </section>
 
       <section aria-label="Answer" className="flex flex-col gap-2">
-        <h2 className="font-bold">Fewest trades to build it?</h2>
+        <h2 className="reading-copy font-bold">Fewest trades to build it?</h2>
         {/* A gentle pace, not a clock: the bar drains to par and then just waits. */}
         <div className="flex items-center gap-3" aria-hidden>
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-hair">

@@ -22,7 +22,7 @@ export default async function PlayPage(props: PageProps<"/play/[format]/[mode]">
   return (
     <>
       <AppHeader />
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pt-4 pb-6">
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pt-4 pb-6 lg:max-w-3xl lg:pt-6">
         <GameRun format={format} mode={mode} />
       </main>
     </>

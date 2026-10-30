@@ -24,6 +24,8 @@
   --token: #fbf8ef;
   --token-ink: #1d2b36;
   --token-red: #b3122b;
+  --marker: #1d2b36;
+  --on-marker: #fbf8ef;
   /* Primary action plate. */
   --action: var(--ink);
   --on-action: var(--paper);
@@ -50,6 +52,8 @@
     --token: #d9d4c6;
     --token-ink: #11191f;
     --token-red: #8f1024;
+    --marker: #11191f;
+    --on-marker: #f3f7f7;
     color-scheme: dark;
   }
 }
@@ -73,6 +77,8 @@
   --token: #d9d4c6;
   --token-ink: #11191f;
   --token-red: #8f1024;
+  --marker: #11191f;
+  --on-marker: #f3f7f7;
   color-scheme: dark;
 }
 
@@ -133,6 +139,24 @@ a,
 [role="button"] {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+button:enabled,
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+/* Instructions and explanations are reading text, not metadata. */
+.reading-copy {
+  font-size: 1rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+@media (min-width: 1024px) {
+  .reading-copy {
+    font-size: 1.125rem;
+  }
 }
 
 a {

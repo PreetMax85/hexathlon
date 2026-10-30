@@ -362,6 +362,10 @@
         "displayName": "Body",
         "purpose": "Running text; secondary lines at 0.8125rem in ink-soft."
       },
+      "reading-desktop": {
+        "displayName": "Reading Copy",
+        "purpose": "Instructions and explanations: 1rem on phones, 1.125rem from 1024px, line-height 1.55. Metadata stays compact."
+      },
       "sea": {
         "displayName": "Sea Italic",
         "purpose": "Section headings, captions, water, soundings, port rates, nickname."

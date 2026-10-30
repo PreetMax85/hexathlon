@@ -29,7 +29,7 @@ export function AppHeader({ wide = false }: { wide?: boolean }) {
   const next = theme ? toggleTheme(theme) : "dusk";
   return (
     <header data-app-header className="border-b border-hair bg-paper">
-      <div className={`mx-auto flex min-h-14 w-full items-center justify-between gap-2 px-4 ${wide ? "max-w-6xl" : "max-w-xl"}`}>
+      <div className={`mx-auto flex min-h-14 w-full items-center justify-between gap-2 px-4 ${wide ? "max-w-6xl" : "max-w-xl lg:max-w-3xl"}`}>
         <Link href="/" className="flex min-h-11 min-w-0 items-center gap-2" aria-label="Hexathlon home">
           <Logo />
           <span className="text-m font-extrabold uppercase leading-none tracking-[0.12em] wide">Hexathlon</span>

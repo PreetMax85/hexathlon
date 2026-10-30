@@ -98,7 +98,7 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h2 className="font-bold">Count your rival&apos;s cards.</h2>
+        <h2 className="reading-copy font-bold">Count your rival&apos;s cards.</h2>
         {tracked.length > 0 ? (
           <span className="flex items-center gap-1.5 rounded-md bg-shoal-2 px-2 py-1 text-s font-bold">
             Tracking
@@ -110,7 +110,7 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
             ))}
           </span>
         ) : (
-          <span className="text-s text-ink-2">Track every card: the question is a surprise.</span>
+          <span className="reading-copy text-ink-2">Track every card: the question is a surprise.</span>
         )}
       </div>
 
@@ -142,7 +142,7 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
           {tapPaced ? (
             <Button onClick={() => setStep(1)} disabled={ready}>Start the log</Button>
           ) : (
-            <p className="text-center text-s text-ink-2">Remember these. They disappear.</p>
+            <p className="reading-copy text-center text-ink-2">Remember these. They disappear.</p>
           )}
         </section>
       )}
@@ -209,7 +209,7 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
           <Button disabled={pad.value === null} onClick={() => confirm(pad.value)}>
             {pad.value === null ? "Pick a count" : `Confirm ${pad.value}`}
           </Button>
-          <p className="text-center text-s text-ink-2">Tap or type 0–19, then confirm (Enter).</p>
+          <p className="reading-copy text-center text-ink-2">Tap or type 0–19, then confirm (Enter).</p>
         </section>
       )}
 
@@ -217,7 +217,7 @@ export function HandTrackerPlay({ puzzle, onAnswer, tapPaced = false }: Props) {
         <section aria-label="Rival's final hand" className="anim-pop flex flex-col gap-3">
           <h3 className="sea">Rival&apos;s final hand</h3>
           <HandTiles hand={finalHand} highlight={puzzle.questions} />
-          <p className="text-s text-ink-2">
+          <p className="reading-copy text-ink-2">
             You answered {answers.map((a, i) => `${a} ${puzzle.questions[i]}`).join(" and ")}.
           </p>
           {/* A miss shows where the count moved, line by line: that's where it slipped. */}

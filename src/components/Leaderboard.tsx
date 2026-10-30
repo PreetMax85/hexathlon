@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { ApiResult, BoardEntry, ChallengeData, DailyBoardData } from "@/game/api";
 import { fetchChallenge, fetchDaily } from "@/game/api";
 import { DAILY_TIERS, RUSH_LENGTH, type Format } from "@/engine";
@@ -15,12 +16,14 @@ interface ViewProps {
   total: number;
   limit?: number;
   empty: string;
+  footer?: ReactNode;
+  hideHeading?: boolean;
 }
 
-function LeaderboardView({ title, result, onRetry, total, limit, empty }: ViewProps) {
+export function LeaderboardView({ title, result, onRetry, total, limit, empty, footer, hideHeading = false }: ViewProps) {
   return (
     <section aria-label={title} className="flex flex-col">
-      <div className="border-b border-ink pb-1.5">
+      <div className={hideHeading ? "sr-only" : "border-b border-ink pb-1.5"}>
         <h2 className="sea text-l">{title}</h2>
       </div>
       {result === undefined ? (
@@ -58,6 +61,7 @@ function LeaderboardView({ title, result, onRetry, total, limit, empty }: ViewPr
           ))}
         </ol>
       )}
+      {footer}
     </section>
   );
 }

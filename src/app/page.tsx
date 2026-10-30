@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/AppHeader";
+import { HomeLeaderboard } from "@/components/HomeLeaderboard";
 import { IslandPlate, ThumbAction, TodayStrip } from "@/components/TodayStrip";
 
 export default function Home() {
@@ -13,6 +14,7 @@ export default function Home() {
         <div className="flex flex-col gap-7">
           <TodayStrip />
           <ThumbAction />
+          <HomeLeaderboard />
           <p className="pb-6 text-s text-ink-2">No login. A nickname is asked only when you first put a score on a board.</p>
         </div>
       </main>
