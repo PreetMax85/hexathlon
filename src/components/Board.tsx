@@ -9,7 +9,7 @@ const HEX_CENTERS = TOPOLOGY.hexes.map((h) => pt(h.x, h.y));
 
 /** Port chips sit this far outside the coast. */
 const PORT_OUT = 0.95;
-const CHIP = { w: 1.06, h: 0.56 };
+const CHIP = { w: 1.26, h: 0.6 };
 const TOKEN_R = 0.46;
 const MARKER_R = 0.42;
 
@@ -106,7 +106,7 @@ function Token({ hexId, board }: { hexId: number; board: BoardData }) {
   return (
     <g transform={`translate(${c.x} ${c.y + 0.1})`}>
       <circle r={TOKEN_R} fill="var(--token)" />
-      <text y={0.07} fontSize={0.46} fontWeight={red ? 800 : 700} textAnchor="middle" fill={numColor} style={{ fontStretch: "88%" }}>
+      <text y={0.07} fontSize={0.49} fontWeight={red ? 800 : 700} textAnchor="middle" fill={numColor} style={{ fontStretch: "88%" }}>
         {token}
       </text>
       <Pips count={pips(token)} color={numColor} />
@@ -141,9 +141,9 @@ function PortMarker({ port }: { port: Port }) {
           strokeWidth={0.05}
         />
         <text
-          x={generic ? p.x : p.x - 0.2}
+          x={generic ? p.x : p.x - 0.23}
           y={p.y + 0.12}
-          fontSize={0.34}
+          fontSize={0.4}
           fontWeight={800}
           textAnchor="middle"
           fill={ink}
@@ -151,7 +151,7 @@ function PortMarker({ port }: { port: Port }) {
         >
           {generic ? "3:1" : "2:1"}
         </text>
-        {meta && <BoardGlyph name={port.kind as Resource} x={p.x + 0.26} y={p.y} s={0.38} color={ink} />}
+        {meta && <BoardGlyph name={port.kind as Resource} x={p.x + 0.34} y={p.y} s={0.38} color={ink} />}
       </g>
     </g>
   );
@@ -263,8 +263,8 @@ export function Board({ board, candidates, onPick, reveal, className, label }: B
                   cx={p.x}
                   cy={p.y}
                   r={MARKER_R}
-                  fill={dim ? "var(--paper)" : "var(--ink)"}
-                  stroke={dim ? "var(--ink-2)" : "var(--token)"}
+                  fill={dim ? "var(--paper)" : "var(--marker)"}
+                  stroke={dim ? "var(--ink-2)" : "var(--on-marker)"}
                   strokeWidth={0.07}
                 />
                 <text
@@ -273,7 +273,7 @@ export function Board({ board, candidates, onPick, reveal, className, label }: B
                   fontSize={0.46}
                   fontWeight={800}
                   textAnchor="middle"
-                  fill={dim ? "var(--ink-2)" : "var(--token)"}
+                  fill={dim ? "var(--ink-2)" : "var(--on-marker)"}
                 >
                   {CANDIDATE_LABELS[i]}
                 </text>

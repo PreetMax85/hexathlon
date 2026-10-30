@@ -47,6 +47,11 @@ typography:
     fontWeight: 400
     lineHeight: 1.45
     fontFeature: "'tnum'"
+  reading-desktop:
+    fontFamily: "Archivo, system-ui, sans-serif"
+    fontSize: "1.125rem"
+    fontWeight: 400
+    lineHeight: 1.55
   sea:
     fontFamily: "Archivo, system-ui, sans-serif"
     fontSize: "1rem"
@@ -123,6 +128,12 @@ components:
 > ports are resource-coloured chips; answer buttons sit under the board. See
 > the amendment in `.impeccable/surfaces/src-app.md`. Where this file
 > disagrees, the amendment and the code win.
+
+> **Readability refinement (2026-10-30).** Essential instructions and
+> explanations use 1rem text, rising to 1.125rem at 1024px with 1.55 leading;
+> desktop intro titles use 2rem. These roles supersede the Three Sizes Rule
+> below. Corner markers use dedicated high-contrast Day/Dusk color pairs.
+> Desktop play containers allow 768px and boards 640px; mobile stays stacked.
 
 
 # Design System: Hexathlon

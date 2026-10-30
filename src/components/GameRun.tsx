@@ -365,11 +365,11 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
     return (
       <div className="anim-pop flex flex-col gap-6">
         <header className="flex flex-col gap-1">
-          <h1 className="text-l font-extrabold wide uppercase">
+          <h1 className="text-l font-extrabold wide uppercase lg:text-3xl">
             {meta.name} {mode === "rush" ? "Rush" : "Daily"}
           </h1>
           {challenge && <p className="sea text-accent">A challenge from {challenge.createdBy}</p>}
-          <p>{meta.tagline}</p>
+          <p className="reading-copy">{meta.tagline}</p>
         </header>
         {quickSets && (
           <fieldset className="flex flex-col gap-2">
@@ -391,7 +391,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
           </fieldset>
         )}
         <Note title="How it works" as="div">
-          <ul className="flex flex-col gap-2 text-s">
+          <ul className="reading-copy flex flex-col gap-3">
             {quickLength ? (
               <>
                 <li><b>{length} puzzles</b>, easy to hard. A quick set is unranked and stays on this device.</li>
@@ -415,7 +415,7 @@ export function GameRun({ format, mode, fixedSeed, challenge }: Props) {
         </Note>
         <HowToPlay format={format} />
         <label className="flex min-h-12 cursor-pointer items-center justify-between gap-4 border-y border-hair py-3">
-          <span className="text-s">
+          <span className="reading-copy">
             <b className="text-m">Relaxed mode</b>
             <span className="block text-ink-2">Double time; Hand Tracker steps on tap. Unranked, kept on this device.</span>
           </span>

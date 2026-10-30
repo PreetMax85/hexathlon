@@ -8,7 +8,7 @@ import { Buoy } from "./glyphs";
 import { usePuzzleClock } from "./useClock";
 
 /** The board runs to the screen's edges on a phone, and sits in the column on wider screens. */
-export const BOARD_BLEED = "-mx-4 block w-[calc(100%+2rem)] max-w-none sm:mx-auto sm:w-full sm:max-w-[34rem] sm:rounded-lg";
+export const BOARD_BLEED = "-mx-4 block w-[calc(100%+2rem)] max-w-none sm:mx-auto sm:w-full sm:max-w-[34rem] sm:rounded-lg lg:max-w-[40rem]";
 
 /** Counts up from 0 to `to` once, so a reveal reads as pips being added; instant with reduced motion. */
 function CountUp({ to }: { to: number }) {
@@ -159,7 +159,7 @@ export function PipFlashPlay({ puzzle, onAnswer }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="font-bold">Which corner touches the most pips?</h2>
+      <h2 className="reading-copy font-bold">Which corner touches the most pips?</h2>
       <TimeBar fraction={fraction} ready={ready} seconds={leftMs / 1000} />
       <Board
         board={puzzle.board}

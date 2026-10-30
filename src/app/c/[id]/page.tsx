@@ -12,7 +12,7 @@ export default async function ChallengePage(props: PageProps<"/c/[id]">) {
   return (
     <>
       <AppHeader />
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pt-4 pb-6">
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pt-4 pb-6 lg:max-w-3xl lg:pt-6">
         <ChallengeClient id={id} />
       </main>
     </>

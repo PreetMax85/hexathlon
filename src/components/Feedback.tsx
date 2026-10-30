@@ -27,14 +27,14 @@ export function Feedback({ verdict, action, onNext, onPause, glideMs, inline }: 
           : "sticky bottom-0 -mx-4 mt-1 border-t-2 border-ink px-4 pt-3 pb-[max(0.875rem,env(safe-area-inset-bottom))]"
       }`}
     >
-      <div className="mx-auto flex max-w-xl flex-wrap items-center gap-x-3 gap-y-2">
+      <div className="mx-auto flex max-w-xl flex-wrap items-center gap-x-3 gap-y-3 lg:max-w-3xl">
         <Buoy kind={ok ? "cone" : "can"} size={34} />
         <div className="min-w-0 flex-1">
           <div className={`font-bold ${ok ? "text-green" : "text-red"}`}>{verdict.title}</div>
-          <div className="text-s leading-snug text-ink">{verdict.detail}</div>
+          <div className="reading-copy text-ink">{verdict.detail}</div>
         </div>
         {(onPause || (action && onNext)) && (
-          <div className="flex shrink-0 gap-2">
+          <div className="flex w-full justify-end gap-2 sm:w-auto sm:shrink-0 [&>button]:flex-1 sm:[&>button]:flex-none">
             {onPause && (
               <Button variant="secondary" onClick={onPause} className="px-3" aria-label="Pause before the next puzzle">
                 Pause
